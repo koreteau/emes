@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* src/index.css */
+@font-face {
+    font-family: 'hubFont';
+    src: url('./assets/mulish.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  /* Appliquez la police à l'ensemble du document */
+  html {
+    font-family: 'hubFont', sans-serif;
+  }
