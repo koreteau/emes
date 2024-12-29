@@ -1,0 +1,165 @@
+cortocolloc@mac database % brew install postgresql
+==> Auto-updating Homebrew...
+Adjust how often this is run with HOMEBREW_AUTO_UPDATE_SECS or disable with
+HOMEBREW_NO_AUTO_UPDATE. Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+==> Downloading https://ghcr.io/v2/homebrew/portable-ruby/portable-ruby/blobs/sha256:303bed4c7fc431a685db3c3c151d873740114adbdccd23762ea2d1e39ea78f47
+################################################################################################################################################################ 100.0%
+==> Pouring portable-ruby-3.3.6.arm64_big_sur.bottle.tar.gz
+==> Homebrew collects anonymous analytics.
+Read the analytics documentation (and how to opt-out) here:
+  https://docs.brew.sh/Analytics
+No analytics have been recorded yet (nor will be during this `brew` run).
+
+==> Homebrew is run entirely by unpaid volunteers. Please consider donating:
+  https://github.com/Homebrew/brew#donations
+
+==> Auto-updated Homebrew!
+Updated 2 taps (homebrew/core and homebrew/cask).
+==> New Formulae
+aliae                aws-c-sdkutils       cmake-lint           energy               ipatool              markdown-oxide       redka                tcl-tk@8
+ampl-asl             aws-checksums        cobo-cli             eslint_d             kanata               meli                 regal                television
+ansible@10           aws-crt-cpp          comtrya              eventpp              kfr                  mergiraf             rip2                 toml2json
+aws-c-auth           azqr                 cpp-peglib           fileql               kraftkit             minio-warp           rogcat               topiary
+aws-c-cal            beautysh             decasify             fltk@1.3             kubeone              mkdocs-material      rshijack             typos-lsp
+aws-c-common         bibtex-tidy          dipc                 funzzy               kuzco                neocmakelsp          scooter              victorialogs
+aws-c-compression    cargo-chef           directx-headers      gci                  libcutl              nrm                  screenpipe           wasm-component-ld
+aws-c-event-stream   cargo-expand         dotnet@8             glibc@2.17           libmsquic            onnx                 sesh                 wgo
+aws-c-http           cargo-run-bin        draft                gplugin              libtatsu             php@8.3              sigsum-go            xcresultparser
+aws-c-io             cbfmt                dragonbox            harlequin            libultrahdr          pie                  sixtunnel
+aws-c-mqtt           cljfmt               ducker               havn                 libxsd-frontend      pytest               sqlitecpp
+aws-c-s3             cloudquery           dum                  imgp                 lla                  rainfrog             tabulate
+==> New Casks
+acronis-true-image-cleanup-tool           font-playwrite-au-sa-guides               font-playwrite-hu-guides                  jet-pilot
+aide-app                                  font-playwrite-au-tas-guides              font-playwrite-in-guides                  kimis
+ba-connected                              font-playwrite-au-vic-guides              font-playwrite-is-guides                  last-window-quits
+bananas                                   font-playwrite-be-vlg-guides              font-playwrite-it-moderna-guides          lunatask
+beaver-notes                              font-playwrite-be-wal-guides              font-playwrite-it-trad-guides             meridiem
+beyond-compare@4                          font-playwrite-br-guides                  font-playwrite-mx-guides                  mythic
+bobhelper                                 font-playwrite-ca-guides                  font-playwrite-ng-modern-guides           neohtop
+claude                                    font-playwrite-cl-guides                  font-playwrite-nl-guides                  ontime
+default-handler                           font-playwrite-co-guides                  font-playwrite-no-guides                  openchrom
+djstudio                                  font-playwrite-cu-guides                  font-playwrite-nz-guides                  openhv
+djuced                                    font-playwrite-cz-guides                  font-playwrite-pe-guides                  pixpin
+fathom                                    font-playwrite-de-grund-guides            font-playwrite-pl-guides                  satyrn
+font-agu-display                          font-playwrite-de-la-guides               font-playwrite-pt-guides                  shortwave
+font-badeen-display                       font-playwrite-de-sas-guides              font-playwrite-ro-guides                  sys-pc-tool
+font-cica-without-emoji                   font-playwrite-de-va-guides               font-playwrite-sk-guides                  tabtab
+font-departure-mono-nerd-font             font-playwrite-dk-loopet-guides           font-playwrite-tz-guides                  taskbar
+font-eldur                                font-playwrite-dk-uloopet-guides          font-playwrite-us-modern-guides           teleport
+font-maple-mono-nf                        font-playwrite-es-deco-guides             font-playwrite-us-trad-guides             testfully
+font-montserrat-underline                 font-playwrite-es-guides                  font-playwrite-vn-guides                  viz
+font-parkinsans                           font-playwrite-fr-moderne-guides          font-playwrite-za-guides                  website-audit
+font-playwrite-ar-guides                  font-playwrite-fr-trad-guides             font-recursive-desktop                    whimsical
+font-playwrite-at-guides                  font-playwrite-gb-j-guides                font-sketchybar-app-font                  windsurf
+font-playwrite-au-nsw-guides              font-playwrite-hr-guides                  hyperconnect                              wiso-steuer-2025
+font-playwrite-au-qld-guides              font-playwrite-hr-lijeva-guides           ishare                                    zen-browser@twilight
+
+You have 4 outdated formulae installed.
+
+Warning: Formula postgresql was renamed to postgresql@14.
+==> Downloading https://ghcr.io/v2/homebrew/core/postgresql/14/manifests/14.15
+################################################################################################################################################################ 100.0%
+==> Fetching dependencies for postgresql@14: icu4c@76, krb5, lz4 and readline
+==> Downloading https://ghcr.io/v2/homebrew/core/icu4c/76/manifests/76.1_1
+################################################################################################################################################################ 100.0%
+==> Fetching icu4c@76
+==> Downloading https://ghcr.io/v2/homebrew/core/icu4c/76/blobs/sha256:66a2995c046a7d78b727cac1b90f52a2fd3bcf07488ae41c711109bbd1fca8e1
+################################################################################################################################################################ 100.0%
+==> Downloading https://ghcr.io/v2/homebrew/core/krb5/manifests/1.21.3
+################################################################################################################################################################ 100.0%
+==> Fetching krb5
+==> Downloading https://ghcr.io/v2/homebrew/core/krb5/blobs/sha256:75d0ce70b754c159e642f7e9afff27add08203423792f34c240a20ea014bfcec
+################################################################################################################################################################ 100.0%
+==> Downloading https://ghcr.io/v2/homebrew/core/lz4/manifests/1.10.0-1
+################################################################################################################################################################ 100.0%
+==> Fetching lz4
+==> Downloading https://ghcr.io/v2/homebrew/core/lz4/blobs/sha256:5bd143b7b784989e549637ea4e484af85ba481e640dde69bc35f3843ae25abc6
+################################################################################################################################################################ 100.0%
+==> Downloading https://ghcr.io/v2/homebrew/core/readline/manifests/8.2.13
+################################################################################################################################################################ 100.0%
+==> Fetching readline
+==> Downloading https://ghcr.io/v2/homebrew/core/readline/blobs/sha256:738c27ceee9a8b198f98438477ef7a513a96a965e3a434ac3aa8fb4ed76494b1
+################################################################################################################################################################ 100.0%
+==> Fetching postgresql@14
+==> Downloading https://ghcr.io/v2/homebrew/core/postgresql/14/blobs/sha256:98f8b1b18ad13b8ad8e07a1087ee457dbadb60a317ac77e71025e18ef65a1d72
+################################################################################################################################################################ 100.0%
+==> Installing dependencies for postgresql@14: icu4c@76, krb5, lz4 and readline
+==> Installing postgresql@14 dependency: icu4c@76
+==> Downloading https://ghcr.io/v2/homebrew/core/icu4c/76/manifests/76.1_1
+Already downloaded: /Users/cortocolloc/Library/Caches/Homebrew/downloads/c105f8980d3a6b0ff0253b47492e886520580406ee75fa52509cf5b251b4d633--icu4c@76-76.1_1.bottle_manifest.json
+==> Pouring icu4c@76--76.1_1.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/icu4c@76/76.1_1: 277 files, 81MB
+==> Installing postgresql@14 dependency: krb5
+==> Downloading https://ghcr.io/v2/homebrew/core/krb5/manifests/1.21.3
+Already downloaded: /Users/cortocolloc/Library/Caches/Homebrew/downloads/c5793441ca90aa09420dddd84f19d4aaf86da4f0b3f60c84940d77b1cb4c6863--krb5-1.21.3.bottle_manifest.json
+==> Pouring krb5--1.21.3.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/krb5/1.21.3: 163 files, 5.6MB
+==> Installing postgresql@14 dependency: lz4
+==> Downloading https://ghcr.io/v2/homebrew/core/lz4/manifests/1.10.0-1
+Already downloaded: /Users/cortocolloc/Library/Caches/Homebrew/downloads/8e11e90eb21a06e0f199af9d80e011e3693c77dd353b2477579d95c8471a5802--lz4-1.10.0-1.bottle_manifest.json
+==> Pouring lz4--1.10.0.arm64_sequoia.bottle.1.tar.gz
+🍺  /opt/homebrew/Cellar/lz4/1.10.0: 24 files, 713.6KB
+==> Installing postgresql@14 dependency: readline
+==> Downloading https://ghcr.io/v2/homebrew/core/readline/manifests/8.2.13
+Already downloaded: /Users/cortocolloc/Library/Caches/Homebrew/downloads/aa1afa38997a2866d91c81fdda8b36d436cd4ea7a82aed07d13c83c56eb3460e--readline-8.2.13.bottle_manifest.json
+==> Pouring readline--8.2.13.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/readline/8.2.13: 51 files, 1.7MB
+==> Installing postgresql@14
+==> Pouring postgresql@14--14.15.arm64_sequoia.bottle.tar.gz
+==> /opt/homebrew/Cellar/postgresql@14/14.15/bin/initdb --locale=C -E UTF-8 /opt/homebrew/var/postgresql@14
+==> Caveats
+This formula has created a default database cluster with:
+  initdb --locale=C -E UTF-8 /opt/homebrew/var/postgresql@14
+
+To start postgresql@14 now and restart at login:
+  brew services start postgresql@14
+Or, if you don't want/need a background service you can just run:
+  /opt/homebrew/opt/postgresql@14/bin/postgres -D /opt/homebrew/var/postgresql@14
+==> Summary
+🍺  /opt/homebrew/Cellar/postgresql@14/14.15: 3,328 files, 45.6MB
+==> Running `brew cleanup postgresql@14`...
+Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+==> `brew cleanup` has not been run in the last 30 days, running now...
+Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+Removing: /Users/cortocolloc/Library/Caches/Homebrew/c-ares--1.34.2... (294.8KB)
+Removing: /Users/cortocolloc/Library/Caches/Homebrew/ca-certificates--2024-09-24... (132.6KB)
+Removing: /Users/cortocolloc/Library/Caches/Homebrew/icu4c@75--75.1... (29MB)
+Removing: /Users/cortocolloc/Library/Caches/Homebrew/node@22--22.10.0... (19.7MB)
+Removing: /Users/cortocolloc/Library/Logs/Homebrew/openssl@3... (64B)
+Removing: /Users/cortocolloc/Library/Logs/Homebrew/ca-certificates... (64B)
+Removing: /Users/cortocolloc/Library/Logs/Homebrew/node@22... (64B)
+==> Caveats
+==> postgresql@14
+This formula has created a default database cluster with:
+  initdb --locale=C -E UTF-8 /opt/homebrew/var/postgresql@14
+
+To start postgresql@14 now and restart at login:
+  brew services start postgresql@14
+Or, if you don't want/need a background service you can just run:
+  /opt/homebrew/opt/postgresql@14/bin/postgres -D /opt/homebrew/var/postgresql@14
+cortocolloc@mac database % brew services start postgresql
+==> Tapping homebrew/services
+Cloning into '/opt/homebrew/Library/Taps/homebrew/homebrew-services'...
+remote: Enumerating objects: 3635, done.
+remote: Counting objects: 100% (781/781), done.
+remote: Compressing objects: 100% (328/328), done.
+remote: Total 3635 (delta 526), reused 629 (delta 448), pack-reused 2854 (from 1)
+Receiving objects: 100% (3635/3635), 1.05 MiB | 296.00 KiB/s, done.
+Resolving deltas: 100% (1767/1767), done.
+Tapped 2 commands (52 files, 1.3MB).
+Warning: Formula postgresql was renamed to postgresql@14.
+==> Successfully started `postgresql@14` (label: homebrew.mxcl.postgresql@14)
+cortocolloc@mac database % psql --version
+psql (PostgreSQL) 14.15 (Homebrew)
+cortocolloc@mac database % psql postgres
+psql (14.15 (Homebrew))
+Type "help" for help.
+
+postgres=# CREATE USER koreteau WITH PASSWORD 'Corto2003';
+CREATE ROLE
+postgres=# CREATE DATABASE capaci OWNER koreteau;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE capaci TO koreteau;
+GRANT

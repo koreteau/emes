@@ -1,0 +1,294 @@
+cortocolloc@mac database % psql -U koreteau -d capaci
+psql (14.15 (Homebrew))
+Type "help" for help.
+
+capaci=> CREATE TABLE Accounts (
+    account_id VARCHAR(50) PRIMARY KEY,
+    account_name VARCHAR(100) NOT NULL,
+    account_type VARCHAR(50) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    entity_id VARCHAR(50) REFERENCES Entities(entity_id)
+);
+ERROR:  relation "entities" does not exist
+capaci=> CREATE TABLE Entities (
+    entity_id VARCHAR(50) PRIMARY KEY,
+    entity_name VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE Accounts (
+    account_id VARCHAR(50) PRIMARY KEY,
+    account_name VARCHAR(100) NOT NULL,
+    account_type VARCHAR(50) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    entity_id VARCHAR(50) REFERENCES Entities(entity_id)
+);
+CREATE TABLE
+capaci=> CREATE TABLE ProfitCenters (
+    profit_center_id VARCHAR(50) PRIMARY KEY,
+    profit_center_name VARCHAR(100) NOT NULL,
+    parent_profit_center_id VARCHAR(50) REFERENCES ProfitCenters(profit_center_id)
+);
+CREATE TABLE
+capaci=> CREATE TABLE CostCenters (
+    cost_center_id VARCHAR(50) PRIMARY KEY,
+    cost_center_name VARCHAR(100) NOT NULL,
+    parent_cost_center_id VARCHAR(50) REFERENCES CostCenters(cost_center_id)
+);
+CREATE TABLE
+capaci=> CREATE TABLE Scenarios (
+    scenario_id VARCHAR(50) PRIMARY KEY,
+    scenario_name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+CREATE TABLE
+capaci=> CREATE TABLE Periods (
+    period_id VARCHAR(50) PRIMARY KEY,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE ExchangeRates (
+    exchange_rate_id VARCHAR(50) PRIMARY KEY,
+    from_currency VARCHAR(3) NOT NULL,
+    to_currency VARCHAR(3) NOT NULL,
+    rate NUMERIC NOT NULL,
+    effective_date DATE NOT NULL,
+    UNIQUE (from_currency, to_currency, effective_date)
+);
+CREATE TABLE
+capaci=> CREATE TABLE Transactions (
+    transaction_id VARCHAR(50) PRIMARY KEY,
+    transaction_date DATE NOT NULL,
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description TEXT,
+    account_id VARCHAR(50) REFERENCES Accounts(account_id),
+    profit_center_id VARCHAR(50) REFERENCES ProfitCenters(profit_center_id),
+    cost_center_id VARCHAR(50) REFERENCES CostCenters(cost_center_id),
+    entity_id VARCHAR(50) REFERENCES Entities(entity_id),
+    scenario_id VARCHAR(50) REFERENCES Scenarios(scenario_id),
+    period_id VARCHAR(50) REFERENCES Periods(period_id),
+    exchange_rate NU
+capaci(> 
+capaci(> 
+capaci(> \q
+cortocolloc@mac database % psql -U koreteau -d capaci
+psql (14.15 (Homebrew))
+Type "help" for help.
+
+capaci=> CREATE TABLE Transactions (
+    transaction_id VARCHAR(50) PRIMARY KEY,
+    transaction_date DATE NOT NULL,
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description TEXT,
+    account_id VARCHAR(50) REFERENCES Accounts(account_id),
+    profit_center_id VARCHAR(50) REFERENCES ProfitCenters(profit_center_id),
+    cost_center_id VARCHAR(50) REFERENCES CostCenters(cost_center_id),
+    entity_id VARCHAR(50) REFERENCES Entities(entity_id),
+    scenario_id VARCHAR(50) REFERENCES Scenarios(scenario_id),
+    period_id VARCHAR(50) REFERENCES Periods(period_id),
+    exchange_rate NUMERIC,
+    amount_in_base_currency NUMERIC NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE Discrepancies (
+    discrepancy_id VARCHAR(50) PRIMARY KEY,
+    related_id VARCHAR(50) NOT NULL,
+    related_type VARCHAR(20) NOT NULL CHECK (related_type IN ('Transaction', 'Invoice')),
+    amount_difference NUMERIC NOT NULL,
+    justification TEXT,
+    resolved BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE
+capaci=> CREATE TABLE InterCosts (
+    ic_id VARCHAR(50) PRIMARY KEY,
+    origin_cost_center_id VARCHAR(50) REFERENCES CostCenters(cost_center_id),
+    destination_entity_id VARCHAR(50) REFERENCES Entities(entity_id),
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    transaction_date DATE NOT NULL,
+    description TEXT
+);
+CREATE TABLE
+capaci=> \dt
+             List of relations
+ Schema |     Name      | Type  |  Owner   
+--------+---------------+-------+----------
+ public | accounts      | table | koreteau
+ public | costcenters   | table | koreteau
+ public | discrepancies | table | koreteau
+ public | entities      | table | koreteau
+ public | exchangerates | table | koreteau
+ public | intercosts    | table | koreteau
+ public | periods       | table | koreteau
+ public | profitcenters | table | koreteau
+ public | scenarios     | table | koreteau
+ public | transactions  | table | koreteau
+(10 rows)
+
+capaci=> \q
+cortocolloc@mac database % psql -U koreteau -d capaci
+psql (14.15 (Homebrew))
+Type "help" for help.
+
+capaci=> \dt
+Did not find any relations.
+capaci=> CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION
+capaci=> CREATE TABLE Entities (
+    entity_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    entity_name VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE Accounts (
+    account_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    account_name VARCHAR(100) NOT NULL,
+    account_type VARCHAR(50) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    entity_id UUID REFERENCES Entities(entity_id),
+    iban VARCHAR(34) NOT NULL UNIQUE
+);
+CREATE TABLE
+capaci=> CREATE TABLE ProfitCenters (
+    profit_center_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profit_center_name VARCHAR(100) NOT NULL,
+    parent_profit_center_id UUID REFERENCES ProfitCenters(profit_center_id)
+);
+CREATE TABLE
+capaci=> CREATE TABLE CostCenters (
+    cost_center_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    cost_center_name VARCHAR(100) NOT NULL,
+    parent_cost_center_id UUID REFERENCES CostCenters(cost_center_id)
+);
+CREATE TABLE
+capaci=> CREATE TABLE Scenarios (
+    scenario_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    scenario_name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+CREATE TABLE
+capaci=> CREATE TABLE Periods (
+    period_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE ExchangeRates (
+    exchange_rate_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    from_currency VARCHAR(3) NOT NULL,
+    to_currency VARCHAR(3) NOT NULL,
+    rate NUMERIC NOT NULL,
+    effective_date DATE NOT NULL,
+    UNIQUE (from_currency, to_currency, effective_date)
+);
+CREATE TABLE
+capaci=> CREATE TABLE Transactions (
+    transaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    transaction_date DATE NOT NULL,
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description TEXT,
+    account_id UUID REFERENCES Accounts(account_id),
+    profit_center_id UUID REFERENCES ProfitCenters(profit_center_id),
+    cost_center_id UUID REFERENCES CostCenters(cost_center_id),
+    entity_id UUID REFERENCES Entities(entity_id),
+    scenario_id UUID REFERENCES Scenarios(scenario_id),
+    period_id UUID REFERENCES Periods(period_id),
+    exchange_rate NUMERIC,
+    amount_in_base_currency NUMERIC NOT NULL
+);
+CREATE TABLE
+capaci=> CREATE TABLE Discrepancies (
+    discrepancy_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    related_id UUID NOT NULL,
+    related_type VARCHAR(20) NOT NULL CHECK (related_type IN ('Transaction', 'Invoice')),
+    amount_difference NUMERIC NOT NULL,
+    justification TEXT,
+    resolved BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE
+capaci=> CREATE TABLE InterCosts (
+    ic_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    origin_cost_center_id UUID REFERENCES CostCenters(cost_center_id),
+    destination_entity_id UUID REFERENCES Entities(entity_id),
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    transaction_date DATE NOT NULL,
+    description TEXT
+);
+CREATE TABLE
+capaci=> ALTER TABLE Accounts
+ADD COLUMN iban VARCHAR(34) NOT NULL UNIQUE;
+ALTER TABLE
+capaci=> CREATE INDEX idx_transactions_account ON Transactions (account_id);
+CREATE INDEX
+capaci=> CREATE INDEX idx_intercosts_origin ON InterCosts (origin_cost_center_id);
+CREATE INDEX
+capaci=> INSERT INTO Accounts (account_name, account_type, currency, iban, entity_id)
+VALUES ('Compte Courant', 'Checking', 'EUR', 'FR7630006000011234567890189', 'uuid-of-entity');
+ERROR:  invalid input syntax for type uuid: "uuid-of-entity"
+LINE 2: ...'Checking', 'EUR', 'FR7630006000011234567890189', 'uuid-of-e...
+                                                             ^
+capaci=> INSERT INTO Entities (entity_name, entity_type)
+VALUES ('My Business', 'Customer');
+INSERT 0 1
+capaci=> INSERT INTO Accounts (account_name, account_type, currency, iban, entity_id)
+VALUES ('Compte Courant', 'Checking', 'EUR', 'FR7630006000011234567890189', 'uuid-of-entity');
+ERROR:  invalid input syntax for type uuid: "uuid-of-entity"
+LINE 2: ...'Checking', 'EUR', 'FR7630006000011234567890189', 'uuid-of-e...
+                                                             ^
+capaci=> SELECT * FROM Entities;
+              entity_id               | entity_name | entity_type 
+--------------------------------------+-------------+-------------
+ 227ea199-6859-4777-95a6-6f00414cb5b4 | My Business | Customer
+(1 row)
+
+capaci=> INSERT INTO Accounts (account_name, account_type, currency, iban, entity_id)
+VALUES ('Compte Courant', 'Checking', 'EUR', 'FR7630006000011234567890189', '227ea199-6859-4777-95a6-6f00414cb5b4');
+INSERT 0 1
+capaci=> SELECT * FROM Accounts;
+              account_id              |  account_name  | account_type | currency |              entity_id               |            iban             
+--------------------------------------+----------------+--------------+----------+--------------------------------------+-----------------------------
+ 315baf6e-6cb6-4586-a613-984169295164 | Compte Courant | Checking     | EUR      | 227ea199-6859-4777-95a6-6f00414cb5b4 | FR7630006000011234567890189
+(1 row)
+
+capaci=> CREATE TABLE Users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password TEXT NOT NULL, -- Mot de passe hashé
+    is_admin BOOLEAN DEFAULT FALSE, -- Si l'utilisateur est admin, il a accès à tout
+    security_classes UUID[] -- Liste des Security Classes assignées à cet utilisateur
+);
+CREATE TABLE
+
+CREATE TABLE SecurityClasses (
+    security_class_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    access_type VARCHAR(10) NOT NULL CHECK (access_type IN ('all', 'read', 'none')),
+    entity_id UUID REFERENCES Entities(entity_id) ON DELETE CASCADE,
+    account_id UUID REFERENCES Accounts(account_id) ON DELETE CASCADE,
+    cost_center_id UUID REFERENCES CostCenters(cost_center_id) ON DELETE CASCADE,
+    profit_center_id UUID REFERENCES ProfitCenters(profit_center_id) ON DELETE CASCADE,
+    intercost_id UUID REFERENCES InterCosts(ic_id) ON DELETE CASCADE
+);
+
+CREATE TABLE CostCenters (
+    cost_center_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    cost_center_name VARCHAR(100) NOT NULL,
+    parent_cost_center_id UUID REFERENCES CostCenters(cost_center_id)
+);
+
+UPDATE Users
+SET security_classes = ARRAY['1bddb812-1d3a-40e3-9b0c-bd8f68c4f330']
+WHERE id = '4de2b0b5-5f8b-4431-bd63-19ba54aa805f';
