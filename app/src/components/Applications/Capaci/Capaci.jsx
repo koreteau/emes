@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ProcessControl } from "./ProcessControl";
+import { CurrencyRates } from "./CurrencyRates"
 
 export function Capaci() {
     const [openDropdown, setOpenDropdown] = useState(null); // Dropdown ouvert
@@ -37,10 +38,10 @@ export function Capaci() {
         switch (name) {
             case "Process Control":
                 return <ProcessControl />;
-            case "Reports - Entity":
-                return <div>Reports - Entity Content</div>;
-            case "Reports - Centers":
-                return <div>Reports - Centers Content</div>;
+            case "Currency Rates":
+                return <CurrencyRates />;
+            case "Ownership":
+                return <div>Ownership</div>;
             case "Data - Load Data":
                 return <div>Data - Load Data Content</div>;
             case "Data - Extract Data":
@@ -54,9 +55,9 @@ export function Capaci() {
         <div className="flex flex-col h-full">
             <div className="p-1 h-full w-full flex flex-row gap-1">
                 {/* Menu vertical */}
-                <div className="flex flex-col w-64 h-full border border-primary rounded">
-                    <p className="border-b border-primary p-1 text-center font-bold">Menu</p>
-                    <div className="p-1">
+                <div className="flex flex-col h-10 min-w-48 h-full border border-primary rounded-l-lg">
+                    <p className="border-b border-primary p-1 text-center font-bold text-sm h-8">Menu</p>
+                    <div className="p-1 text-sm">
                         <ul className="space-y-2">
                             {/* Process Control */}
                             <li
@@ -66,31 +67,31 @@ export function Capaci() {
                                 Process Control
                             </li>
 
-                            {/* Dropdown: Reports */}
+                            {/* Dropdown: Tables */}
                             <li>
                                 <p
                                     className="font-semibold cursor-pointer hover:underline"
-                                    onClick={() => toggleDropdown("Reports")}
+                                    onClick={() => toggleDropdown("Tables")}
                                 >
-                                    Reports
+                                    Tables
                                 </p>
-                                {openDropdown === "Reports" && (
+                                {openDropdown === "Tables" && (
                                     <ul className="pl-4 space-y-1">
                                         <li
                                             className="cursor-pointer hover:underline"
                                             onClick={() =>
-                                                openTab("Reports - Entity", renderContentForTab("Reports - Entity"))
+                                                openTab("Currency Rates", renderContentForTab("Currency Rates"))
                                             }
                                         >
-                                            Entity
+                                            Currency Rates
                                         </li>
                                         <li
                                             className="cursor-pointer hover:underline"
                                             onClick={() =>
-                                                openTab("Reports - Centers", renderContentForTab("Reports - Centers"))
+                                                openTab("Ownership", renderContentForTab("Ownership"))
                                             }
                                         >
-                                            Centers
+                                            Ownership
                                         </li>
                                     </ul>
                                 )}
@@ -130,13 +131,13 @@ export function Capaci() {
                 </div>
 
                 {/* Contenu principal avec onglets */}
-                <div className="flex flex-col w-full h-full gap-1 p-2 border border-primary rounded">
+                <div className="flex flex-col w-full h-full border border-primary rounded-r-lg">
                     {/* Barre des onglets */}
-                    <div className="flex bg-gray-200 px-2 py-1 space-x-2 border-b border-primary">
+                    <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-primary">
                         {tabs.map((tab) => (
                             <div
                                 key={tab.id}
-                                className={`flex items-center px-4 py-1 rounded-t cursor-pointer ${
+                                className={`flex items-center text-sm h-7 px-4 py-1 rounded-t cursor-pointer ${
                                     activeTab === tab.id ? "bg-white border border-b-0 border-primary" : "bg-gray-300"
                                 }`}
                                 onClick={() => setActiveTab(tab.id)}
@@ -156,7 +157,7 @@ export function Capaci() {
                     </div>
 
                     {/* Contenu de l'onglet actif */}
-                    <div className="p-4 border border-t-0 border-primary flex-grow">
+                    <div className="flex-grow">
                         {tabs.find((tab) => tab.id === activeTab)?.content || "No Content"}
                     </div>
                 </div>
