@@ -4,6 +4,7 @@ const { checkPermissions } = require('../middleware/permissions');
 // Créer une transaction
 const createTransaction = async (req, res) => {
     const {
+        transaction_id,
         transaction_date,
         amount,
         currency,
@@ -11,26 +12,23 @@ const createTransaction = async (req, res) => {
         account_id,
         profit_center_id,
         cost_center_id,
-        entity_id,
-        scenario_id,
     } = req.body;
 
     try {
         const query = `
-            INSERT INTO Transactions (
-                transaction_date, amount, currency, description, account_id, profit_center_id,
-                cost_center_id, entity_id, scenario_id
+            INSERT INTO transactions (
+                transaction_id, transaction_date, amount, currency, description,
+                account_id, profit_center_id, cost_center_id
             )
             VALUES (
-                $1, $2, $3, $4, 
-                CAST(NULLIF($5, '') AS uuid), CAST(NULLIF($6, '') AS uuid),
-                CAST(NULLIF($7, '') AS uuid), CAST(NULLIF($8, '') AS uuid),
-                CAST(NULLIF($9, '') AS uuid)
+                $1, $2, $3, $4, $5, 
+                CAST(NULLIF($6, '') AS uuid), CAST(NULLIF($7, '') AS uuid),
+                CAST(NULLIF($8, '') AS uuid)
             )
             RETURNING *;
         `;
-
         const values = [
+            transaction_id,
             transaction_date,
             amount,
             currency,
@@ -38,8 +36,6 @@ const createTransaction = async (req, res) => {
             account_id,
             profit_center_id,
             cost_center_id,
-            entity_id,
-            scenario_id,
         ];
 
         const result = await db.query(query, values);
@@ -60,21 +56,19 @@ const getAllTransactions = async (req, res) => {
 
         if (req.user.is_admin) {
             // Admin : Récupère toutes les transactions
-            query = 'SELECT * FROM Transactions ORDER BY transaction_date DESC';
+            query = 'SELECT * FROM transactions ORDER BY transaction_date DESC';
         } else {
             // Filtrage par permissions pour les utilisateurs non-admin
-            const authorizedEntities = await checkPermissions(userId, 'entity', 'read');
             const authorizedCostCenters = await checkPermissions(userId, 'cost_center', 'read');
             const authorizedProfitCenters = await checkPermissions(userId, 'profit_center', 'read');
 
             query = `
-                SELECT * FROM Transactions
-                WHERE entity_id = ANY($1)
-                OR cost_center_id = ANY($2)
-                OR profit_center_id = ANY($3)
+                SELECT * FROM transactions
+                WHERE cost_center_id = ANY($1)
+                OR profit_center_id = ANY($2)
                 ORDER BY transaction_date DESC;
             `;
-            values = [authorizedEntities, authorizedCostCenters, authorizedProfitCenters];
+            values = [authorizedCostCenters, authorizedProfitCenters];
         }
 
         const result = await db.query(query, values);
@@ -91,20 +85,18 @@ const getTransactionById = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        let query = 'SELECT * FROM Transactions WHERE transaction_id = $1';
+        let query = 'SELECT * FROM transactions WHERE transaction_id = $1';
         let values = [transactionId];
 
         if (!req.user.is_admin) {
-            const authorizedEntities = await checkPermissions(userId, 'entity', 'read');
             const authorizedCostCenters = await checkPermissions(userId, 'cost_center', 'read');
             const authorizedProfitCenters = await checkPermissions(userId, 'profit_center', 'read');
 
             query += `
-                AND (entity_id = ANY($2)
-                     OR cost_center_id = ANY($3)
-                     OR profit_center_id = ANY($4))
+                AND (cost_center_id = ANY($2)
+                     OR profit_center_id = ANY($3))
             `;
-            values = [transactionId, authorizedEntities, authorizedCostCenters, authorizedProfitCenters];
+            values = [transactionId, authorizedCostCenters, authorizedProfitCenters];
         }
 
         const result = await db.query(query, values);
@@ -131,23 +123,19 @@ const updateTransaction = async (req, res) => {
         account_id,
         profit_center_id,
         cost_center_id,
-        entity_id,
-        scenario_id,
     } = req.body;
 
     try {
         const query = `
-            UPDATE Transactions
+            UPDATE transactions
             SET transaction_date = COALESCE($1, transaction_date),
                 amount = COALESCE($2, amount),
                 currency = COALESCE($3, currency),
                 description = COALESCE($4, description),
                 account_id = COALESCE(CAST(NULLIF($5, '') AS uuid), account_id),
                 profit_center_id = COALESCE(CAST(NULLIF($6, '') AS uuid), profit_center_id),
-                cost_center_id = COALESCE(CAST(NULLIF($7, '') AS uuid), cost_center_id),
-                entity_id = COALESCE(CAST(NULLIF($8, '') AS uuid), entity_id),
-                scenario_id = COALESCE(CAST(NULLIF($9, '') AS uuid), scenario_id)
-            WHERE transaction_id = $10
+                cost_center_id = COALESCE(CAST(NULLIF($7, '') AS uuid), cost_center_id)
+            WHERE transaction_id = $8
             RETURNING *;
         `;
         const values = [
@@ -158,8 +146,6 @@ const updateTransaction = async (req, res) => {
             account_id,
             profit_center_id,
             cost_center_id,
-            entity_id,
-            scenario_id,
             transactionId,
         ];
 
@@ -181,7 +167,7 @@ const deleteTransaction = async (req, res) => {
     const { transactionId } = req.params;
 
     try {
-        const result = await db.query('DELETE FROM Transactions WHERE transaction_id = $1 RETURNING *', [transactionId]);
+        const result = await db.query('DELETE FROM transactions WHERE transaction_id = $1 RETURNING *', [transactionId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Transaction not found' });
