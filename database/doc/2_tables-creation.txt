@@ -292,3 +292,41 @@ CREATE TABLE CostCenters (
 UPDATE Users
 SET security_classes = ARRAY['1bddb812-1d3a-40e3-9b0c-bd8f68c4f330']
 WHERE id = '4de2b0b5-5f8b-4431-bd63-19ba54aa805f';
+
+
+ALTER TABLE Transactions
+  RENAME TO Data;
+
+ALTER TABLE Data
+  RENAME COLUMN transaction_date TO data_date;
+
+CREATE TABLE Transactions (
+    transaction_id VARCHAR(50) PRIMARY KEY,
+    transaction_date DATE NOT NULL,
+    amount NUMERIC NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description TEXT,
+    account_id UUID REFERENCES Accounts(account_id),
+    profit_center_id UUID REFERENCES ProfitCenters(profit_center_id),
+    cost_center_id UUID REFERENCES CostCenters(cost_center_id)
+);
+
+CREATE TABLE Ownerships (
+    ownership_id VARCHAR(50) PRIMARY KEY,
+    percentage ... NOT NULL,
+    description TEXT,
+    account_id UUID REFERENCES Accounts(account_id),
+    entity_id UUID REFERENCES Entities(entity_id)
+);
+
+INSERT INTO Accounts (account_name, account_type, currency, entity_id, iban)
+VALUES ('H.U.B', 'checking', 'EUR', 'f1e2d3c4-5678-90ab-cdef-0987654321ab');
+
+INSERT INTO Ownerships (percentage, description, account_id, entity_id)
+VALUES ('100', 'Ownership description', '315baf6e-6cb6-4586-a613-984169295164', '94bd378f-746e-4b1b-b460-e6ff4a503b56');
+
+ALTER TABLE Ownerships
+  RENAME COLUMN entity_id TO subsidiary_entity_id;
+
+INSERT INTO Ownerships (from_currency, description, account_id, entity_id)
+VALUES ('100', 'Ownership description', '315baf6e-6cb6-4586-a613-984169295164', '94bd378f-746e-4b1b-b460-e6ff4a503b56');
