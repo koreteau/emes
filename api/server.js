@@ -37,6 +37,7 @@ const periodsRoutes = require('./routes/periods');
 const exchangeRatesRoutes = require('./routes/exchangeRates');
 // const interCostsRoutes = require('./routes/interCosts');
 const transactionsRoutes = require('./routes/transactions');
+const dataRoutes = require('./routes/data');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
@@ -50,6 +51,7 @@ app.use('/api/periods', periodsRoutes);
 app.use('/api/exchange-rates', exchangeRatesRoutes);
 // app.use('/api/inter-costs', interCostsRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/data', dataRoutes);
 
 // Lancer le serveur uniquement si la base est connectée
 const startServer = async () => {
