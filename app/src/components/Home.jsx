@@ -7,7 +7,12 @@ export function Home() {
                         <p>Latest news</p>
                     </div>
                     <div class="border border-primary h-full p-4 rounded-bl-lg">
-                        <p>Installed Applications</p>
+                        <p>Installed Applications :</p>
+                        <ul className="px-3">
+                            <li>Alexandria Inventory</li>
+                            <li>Bespin Cloud</li>
+                            <li>Capaci Finance</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="flex flex-col w-1/2 h-full gap-1">
