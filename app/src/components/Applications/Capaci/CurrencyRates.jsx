@@ -56,45 +56,51 @@ export function CurrencyRates() {
         setFilteredData(filtered);
     }, [data, year, period, daysInMonth]);
 
-    const labelBaseClass = "bg-blue-100 font-bold"; // Base pour le style des labels
+    const labelBaseClass = "bg-blue-100"; // Base pour le style des labels
     const cellBaseClass = "border border-slate-700 px-2 py-1"; // Style des cellules
-    const columnWidth = "w-24"; // Largeur fixe des colonnes
+    const columnWidth = "w-32"; // Largeur fixe des colonnes
 
     return (
         <>
-            <div className="flex items-center space-x-4 p-4 border-b">
-                <div>
-                    <label htmlFor="year" className="mr-2">Year:</label>
-                    <select
-                        id="year"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                        className="border rounded px-2 py-1"
+            <div className="flex items-center p-2 border-b gap-2 text-sm">
+                <div className="flex gap-2">
+                    <button
+                        onClick={fetchData}
+                        className="p-0.5 rounded hover:bg-gray-200"
                     >
-                        {[2024, 2025, 2026].map((y) => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
                 </div>
-                <div>
-                    <label htmlFor="period" className="mr-2">Period:</label>
-                    <select
-                        id="period"
-                        value={period}
-                        onChange={(e) => setPeriod(e.target.value)}
-                        className="border rounded px-2 py-1"
-                    >
-                        {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
-                            <option key={p} value={p}>{p}</option>
-                        ))}
-                    </select>
+                <div className="border-l-2 pl-2 flex gap-2">
+                    <div>
+                        <label htmlFor="year" className="mr-2">Year:</label>
+                        <select
+                            id="year"
+                            value={year}
+                            onChange={(e) => setYear(e.target.value)}
+                            className="border rounded px-2 py-1"
+                        >
+                            {[2024, 2025, 2026].map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="period" className="mr-2">Period:</label>
+                        <select
+                            id="period"
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            className="border rounded px-2 py-1"
+                        >
+                            {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
+                                <option key={p} value={p}>{p}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-                <button
-                    onClick={fetchData}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    Refresh
-                </button>
             </div>
 
             {loading ? (
@@ -102,8 +108,8 @@ export function CurrencyRates() {
                     Chargement...
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="table-auto border-collapse border border-slate-500 w-full">
+                <div className="h-full w-full overflow-x-auto">
+                    <table className="table-auto border-collapse border border-slate-500">
                         <thead>
                             <tr>
                                 <th className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>Currency</th>
@@ -139,9 +145,8 @@ export function CurrencyRates() {
                                         return (
                                             <td
                                                 key={i}
-                                                className={`${cellBaseClass} ${columnWidth} ${
-                                                    value ? "bg-green-100" : "bg-yellow-100"
-                                                }`}
+                                                className={`${cellBaseClass} ${columnWidth} ${value ? "bg-green-100" : "bg-yellow-100"
+                                                    }`}
                                             >
                                                 {value || ""}
                                             </td>
@@ -152,6 +157,7 @@ export function CurrencyRates() {
                         </tbody>
                     </table>
                 </div>
+
             )}
         </>
     );
