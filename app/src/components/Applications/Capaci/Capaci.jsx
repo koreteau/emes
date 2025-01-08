@@ -137,9 +137,8 @@ export function Capaci() {
                         {tabs.map((tab) => (
                             <div
                                 key={tab.id}
-                                className={`flex items-center text-sm h-7 px-4 py-1 rounded-t cursor-pointer ${
-                                    activeTab === tab.id ? "bg-white border border-b-0 border-primary" : "bg-gray-300"
-                                }`}
+                                className={`flex items-center text-sm h-7 px-4 py-1 rounded-t cursor-pointer ${activeTab === tab.id ? "bg-white border border-b-0 border-primary" : "bg-gray-300"
+                                    }`}
                                 onClick={() => setActiveTab(tab.id)}
                             >
                                 <span>{tab.name}</span>
@@ -157,9 +156,12 @@ export function Capaci() {
                     </div>
 
                     {/* Contenu de l'onglet actif */}
-                    <div className="flex-grow">
-                        {tabs.find((tab) => tab.id === activeTab)?.content || "No Content"}
+                    <div className="flex-grow overflow-hidden">
+                        <div className="h-full w-full overflow-x-auto">
+                            {tabs.find((tab) => tab.id === activeTab)?.content || "No Content"}
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
