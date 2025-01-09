@@ -69,27 +69,27 @@ export function LoadDataCurrencyRates() {
         return "New"; // Création si aucun match
     };
     
-       
-
     const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
+        const fileInput = event.target; // Référence au champ input
+        const file = fileInput.files[0];
         if (!file) return;
-
+    
         console.log("File selected:", file.name);
-
+    
         const existingRates = await fetchExistingRates();
-
+    
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
             delimiter: ";",
             complete: (result) => {
                 console.log("Parsed CSV data:", result.data);
-
+    
                 const data = result.data;
                 const validationErrors = [];
                 const validData = [];
-
+                let hasZeroValueNewEntry = false; // Flag pour détecter une entrée invalide
+    
                 data.forEach((row, index) => {
                     const { Date, Currency, Value } = row;
                 
@@ -120,19 +120,19 @@ export function LoadDataCurrencyRates() {
                     const effectiveDate = Date.split("/").reverse().join("-"); // Convertir en YYYY-MM-DD
                     const currency = Currency.toUpperCase();
                 
-                    // Détection du type
+                    // Chercher une correspondance dans les données existantes
                     const existingRate = existingRates.find(
                         (entry) =>
                             entry.effective_date === Date &&
                             entry.to_currency === currency
                     );
                 
+                    // Détection du type
                     const type = determineType(effectiveDate, currency, rate, existingRates);
                 
                     if (type === "New" && rate === 0) {
-                        const error = `Ligne ${index + 2}: Nouvelle valeur ne peut pas être 0`;
-                        console.error(error);
-                        validationErrors.push(error);
+                        hasZeroValueNewEntry = true; // Détecte une entrée non valide
+                        console.error(`Ligne ${index + 2}: Nouvelle valeur ne peut pas être 0`);
                         return; // Ignore cette ligne
                     }
                 
@@ -142,22 +142,29 @@ export function LoadDataCurrencyRates() {
                 
                     validData.push({
                         type,
-                        id: existingRate ? existingRate.id : null,
+                        id: existingRate ? existingRate.id : null, // Assurez-vous que l'ID est attaché si trouvé
                         date: Date,
                         currency,
                         rate: rate.toFixed(4),
                     });
-                });                                               
-
+                });
+                
+    
+                if (hasZeroValueNewEntry) {
+                    alert("Erreur : Une nouvelle valeur avec un taux de change de 0 a été détectée. Veuillez corriger le fichier.");
+                    fileInput.value = ""; // Désélectionne le fichier
+                    return; // Arrête le traitement
+                }
+    
                 console.log("Validation errors:", validationErrors);
                 console.log("Valid data for preview:", validData);
-
+    
                 setPreviewData(validData);
                 setErrors(validationErrors);
                 setShowDialog(validationErrors.length === 0);
             },
         });
-    };
+    };    
 
     const handleDownloadTemplate = () => {
         const csvContent = "Date;Currency;Value\n01/01/2025;USD;1,0000";
