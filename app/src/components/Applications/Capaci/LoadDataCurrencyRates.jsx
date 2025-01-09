@@ -7,7 +7,6 @@ import { Button, Dialog, DialogBody, DialogFooter, DialogHeader } from "@materia
 export function LoadDataCurrencyRates() {
     const [previewData, setPreviewData] = useState([]);
     const [errors, setErrors] = useState([]);
-    const [showDialog, setShowDialog] = useState(false);
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(!open);
@@ -268,46 +267,47 @@ export function LoadDataCurrencyRates() {
                 </div>
             )}
 
-                <Dialog open={open} handler={handleOpen}>
-                    <DialogHeader>Preview Data</DialogHeader>
-                    <DialogBody>
-                        <table className="table-auto border-collapse border border-gray-500 w-full">
-                            <thead>
-                                <tr>
-                                    <th className="border border-gray-700 px-2 py-1">Type</th>
-                                    <th className="border border-gray-700 px-2 py-1">Date</th>
-                                    <th className="border border-gray-700 px-2 py-1">Currency</th>
-                                    <th className="border border-gray-700 px-2 py-1">Rate</th>
+            <Dialog open={open} handler={handleOpen}>
+                <DialogHeader>Preview Data</DialogHeader>
+                <DialogBody className="max-h-[500px] overflow-y-auto"> {/* Hauteur maximale et défilement */}
+                    <table className="table-auto border-collapse border border-gray-500 w-full">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-700 px-2 py-1">Type</th>
+                                <th className="border border-gray-700 px-2 py-1">Date</th>
+                                <th className="border border-gray-700 px-2 py-1">Currency</th>
+                                <th className="border border-gray-700 px-2 py-1">Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {previewData.map((row, index) => (
+                                <tr key={index}>
+                                    <td className="border border-gray-700 px-2 py-1">{row.type}</td>
+                                    <td className="border border-gray-700 px-2 py-1">{row.date}</td>
+                                    <td className="border border-gray-700 px-2 py-1">{row.currency}</td>
+                                    <td className="border border-gray-700 px-2 py-1">{row.rate}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {previewData.map((row, index) => (
-                                    <tr key={index}>
-                                        <td className="border border-gray-700 px-2 py-1">{row.type}</td>
-                                        <td className="border border-gray-700 px-2 py-1">{row.date}</td>
-                                        <td className="border border-gray-700 px-2 py-1">{row.currency}</td>
-                                        <td className="border border-gray-700 px-2 py-1">{row.rate}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </DialogBody>
-                    <DialogFooter className="gap-2">
-                        <Button
-                            color="red"
-                            onClick={handleReject}
-                        >
-                            Reject
-                        </Button>
-                        <Button
-                            color="green"
-                            onClick={handleLoad}
-                            disabled={loading}
-                        >
-                            {loading ? "Loading..." : "Load"}
-                        </Button>
-                    </DialogFooter>
-                </Dialog>
+                            ))}
+                        </tbody>
+                    </table>
+                </DialogBody>
+                <DialogFooter className="gap-2">
+                    <Button
+                        color="red"
+                        onClick={handleReject}
+                    >
+                        Reject
+                    </Button>
+                    <Button
+                        color="green"
+                        onClick={handleLoad}
+                        disabled={loading}
+                    >
+                        {loading ? "Loading..." : "Load"}
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
         </div>
     );
 }
