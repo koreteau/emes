@@ -129,18 +129,25 @@ export function LoadDataCurrencyRates() {
                 
                     const type = determineType(effectiveDate, currency, rate, existingRates);
                 
+                    if (type === "New" && rate === 0) {
+                        const error = `Ligne ${index + 2}: Nouvelle valeur ne peut pas être 0`;
+                        console.error(error);
+                        validationErrors.push(error);
+                        return; // Ignore cette ligne
+                    }
+                
                     console.log(
                         `Row analysis: Date=${effectiveDate}, Currency=${currency}, Rate=${rate}, Type=${type}`
                     );
                 
                     validData.push({
                         type,
-                        id: existingRate ? existingRate.id : null, // Attacher l'ID si trouvé
+                        id: existingRate ? existingRate.id : null,
                         date: Date,
                         currency,
                         rate: rate.toFixed(4),
                     });
-                });                                
+                });                                               
 
                 console.log("Validation errors:", validationErrors);
                 console.log("Valid data for preview:", validData);
@@ -178,7 +185,8 @@ export function LoadDataCurrencyRates() {
     
                 console.log(`Preparing request for type: ${item.type}`, payload);
     
-                if (item.type === "New") {
+                if (item.type === "New" && item.rate !== "0.0000") {
+                    // N'ajoute pas de nouvelle entrée si le taux est 0
                     return axios.post(apiUrl, payload, {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -199,7 +207,7 @@ export function LoadDataCurrencyRates() {
                         },
                     });
                 } else {
-                    console.error("ID not found for operation:", item);
+                    console.log(`Skipping operation for type: ${item.type}`, item);
                     return null;
                 }
             });
@@ -216,7 +224,7 @@ export function LoadDataCurrencyRates() {
             setShowDialog(false);
             setPreviewData([]);
         }
-    };    
+    };        
 
     const handleReject = () => {
         console.log("Preview data rejected.");
