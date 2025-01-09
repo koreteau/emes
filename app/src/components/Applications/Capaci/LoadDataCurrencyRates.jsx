@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import axios from "axios";
-import { Dialog, DialogBody, DialogFooter, DialogHeader } from "@material-tailwind/react";
+import { Button, Dialog, DialogBody, DialogFooter, DialogHeader } from "@material-tailwind/react";
 
 export function LoadDataCurrencyRates() {
     const [previewData, setPreviewData] = useState([]);
@@ -292,21 +292,20 @@ export function LoadDataCurrencyRates() {
                             </tbody>
                         </table>
                     </DialogBody>
-                    <DialogFooter>
-                        <button
+                    <DialogFooter className="gap-2">
+                        <Button
+                            color="red"
                             onClick={handleReject}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                         >
                             Reject
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            color="green"
                             onClick={handleLoad}
                             disabled={loading}
-                            className={`${loading ? "bg-gray-500" : "bg-green-500 hover:bg-green-600"
-                                } text-white px-4 py-2 rounded`}
                         >
                             {loading ? "Loading..." : "Load"}
-                        </button>
+                        </Button>
                     </DialogFooter>
                 </Dialog>
         </div>
