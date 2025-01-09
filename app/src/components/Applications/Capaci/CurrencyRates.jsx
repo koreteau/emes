@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from "react";
 
 export function CurrencyRates() {
-    const [year, setYear] = useState(new Date().getFullYear());
-    const [period, setPeriod] = useState("P01");
-    const [data, setData] = useState([]);
+    const [year, setYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
+    const [period, setPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
+    const [data, setData] = useState(JSON.parse(localStorage.getItem("currencyData")) || []); // Récupère les données depuis localStorage
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
     const daysInMonth = new Date(year, parseInt(period.slice(1)), 0).getDate();
 
-    // Fonction pour convertir une date UTC en heure locale (Paris)
-    const convertToParisTime = (utcDate) => {
-        const options = { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" };
-        const parisDate = new Intl.DateTimeFormat("en-CA", options).format(new Date(utcDate)); // Format YYYY-MM-DD
-        return parisDate; // Retourne la date au format "2024-12-30"
-    };
-
+    // Fonction pour récupérer les données
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -32,29 +26,38 @@ export function CurrencyRates() {
             }
 
             const result = await response.json();
-            // Conversion des dates en heure locale (Paris)
-            const adjustedData = result.map((entry) => ({
-                ...entry,
-                effective_date: convertToParisTime(entry.effective_date),
-            }));
-            setData(adjustedData);
+            setData(result); // Mise à jour directe des données
+            localStorage.setItem("currencyData", JSON.stringify(result)); // Sauvegarde des données dans localStorage
         } catch (error) {
             console.error("Erreur lors du chargement des données :", error);
-            setData([]);
+            setData([]); // Remet les données à vide en cas d'erreur
         } finally {
             setLoading(false);
         }
     };
 
+    // Filtrage des données basées sur `year` et `period`
     useEffect(() => {
         const filtered = data.filter((entry) => {
-            const entryDate = new Date(entry.effective_date);
+            const entryDateParts = entry.effective_date.split("/"); // Format reçu : DD/MM/YYYY
+            const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`); // Conversion en YYYY-MM-DD
             const startDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-01`);
             const endDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-${daysInMonth}`);
             return entryDate >= startDate && entryDate <= endDate;
         });
         setFilteredData(filtered);
     }, [data, year, period, daysInMonth]);
+
+    // Sauvegarder les valeurs de year et period dans localStorage
+    const handleYearChange = (newYear) => {
+        setYear(newYear);
+        localStorage.setItem("currencyYear", newYear);
+    };
+
+    const handlePeriodChange = (newPeriod) => {
+        setPeriod(newPeriod);
+        localStorage.setItem("currencyPeriod", newPeriod);
+    };
 
     const labelBaseClass = "bg-blue-100"; // Base pour le style des labels
     const cellBaseClass = "border border-slate-700 px-2 py-1"; // Style des cellules
@@ -68,8 +71,8 @@ export function CurrencyRates() {
                         onClick={fetchData}
                         className="p-0.5 rounded hover:bg-gray-200"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                     </button>
                 </div>
@@ -79,7 +82,7 @@ export function CurrencyRates() {
                         <select
                             id="year"
                             value={year}
-                            onChange={(e) => setYear(e.target.value)}
+                            onChange={(e) => handleYearChange(e.target.value)}
                             className="border rounded px-2 py-1"
                         >
                             {[2024, 2025, 2026].map((y) => (
@@ -92,7 +95,7 @@ export function CurrencyRates() {
                         <select
                             id="period"
                             value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
+                            onChange={(e) => handlePeriodChange(e.target.value)}
                             className="border rounded px-2 py-1"
                         >
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
@@ -130,16 +133,16 @@ export function CurrencyRates() {
                                 ))}
                             </tr>
                             {filteredData.map((entry) => (
-                                <tr key={entry.from_currency}>
+                                <tr key={entry.to_currency}>
                                     <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>
                                         {entry.to_currency}
                                     </td>
                                     {Array.from({ length: daysInMonth }, (_, i) => {
                                         const day = i + 1;
-                                        const effectiveDate = `${year}-${String(parseInt(period.slice(1))).padStart(
+                                        const effectiveDate = `${String(day).padStart(2, "0")}/${String(parseInt(period.slice(1))).padStart(
                                             2,
                                             "0"
-                                        )}-${String(day).padStart(2, "0")}`;
+                                        )}/${year}`;
                                         const value =
                                             entry.effective_date === effectiveDate ? entry.rate : "";
                                         return (
@@ -157,7 +160,6 @@ export function CurrencyRates() {
                         </tbody>
                     </table>
                 </div>
-
             )}
         </>
     );
