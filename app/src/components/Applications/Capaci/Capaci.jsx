@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ProcessControl } from "./ProcessControl";
 import { CurrencyRates } from "./CurrencyRates"
+import { DataLoad } from "./LoadData";
 
 export function Capaci() {
     const [openDropdown, setOpenDropdown] = useState(null); // Dropdown ouvert
@@ -43,7 +44,7 @@ export function Capaci() {
             case "Ownership":
                 return <div>Ownership</div>;
             case "Data - Load Data":
-                return <div>Data - Load Data Content</div>;
+                return <DataLoad />;
             case "Data - Extract Data":
                 return <div>Data - Extract Data Content</div>;
             default:
