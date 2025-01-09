@@ -107,7 +107,7 @@ export function CurrencyRates() {
             {loading ? (
                 <div className="flex justify-center items-center h-64">Chargement...</div>
             ) : (
-                <div className="h-full w-full overflow-x-auto">
+                <div className="h-full w-full overflow-x-auto text-sm">
                     <table className="table-auto border-collapse border border-slate-500">
                         <thead>
                             <tr>
@@ -120,6 +120,12 @@ export function CurrencyRates() {
                             </tr>
                         </thead>
                         <tbody>
+                            <tr key="EUR">
+                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>EUR</td>
+                                {Array.from({ length: daysInMonth }, (_, i) => (
+                                    <td key={i} className={`${cellBaseClass} ${columnWidth} bg-green-100`}>1</td>
+                                ))}
+                            </tr>
                             {Object.entries(groupedData).map(([currency, rates]) => (
                                 <tr key={currency}>
                                     <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>{currency}</td>
