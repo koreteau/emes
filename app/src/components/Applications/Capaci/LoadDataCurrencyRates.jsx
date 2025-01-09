@@ -19,8 +19,11 @@ export function LoadDataCurrencyRates() {
                 },
             });
             const rates = response.data.map((rate) => ({
-                ...rate,
+                id: rate.exchange_rate_id, // Propagation de l'ID pour utilisation ultérieure
+                from_currency: rate.from_currency,
+                to_currency: rate.to_currency,
                 rate: parseFloat(rate.rate), // Conversion pour éviter les erreurs de comparaison
+                effective_date: rate.effective_date,
             }));
             console.log("Existing rates fetched and normalized:", rates);
             return rates;
@@ -28,7 +31,7 @@ export function LoadDataCurrencyRates() {
             console.error("Erreur lors de la récupération des données existantes :", error);
             return [];
         }
-    };    
+    };      
 
     const determineType = (date, currency, rate, existingRates) => {
         console.log("Comparing data:");
@@ -118,6 +121,12 @@ export function LoadDataCurrencyRates() {
                     const currency = Currency.toUpperCase();
                 
                     // Détection du type
+                    const existingRate = existingRates.find(
+                        (entry) =>
+                            entry.effective_date === Date &&
+                            entry.to_currency === currency
+                    );
+                
                     const type = determineType(effectiveDate, currency, rate, existingRates);
                 
                     console.log(
@@ -126,11 +135,12 @@ export function LoadDataCurrencyRates() {
                 
                     validData.push({
                         type,
+                        id: existingRate ? existingRate.id : null, // Attacher l'ID si trouvé
                         date: Date,
                         currency,
                         rate: rate.toFixed(4),
                     });
-                });                
+                });                                
 
                 console.log("Validation errors:", validationErrors);
                 console.log("Valid data for preview:", validData);
@@ -152,45 +162,48 @@ export function LoadDataCurrencyRates() {
         setLoading(true);
         const apiUrl = "http://localhost:8080/api/exchange-rates";
         const token = localStorage.getItem("authToken");
-
+    
         console.log("Starting data load...");
         console.log("Preview data to load:", previewData);
-
+    
         const requests = previewData
             .filter((item) => item.type !== "Identical") // Ignorer les données identiques
             .map((item) => {
                 const payload = {
-                    from_currency: item.currency,
-                    to_currency: "EUR",
+                    from_currency: "EUR",
+                    to_currency: item.currency,
                     rate: parseFloat(item.rate),
-                    effective_date: item.date.split("/").reverse().join("-"), // Convertir en YYYY-MM-DD
+                    effective_date: item.date.split("/").reverse().join("-"),
                 };
-
+    
                 console.log(`Preparing request for type: ${item.type}`, payload);
-
+    
                 if (item.type === "New") {
                     return axios.post(apiUrl, payload, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     });
-                } else if (item.type === "Modification") {
-                    return axios.put(apiUrl, payload, {
+                } else if (item.type === "Modification" && item.id) {
+                    const url = `${apiUrl}/${item.id}`;
+                    return axios.put(url, payload, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     });
-                } else if (item.type === "Delete") {
-                    return axios.delete(apiUrl, {
+                } else if (item.type === "Delete" && item.id) {
+                    const url = `${apiUrl}/${item.id}`;
+                    return axios.delete(url, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
-                        data: payload,
                     });
+                } else {
+                    console.error("ID not found for operation:", item);
+                    return null;
                 }
-                return null;
             });
-
+    
         try {
             await Promise.all(requests);
             console.log("Data loaded successfully!");
@@ -203,7 +216,7 @@ export function LoadDataCurrencyRates() {
             setShowDialog(false);
             setPreviewData([]);
         }
-    };
+    };    
 
     const handleReject = () => {
         console.log("Preview data rejected.");
