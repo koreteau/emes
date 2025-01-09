@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import axios from "axios";
+import { Dialog, DialogBody, DialogFooter, DialogHeader } from "@material-tailwind/react";
 
 export function LoadDataCurrencyRates() {
     const [previewData, setPreviewData] = useState([]);
     const [errors, setErrors] = useState([]);
     const [showDialog, setShowDialog] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(!open);
 
     const fetchExistingRates = async () => {
         const token = localStorage.getItem("authToken");
@@ -31,28 +34,28 @@ export function LoadDataCurrencyRates() {
             console.error("Erreur lors de la récupération des données existantes :", error);
             return [];
         }
-    };      
+    };
 
     const determineType = (date, currency, rate, existingRates) => {
         console.log("Comparing data:");
         console.log("Date:", date, "Currency:", currency, "Rate:", rate);
-    
+
         // Convertir la date en format DD/MM/YYYY pour correspondre à la base de données
         const normalizedDate = date.split("-").reverse().join("/");
-    
+
         console.log("Normalized Date:", normalizedDate);
-    
+
         const existingRate = existingRates.find(
-            (entry) => 
+            (entry) =>
                 entry.effective_date === normalizedDate &&
                 entry.to_currency === currency
         );
-    
+
         if (existingRate) {
             const existingRateValue = parseFloat(existingRate.rate);
-    
+
             console.log("Match found in database:", existingRate);
-    
+
             if (rate === 0) {
                 console.log("Type determined: Delete (rate is 0)");
                 return "Delete"; // Suppression si la valeur est 0
@@ -64,37 +67,37 @@ export function LoadDataCurrencyRates() {
             console.log("Type determined: Modification (rate differs)");
             return "Modification"; // Modification si valeur différente
         }
-    
+
         console.log("Type determined: New (no match found)");
         return "New"; // Création si aucun match
     };
-    
+
     const handleFileUpload = async (event) => {
         const fileInput = event.target; // Référence au champ input
         const file = fileInput.files[0];
         if (!file) return;
-    
+
         console.log("File selected:", file.name);
-    
+
         const existingRates = await fetchExistingRates();
-    
+
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
             delimiter: ";",
             complete: (result) => {
                 console.log("Parsed CSV data:", result.data);
-    
+
                 const data = result.data;
                 const validationErrors = [];
                 const validData = [];
                 let hasZeroValueNewEntry = false; // Flag pour détecter une entrée invalide
-    
+
                 data.forEach((row, index) => {
                     const { Date, Currency, Value } = row;
-                
+
                     console.log(`Processing row ${index + 2}:`, row);
-                
+
                     // Validation
                     if (!Date || !/^\d{2}\/\d{2}\/\d{4}$/.test(Date)) {
                         const error = `Ligne ${index + 2}: Date invalide`;
@@ -115,31 +118,31 @@ export function LoadDataCurrencyRates() {
                         validationErrors.push(error);
                         return;
                     }
-                
+
                     // Normalisation
                     const effectiveDate = Date.split("/").reverse().join("-"); // Convertir en YYYY-MM-DD
                     const currency = Currency.toUpperCase();
-                
+
                     // Chercher une correspondance dans les données existantes
                     const existingRate = existingRates.find(
                         (entry) =>
                             entry.effective_date === Date &&
                             entry.to_currency === currency
                     );
-                
+
                     // Détection du type
                     const type = determineType(effectiveDate, currency, rate, existingRates);
-                
+
                     if (type === "New" && rate === 0) {
                         hasZeroValueNewEntry = true; // Détecte une entrée non valide
                         console.error(`Ligne ${index + 2}: Nouvelle valeur ne peut pas être 0`);
                         return; // Ignore cette ligne
                     }
-                
+
                     console.log(
                         `Row analysis: Date=${effectiveDate}, Currency=${currency}, Rate=${rate}, Type=${type}`
                     );
-                
+
                     validData.push({
                         type,
                         id: existingRate ? existingRate.id : null, // Assurez-vous que l'ID est attaché si trouvé
@@ -148,23 +151,23 @@ export function LoadDataCurrencyRates() {
                         rate: rate.toFixed(4),
                     });
                 });
-                
-    
+
+
                 if (hasZeroValueNewEntry) {
                     alert("Erreur : Une nouvelle valeur avec un taux de change de 0 a été détectée. Veuillez corriger le fichier.");
                     fileInput.value = ""; // Désélectionne le fichier
                     return; // Arrête le traitement
                 }
-    
+
                 console.log("Validation errors:", validationErrors);
                 console.log("Valid data for preview:", validData);
-    
+
                 setPreviewData(validData);
                 setErrors(validationErrors);
-                setShowDialog(validationErrors.length === 0);
+                setOpen(validationErrors.length === 0);
             },
         });
-    };    
+    };
 
     const handleDownloadTemplate = () => {
         const csvContent = "Date;Currency;Value\n01/01/2025;USD;1,0000";
@@ -176,10 +179,10 @@ export function LoadDataCurrencyRates() {
         setLoading(true);
         const apiUrl = "http://localhost:8080/api/exchange-rates";
         const token = localStorage.getItem("authToken");
-    
+
         console.log("Starting data load...");
         console.log("Preview data to load:", previewData);
-    
+
         const requests = previewData
             .filter((item) => item.type !== "Identical") // Ignorer les données identiques
             .map((item) => {
@@ -189,9 +192,9 @@ export function LoadDataCurrencyRates() {
                     rate: parseFloat(item.rate),
                     effective_date: item.date.split("/").reverse().join("-"),
                 };
-    
+
                 console.log(`Preparing request for type: ${item.type}`, payload);
-    
+
                 if (item.type === "New" && item.rate !== "0.0000") {
                     // N'ajoute pas de nouvelle entrée si le taux est 0
                     return axios.post(apiUrl, payload, {
@@ -218,7 +221,7 @@ export function LoadDataCurrencyRates() {
                     return null;
                 }
             });
-    
+
         try {
             await Promise.all(requests);
             console.log("Data loaded successfully!");
@@ -228,14 +231,14 @@ export function LoadDataCurrencyRates() {
             alert("Erreur lors du chargement des données. Consultez la console pour plus d'informations.");
         } finally {
             setLoading(false);
-            setShowDialog(false);
+            setOpen(false);
             setPreviewData([]);
         }
-    };        
+    };
 
     const handleReject = () => {
         console.log("Preview data rejected.");
-        setShowDialog(false);
+        setOpen(false);
         setPreviewData([]);
     };
 
@@ -265,10 +268,9 @@ export function LoadDataCurrencyRates() {
                 </div>
             )}
 
-            {showDialog && (
-                <div className="dialog">
-                    <div className="dialog-content border rounded p-4">
-                        <h3 className="text-lg font-bold mb-2">Preview Data</h3>
+                <Dialog open={open} handler={handleOpen}>
+                    <DialogHeader>Preview Data</DialogHeader>
+                    <DialogBody>
                         <table className="table-auto border-collapse border border-gray-500 w-full">
                             <thead>
                                 <tr>
@@ -289,26 +291,24 @@ export function LoadDataCurrencyRates() {
                                 ))}
                             </tbody>
                         </table>
-                        <div className="flex justify-end mt-4 gap-2">
-                            <button
-                                onClick={handleReject}
-                                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            >
-                                Reject
-                            </button>
-                            <button
-                                onClick={handleLoad}
-                                disabled={loading}
-                                className={`${
-                                    loading ? "bg-gray-500" : "bg-green-500 hover:bg-green-600"
+                    </DialogBody>
+                    <DialogFooter>
+                        <button
+                            onClick={handleReject}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        >
+                            Reject
+                        </button>
+                        <button
+                            onClick={handleLoad}
+                            disabled={loading}
+                            className={`${loading ? "bg-gray-500" : "bg-green-500 hover:bg-green-600"
                                 } text-white px-4 py-2 rounded`}
-                            >
-                                {loading ? "Loading..." : "Load"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        >
+                            {loading ? "Loading..." : "Load"}
+                        </button>
+                    </DialogFooter>
+                </Dialog>
         </div>
     );
 }
