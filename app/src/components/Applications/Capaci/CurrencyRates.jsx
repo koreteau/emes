@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 export function CurrencyRates() {
     const [year, setYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
     const [period, setPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
-    const [data, setData] = useState(JSON.parse(localStorage.getItem("currencyData")) || []); // Récupère les données depuis localStorage
-    const [filteredData, setFilteredData] = useState([]);
+    const [data, setData] = useState(JSON.parse(localStorage.getItem("currencyData")) || []);
+    const [groupedData, setGroupedData] = useState([]);
     const [loading, setLoading] = useState(false);
     const daysInMonth = new Date(year, parseInt(period.slice(1)), 0).getDate();
 
@@ -26,26 +26,34 @@ export function CurrencyRates() {
             }
 
             const result = await response.json();
-            setData(result); // Mise à jour directe des données
-            localStorage.setItem("currencyData", JSON.stringify(result)); // Sauvegarde des données dans localStorage
+            setData(result);
+            localStorage.setItem("currencyData", JSON.stringify(result));
         } catch (error) {
             console.error("Erreur lors du chargement des données :", error);
-            setData([]); // Remet les données à vide en cas d'erreur
+            setData([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Filtrage des données basées sur `year` et `period`
+    // Grouper les données par devise et par date
     useEffect(() => {
-        const filtered = data.filter((entry) => {
-            const entryDateParts = entry.effective_date.split("/"); // Format reçu : DD/MM/YYYY
-            const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`); // Conversion en YYYY-MM-DD
+        const grouped = data.reduce((acc, entry) => {
+            const { to_currency, rate, effective_date } = entry;
+            const entryDateParts = effective_date.split("/"); // Format DD/MM/YYYY
+            const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`);
             const startDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-01`);
             const endDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-${daysInMonth}`);
-            return entryDate >= startDate && entryDate <= endDate;
-        });
-        setFilteredData(filtered);
+
+            if (entryDate >= startDate && entryDate <= endDate) {
+                if (!acc[to_currency]) {
+                    acc[to_currency] = {};
+                }
+                acc[to_currency][effective_date] = rate;
+            }
+            return acc;
+        }, {});
+        setGroupedData(grouped);
     }, [data, year, period, daysInMonth]);
 
     // Sauvegarder les valeurs de year et period dans localStorage
@@ -59,9 +67,9 @@ export function CurrencyRates() {
         localStorage.setItem("currencyPeriod", newPeriod);
     };
 
-    const labelBaseClass = "bg-blue-100"; // Base pour le style des labels
-    const cellBaseClass = "border border-slate-700 px-2 py-1"; // Style des cellules
-    const columnWidth = "w-32"; // Largeur fixe des colonnes
+    const labelBaseClass = "bg-blue-100";
+    const cellBaseClass = "border border-slate-700 px-2 py-1";
+    const columnWidth = "w-32";
 
     return (
         <>
@@ -78,26 +86,16 @@ export function CurrencyRates() {
                 </div>
                 <div className="border-l-2 pl-2 flex gap-2">
                     <div>
-                        <label htmlFor="year" className="mr-2">Year:</label>
-                        <select
-                            id="year"
-                            value={year}
-                            onChange={(e) => handleYearChange(e.target.value)}
-                            className="border rounded px-2 py-1"
-                        >
+                        <label htmlFor="year">Year:</label>
+                        <select id="year" value={year} onChange={(e) => handleYearChange(e.target.value)}>
                             {[2024, 2025, 2026].map((y) => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="period" className="mr-2">Period:</label>
-                        <select
-                            id="period"
-                            value={period}
-                            onChange={(e) => handlePeriodChange(e.target.value)}
-                            className="border rounded px-2 py-1"
-                        >
+                        <label htmlFor="period">Period:</label>
+                        <select id="period" value={period} onChange={(e) => handlePeriodChange(e.target.value)}>
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
@@ -107,9 +105,7 @@ export function CurrencyRates() {
             </div>
 
             {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    Chargement...
-                </div>
+                <div className="flex justify-center items-center h-64">Chargement...</div>
             ) : (
                 <div className="h-full w-full overflow-x-auto">
                     <table className="table-auto border-collapse border border-slate-500">
@@ -124,34 +120,18 @@ export function CurrencyRates() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>EUR</td>
-                                {Array.from({ length: daysInMonth }, (_, i) => (
-                                    <td key={i} className={`${cellBaseClass} bg-green-100 ${columnWidth}`}>
-                                        1
-                                    </td>
-                                ))}
-                            </tr>
-                            {filteredData.map((entry) => (
-                                <tr key={entry.to_currency}>
-                                    <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>
-                                        {entry.to_currency}
-                                    </td>
+                            {Object.entries(groupedData).map(([currency, rates]) => (
+                                <tr key={currency}>
+                                    <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass}`}>{currency}</td>
                                     {Array.from({ length: daysInMonth }, (_, i) => {
                                         const day = i + 1;
                                         const effectiveDate = `${String(day).padStart(2, "0")}/${String(parseInt(period.slice(1))).padStart(
                                             2,
                                             "0"
                                         )}/${year}`;
-                                        const value =
-                                            entry.effective_date === effectiveDate ? entry.rate : "";
                                         return (
-                                            <td
-                                                key={i}
-                                                className={`${cellBaseClass} ${columnWidth} ${value ? "bg-green-100" : "bg-yellow-100"
-                                                    }`}
-                                            >
-                                                {value || ""}
+                                            <td key={i} className={`${cellBaseClass} ${columnWidth} ${rates[effectiveDate] ? "bg-green-100" : "bg-yellow-100"}`}>
+                                                {rates[effectiveDate] || ""}
                                             </td>
                                         );
                                     })}
