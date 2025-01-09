@@ -27,7 +27,16 @@ const getAllExchangeRates = async (req, res) => {
         if (req.user.is_admin) {
             // Si admin, retourne tous les taux de change
             const result = await db.query('SELECT * FROM ExchangeRates');
-            return res.status(200).json(result.rows);
+
+            // Ajuste les dates au format local (Paris)
+            const adjustedData = result.rows.map((rate) => ({
+                ...rate,
+                effective_date: new Date(rate.effective_date).toLocaleDateString('fr-FR', {
+                    timeZone: 'Europe/Paris',
+                }),
+            }));
+
+            return res.status(200).json(adjustedData);
         }
 
         // Si non-admin, applique les autorisations
@@ -42,12 +51,21 @@ const getAllExchangeRates = async (req, res) => {
         `;
         const result = await db.query(query, [authorizedExchangeRates]);
 
-        res.status(200).json(result.rows);
+        // Ajuste les dates au format local (Paris)
+        const adjustedData = result.rows.map((rate) => ({
+            ...rate,
+            effective_date: new Date(rate.effective_date).toLocaleDateString('fr-FR', {
+                timeZone: 'Europe/Paris',
+            }),
+        }));
+
+        res.status(200).json(adjustedData);
     } catch (err) {
         console.error('Error fetching exchange rates:', err.message);
         res.status(500).json({ error: 'Error fetching exchange rates' });
     }
 };
+
 
 // Récupérer un taux de change par ID
 const getExchangeRateById = async (req, res) => {
@@ -61,7 +79,15 @@ const getExchangeRateById = async (req, res) => {
             if (result.rows.length === 0) {
                 return res.status(404).json({ error: 'Exchange rate not found' });
             }
-            return res.status(200).json(result.rows[0]);
+
+            const adjustedData = {
+                ...result.rows[0],
+                effective_date: new Date(result.rows[0].effective_date).toLocaleDateString('fr-FR', {
+                    timeZone: 'Europe/Paris',
+                }),
+            };
+
+            return res.status(200).json(adjustedData);
         }
 
         // Vérifie si l'utilisateur a accès à ce taux de change
@@ -75,12 +101,20 @@ const getExchangeRateById = async (req, res) => {
             return res.status(404).json({ error: 'Exchange rate not found' });
         }
 
-        res.status(200).json(result.rows[0]);
+        const adjustedData = {
+            ...result.rows[0],
+            effective_date: new Date(result.rows[0].effective_date).toLocaleDateString('fr-FR', {
+                timeZone: 'Europe/Paris',
+            }),
+        };
+
+        res.status(200).json(adjustedData);
     } catch (err) {
         console.error('Error fetching exchange rate:', err.message);
         res.status(500).json({ error: 'Error fetching exchange rate' });
     }
 };
+
 
 // Modifier un taux de change
 const updateExchangeRate = async (req, res) => {
