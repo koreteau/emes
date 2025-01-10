@@ -1,3 +1,5 @@
+// Changer le principe de récupération des données et ajouter une route dans l'API avec 2 paramètres (year et period) pour charger qu'un mois à la fois. quand on change les dropdown il faut cliquer sur refresh pour charger les valeurs du mois séléctionné
+// Régler le pb de front (largeur de component)
 import React, { useState, useEffect } from "react";
 
 export function CurrencyRates() {
