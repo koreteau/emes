@@ -1,21 +1,32 @@
 import { useState } from "react";
 import { ProcessControl } from "./ProcessControl";
-import { CurrencyRates } from "./CurrencyRates"
+import { CurrencyRates } from "./CurrencyRates";
 import { DataLoad } from "./LoadData";
 
 export function Capaci() {
-    const [openDropdown, setOpenDropdown] = useState(null); // Dropdown ouvert
+    const [openDropdowns, setOpenDropdowns] = useState(new Set()); // Dropdowns ouverts
     const [tabs, setTabs] = useState([{ id: 1, name: "Process Control", content: <ProcessControl /> }]);
     const [activeTab, setActiveTab] = useState(1);
 
-    // Gérer les onglets
+    const toggleDropdown = (dropdown) => {
+        setOpenDropdowns((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(dropdown)) {
+                newSet.delete(dropdown); // Fermer le dropdown s'il est déjà ouvert
+            } else {
+                newSet.add(dropdown); // Ouvrir le dropdown
+            }
+            return newSet;
+        });
+    };
+
     const openTab = (name, content) => {
         const existingTab = tabs.find((tab) => tab.name === name);
         if (existingTab) {
-            setActiveTab(existingTab.id); // Activer l'onglet existant
+            setActiveTab(existingTab.id);
         } else {
             const newTab = { id: Date.now(), name, content };
-            setTabs([...tabs, newTab]); // Ajouter un nouvel onglet
+            setTabs([...tabs, newTab]);
             setActiveTab(newTab.id);
         }
     };
@@ -25,14 +36,10 @@ export function Capaci() {
         setTabs(filteredTabs);
 
         if (activeTab === id && filteredTabs.length > 0) {
-            setActiveTab(filteredTabs[filteredTabs.length - 1].id); // Activer le dernier onglet ouvert
+            setActiveTab(filteredTabs[filteredTabs.length - 1].id);
         } else if (filteredTabs.length === 0) {
-            setActiveTab(null); // Aucun onglet actif si tout est fermé
+            setActiveTab(null);
         }
-    };
-
-    const toggleDropdown = (dropdown) => {
-        setOpenDropdown(openDropdown === dropdown ? null : dropdown);
     };
 
     const renderContentForTab = (name) => {
@@ -43,10 +50,8 @@ export function Capaci() {
                 return <CurrencyRates />;
             case "Ownership":
                 return <div>Ownership</div>;
-            case "Data - Load Data":
+            case "Load Data":
                 return <DataLoad />;
-            case "Data - Extract Data":
-                return <div>Data - Extract Data Content</div>;
             default:
                 return <div>{name} Content</div>;
         }
@@ -59,74 +64,92 @@ export function Capaci() {
                 <div className="flex flex-col h-10 min-w-48 h-full border border-primary rounded-l-lg">
                     <p className="border-b border-primary p-1 text-center font-bold text-sm h-8">Menu</p>
                     <div className="p-1 text-sm py-2">
-                        <ul className="space-y-3">
-                            {/* Dropdown: Consolidation Initiale */}
+                        <ul className="space-y-2">
+                            {/* Dropdown: Data */}
                             <li>
                                 <p
-                                    className="font-semibold cursor-pointer hover:underline"
-                                    onClick={() => toggleDropdown("Consolidation Initiale")}
+                                    className="font-semibold cursor-pointer hover:underline flex items-center"
+                                    onClick={() => toggleDropdown("Data")}
                                 >
-                                    Data
+                                    <i className="fas fa-database mr-2"></i> Data
                                 </p>
-                                {openDropdown === "Consolidation Initiale" && (
+                                {openDropdowns.has("Data") && (
                                     <ul className="pl-4 space-y-1">
                                         <li
-                                            className="cursor-pointer hover:underline"
+                                            className="cursor-pointer hover:underline flex items-center"
                                             onClick={() => openTab("Manage", renderContentForTab("Manage"))}
                                         >
-                                            Manage
+                                            <i className="fas fa-cog mr-2"></i> Manage
                                         </li>
                                         <li
-                                            className="cursor-pointer hover:underline"
+                                            className="cursor-pointer hover:underline flex items-center"
                                             onClick={() => openTab("Process Control", renderContentForTab("Process Control"))}
                                         >
-                                            Process Control
+                                            <i className="fas fa-sliders-h mr-2"></i> Process Control
                                         </li>
                                         <li
-                                            className="cursor-pointer hover:underline"
-                                            onClick={() =>
-                                                openTab("Currency Rates", renderContentForTab("Currency Rates"))
-                                            }
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Currency Rates", renderContentForTab("Currency Rates"))}
                                         >
-                                            Currency Rates
+                                            <i className="fas fa-dollar-sign mr-2"></i> Currency Rates
                                         </li>
                                         <li
-                                            className="cursor-pointer hover:underline"
-                                            onClick={() =>
-                                                openTab("Ownership", renderContentForTab("Ownership"))
-                                            }
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Ownership", renderContentForTab("Ownership"))}
                                         >
-                                            Ownership
+                                            <i className="fas fa-users mr-2"></i> Ownership
                                         </li>
                                     </ul>
                                 )}
                             </li>
 
-                            {/* Dropdown: Data */}
+                            {/* Dropdown: Load */}
                             <li>
                                 <p
-                                    className="font-semibold cursor-pointer hover:underline"
+                                    className="font-semibold cursor-pointer hover:underline flex items-center"
                                     onClick={() => toggleDropdown("Load")}
                                 >
-                                    Load
+                                    <i className="fas fa-upload mr-2"></i> Load
                                 </p>
-                                {openDropdown === "Load" && (
+                                {openDropdowns.has("Load") && (
                                     <ul className="pl-4 space-y-1">
                                         <li
-                                            className="cursor-pointer hover:underline"
-                                            onClick={() =>
-                                                openTab("Data - Load Data", renderContentForTab("Data - Load Data"))
-                                            }
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Load Data", renderContentForTab("Load Data"))}
                                         >
-                                            Data
+                                            <i className="fas fa-file-upload mr-2"></i> Data
                                         </li>
                                         <li
-                                            className="cursor-pointer hover:underline"
-                                            onClick={() =>
-                                                openTab("Data - Extract Data", renderContentForTab("Data - Extract Data"))
-                                            }
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Load Journals", renderContentForTab("Load Journals"))}
                                         >
-                                            Journals
+                                            <i className="fas fa-book mr-2"></i> Journals
+                                        </li>
+                                    </ul>
+                                )}
+                            </li>
+
+                            {/* Dropdown: Extract */}
+                            <li>
+                                <p
+                                    className="font-semibold cursor-pointer hover:underline flex items-center"
+                                    onClick={() => toggleDropdown("Extract")}
+                                >
+                                    <i className="fas fa-download mr-2"></i> Extract
+                                </p>
+                                {openDropdowns.has("Extract") && (
+                                    <ul className="pl-4 space-y-1">
+                                        <li
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Extract Data", renderContentForTab("Extract Data"))}
+                                        >
+                                            <i className="fas fa-file-download mr-2"></i> Data
+                                        </li>
+                                        <li
+                                            className="cursor-pointer hover:underline flex items-center"
+                                            onClick={() => openTab("Extract Journals", renderContentForTab("Extract Journals"))}
+                                        >
+                                            <i className="fas fa-journal-whills mr-2"></i> Journals
                                         </li>
                                     </ul>
                                 )}
@@ -137,7 +160,6 @@ export function Capaci() {
 
                 {/* Contenu principal avec onglets */}
                 <div className="flex flex-col w-full h-full border border-primary rounded-r-lg">
-                    {/* Barre des onglets */}
                     <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-primary rounded-tr-lg">
                         {tabs.map((tab) => (
                             <div
@@ -150,7 +172,7 @@ export function Capaci() {
                                 <button
                                     className="ml-2 text-red-500 hover:text-red-700"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // Empêche l'activation de l'onglet lors de la fermeture
+                                        e.stopPropagation();
                                         closeTab(tab.id);
                                     }}
                                 >
@@ -160,13 +182,11 @@ export function Capaci() {
                         ))}
                     </div>
 
-                    {/* Contenu de l'onglet actif */}
                     <div className="flex-grow overflow-hidden">
                         <div className="h-full w-full overflow-x-auto">
                             {tabs.find((tab) => tab.id === activeTab)?.content || "No Content"}
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
