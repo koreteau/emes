@@ -4,6 +4,7 @@ const {
     createExchangeRate,
     getAllExchangeRates,
     getExchangeRateById,
+    getExchangeRatesByYearAndPeriod,
     updateExchangeRate,
     deleteExchangeRate,
 } = require('../controllers/exchangeRateController');
@@ -18,5 +19,6 @@ router.delete('/:exchangeRateId', authenticateToken, isAdmin, deleteExchangeRate
 // Routes accessibles à tous les utilisateurs connectés (filtrées par SecurityClasses)
 router.get('/', authenticateToken, getAllExchangeRates); // Récupérer tous les taux de change
 router.get('/:exchangeRateId', authenticateToken, getExchangeRateById); // Récupérer un taux de change par ID
+router.get('/exchange-rates', authenticateToken, getExchangeRatesByYearAndPeriod);
 
 module.exports = router;
