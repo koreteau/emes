@@ -1,13 +1,19 @@
-// Changer le principe de récupération des données et ajouter une route dans l'API avec 2 paramètres (year et period) pour charger qu'un mois à la fois. quand on change les dropdown il faut cliquer sur refresh pour charger les valeurs du mois séléctionné
-// Régler le pb de front (largeur de component)
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export function CurrencyRates() {
+    // États pour l'année et la période affichées dans les dropdowns
+    const [selectedYear, setSelectedYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
+    const [selectedPeriod, setSelectedPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
+
+    // États pour l'année et la période de la dernière requête
     const [year, setYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
     const [period, setPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
+
+    // Données et états pour les données récupérées
     const [data, setData] = useState(JSON.parse(localStorage.getItem("currencyData")) || []);
     const [groupedData, setGroupedData] = useState([]);
     const [loading, setLoading] = useState(false);
+
     const daysInMonth = new Date(year, parseInt(period.slice(1)), 0).getDate();
 
     // Fonction pour récupérer les données
@@ -15,7 +21,7 @@ export function CurrencyRates() {
         setLoading(true);
         try {
             const token = localStorage.getItem("authToken");
-            const response = await fetch("http://localhost:8080/api/exchange-rates", {
+            const response = await fetch(`http://localhost:8080/api/exchange-rates?year=${selectedYear}&period=${selectedPeriod}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -30,6 +36,28 @@ export function CurrencyRates() {
             const result = await response.json();
             setData(result);
             localStorage.setItem("currencyData", JSON.stringify(result));
+
+            // Grouper les données par devise et par date
+            const grouped = result.reduce((acc, entry) => {
+                const { to_currency, rate, effective_date } = entry;
+                const entryDateParts = effective_date.split("/"); // Format DD/MM/YYYY
+                const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`);
+                const startDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-01`);
+                const endDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-${daysInMonth}`);
+
+                if (entryDate >= startDate && entryDate <= endDate) {
+                    if (!acc[to_currency]) {
+                        acc[to_currency] = {};
+                    }
+                    acc[to_currency][effective_date] = rate;
+                }
+                return acc;
+            }, {});
+            setGroupedData(grouped);
+
+            // Mettre à jour l'année et la période utilisées dans la requête
+            setYear(selectedYear);
+            setPeriod(selectedPeriod);
         } catch (error) {
             console.error("Erreur lors du chargement des données :", error);
             setData([]);
@@ -38,35 +66,11 @@ export function CurrencyRates() {
         }
     };
 
-    // Grouper les données par devise et par date
-    useEffect(() => {
-        const grouped = data.reduce((acc, entry) => {
-            const { to_currency, rate, effective_date } = entry;
-            const entryDateParts = effective_date.split("/"); // Format DD/MM/YYYY
-            const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`);
-            const startDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-01`);
-            const endDate = new Date(`${year}-${String(parseInt(period.slice(1))).padStart(2, "0")}-${daysInMonth}`);
-
-            if (entryDate >= startDate && entryDate <= endDate) {
-                if (!acc[to_currency]) {
-                    acc[to_currency] = {};
-                }
-                acc[to_currency][effective_date] = rate;
-            }
-            return acc;
-        }, {});
-        setGroupedData(grouped);
-    }, [data, year, period, daysInMonth]);
-
-    // Sauvegarder les valeurs de year et period dans localStorage
-    const handleYearChange = (newYear) => {
-        setYear(newYear);
-        localStorage.setItem("currencyYear", newYear);
-    };
-
-    const handlePeriodChange = (newPeriod) => {
-        setPeriod(newPeriod);
-        localStorage.setItem("currencyPeriod", newPeriod);
+    // Sauvegarder les valeurs de year et period dans localStorage quand refresh est cliqué
+    const handleRefresh = () => {
+        fetchData();
+        localStorage.setItem("currencyYear", selectedYear);
+        localStorage.setItem("currencyPeriod", selectedPeriod);
     };
 
     const labelBaseClass = "bg-blue-100";
@@ -78,7 +82,7 @@ export function CurrencyRates() {
             <div className="flex items-center p-2 border-b gap-2 text-sm">
                 <div className="flex gap-2">
                     <button
-                        onClick={fetchData}
+                        onClick={handleRefresh}
                         className="p-0.5 rounded hover:bg-gray-200"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -89,7 +93,7 @@ export function CurrencyRates() {
                 <div className="border-l-2 pl-2 flex gap-2">
                     <div>
                         <label htmlFor="year">Year:</label>
-                        <select id="year" value={year} onChange={(e) => handleYearChange(e.target.value)}>
+                        <select id="year" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
                             {[2024, 2025, 2026].map((y) => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
@@ -97,7 +101,7 @@ export function CurrencyRates() {
                     </div>
                     <div>
                         <label htmlFor="period">Period:</label>
-                        <select id="period" value={period} onChange={(e) => handlePeriodChange(e.target.value)}>
+                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)}>
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
