@@ -116,6 +116,37 @@ const getExchangeRateById = async (req, res) => {
 };
 
 
+// Récupérer les taux de change par année et période
+const getExchangeRatesByYearAndPeriod = async (req, res) => {
+    const { year, period } = req.query;
+
+    try {
+        const startDate = DateTime.fromObject({ year, month: parseInt(period.slice(1)), day: 1 }).toISODate();
+        const endDate = DateTime.fromObject({ year, month: parseInt(period.slice(1)), day: 1 })
+            .endOf("month")
+            .toISODate();
+
+        const query = `
+            SELECT * FROM ExchangeRates
+            WHERE effective_date BETWEEN $1 AND $2;
+        `;
+        const result = await db.query(query, [startDate, endDate]);
+
+        const adjustedData = result.rows.map((rate) => ({
+            ...rate,
+            effective_date: new Date(rate.effective_date).toLocaleDateString('fr-FR', {
+                timeZone: 'Europe/Paris',
+            }),
+        }));
+
+        res.status(200).json(adjustedData);
+    } catch (err) {
+        console.error('Error fetching exchange rates:', err.message);
+        res.status(500).json({ error: 'Error fetching exchange rates' });
+    }
+};
+
+
 // Modifier un taux de change
 const updateExchangeRate = async (req, res) => {
     const { exchangeRateId } = req.params;
@@ -167,6 +198,7 @@ module.exports = {
     createExchangeRate,
     getAllExchangeRates,
     getExchangeRateById,
+    getExchangeRatesByYearAndPeriod,
     updateExchangeRate,
     deleteExchangeRate,
 };
