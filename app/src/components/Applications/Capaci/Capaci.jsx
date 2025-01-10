@@ -58,26 +58,30 @@ export function Capaci() {
                 {/* Menu vertical */}
                 <div className="flex flex-col h-10 min-w-48 h-full border border-primary rounded-l-lg">
                     <p className="border-b border-primary p-1 text-center font-bold text-sm h-8">Menu</p>
-                    <div className="p-1 text-sm">
-                        <ul className="space-y-2">
-                            {/* Process Control */}
-                            <li
-                                className="cursor-pointer hover:underline"
-                                onClick={() => openTab("Process Control", renderContentForTab("Process Control"))}
-                            >
-                                Process Control
-                            </li>
-
-                            {/* Dropdown: Tables */}
+                    <div className="p-1 text-sm py-2">
+                        <ul className="space-y-3">
+                            {/* Dropdown: Consolidation Initiale */}
                             <li>
                                 <p
                                     className="font-semibold cursor-pointer hover:underline"
-                                    onClick={() => toggleDropdown("Tables")}
+                                    onClick={() => toggleDropdown("Consolidation Initiale")}
                                 >
-                                    Tables
+                                    Data
                                 </p>
-                                {openDropdown === "Tables" && (
+                                {openDropdown === "Consolidation Initiale" && (
                                     <ul className="pl-4 space-y-1">
+                                        <li
+                                            className="cursor-pointer hover:underline"
+                                            onClick={() => openTab("Manage", renderContentForTab("Manage"))}
+                                        >
+                                            Manage
+                                        </li>
+                                        <li
+                                            className="cursor-pointer hover:underline"
+                                            onClick={() => openTab("Process Control", renderContentForTab("Process Control"))}
+                                        >
+                                            Process Control
+                                        </li>
                                         <li
                                             className="cursor-pointer hover:underline"
                                             onClick={() =>
@@ -102,11 +106,11 @@ export function Capaci() {
                             <li>
                                 <p
                                     className="font-semibold cursor-pointer hover:underline"
-                                    onClick={() => toggleDropdown("Data")}
+                                    onClick={() => toggleDropdown("Load")}
                                 >
-                                    Data
+                                    Load
                                 </p>
-                                {openDropdown === "Data" && (
+                                {openDropdown === "Load" && (
                                     <ul className="pl-4 space-y-1">
                                         <li
                                             className="cursor-pointer hover:underline"
@@ -114,7 +118,7 @@ export function Capaci() {
                                                 openTab("Data - Load Data", renderContentForTab("Data - Load Data"))
                                             }
                                         >
-                                            Load Data
+                                            Data
                                         </li>
                                         <li
                                             className="cursor-pointer hover:underline"
@@ -122,7 +126,7 @@ export function Capaci() {
                                                 openTab("Data - Extract Data", renderContentForTab("Data - Extract Data"))
                                             }
                                         >
-                                            Extract Data
+                                            Journals
                                         </li>
                                     </ul>
                                 )}
@@ -134,7 +138,7 @@ export function Capaci() {
                 {/* Contenu principal avec onglets */}
                 <div className="flex flex-col w-full h-full border border-primary rounded-r-lg">
                     {/* Barre des onglets */}
-                    <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-primary">
+                    <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-primary rounded-tr-lg">
                         {tabs.map((tab) => (
                             <div
                                 key={tab.id}
