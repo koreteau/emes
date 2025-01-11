@@ -114,74 +114,73 @@ export function CurrencyRates() {
                 <div className="flex justify-center items-center h-64">Chargement...</div>
             ) : (
                 <div className="h-full w-full overflow-x-auto text-sm">
-    <table className="table-auto border-collapse border border-slate-500">
-        <thead>
-            <tr>
-                <th
-                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                >
-                    Currency
-                </th>
-                {Array.from({ length: daysInMonth }, (_, i) => (
-                    <th
-                        key={i}
-                        className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
-                    >
-                        {i + 1}
-                    </th>
-                ))}
-            </tr>
-        </thead>
-        <tbody>
-            <tr key="EUR">
-                <td
-                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                >
-                    EUR
-                </td>
-                {Array.from({ length: daysInMonth }, (_, i) => (
-                    <td
-                        key={i}
-                        className={`${cellBaseClass} ${columnWidth} bg-green-100`}
-                    >
-                        1
-                    </td>
-                ))}
-            </tr>
-            {Object.entries(groupedData).map(([currency, rates]) => (
-                <tr key={currency}>
-                    <td
-                        className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                    >
-                        {currency}
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                        const day = i + 1;
-                        const effectiveDate = `${String(day).padStart(
-                            2,
-                            "0"
-                        )}/${String(parseInt(period.slice(1))).padStart(
-                            2,
-                            "0"
-                        )}/${year}`;
-                        return (
-                            <td
-                                key={i}
-                                className={`${cellBaseClass} ${columnWidth} ${
-                                    rates[effectiveDate]
-                                        ? "bg-green-100"
-                                        : "bg-yellow-100"
-                                }`}
-                            >
-                                {rates[effectiveDate] || ""}
-                            </td>
-                        );
-                    })}
-                </tr>
-            ))}
-        </tbody>
-    </table>
-</div>
+                    <table className="table-auto border-collapse border border-slate-500">
+                        <thead>
+                            <tr>
+                                <th
+                                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                >
+                                    Currency
+                                </th>
+                                {Array.from({ length: daysInMonth }, (_, i) => (
+                                    <th
+                                        key={i}
+                                        className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
+                                    >
+                                        {i + 1}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr key="EUR">
+                                <td
+                                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                >
+                                    EUR
+                                </td>
+                                {Array.from({ length: daysInMonth }, (_, i) => (
+                                    <td
+                                        key={i}
+                                        className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                    >
+                                        1
+                                    </td>
+                                ))}
+                            </tr>
+                            {Object.entries(groupedData).map(([currency, rates]) => (
+                                <tr key={currency}>
+                                    <td
+                                        className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                    >
+                                        {currency}
+                                    </td>
+                                    {Array.from({ length: daysInMonth }, (_, i) => {
+                                        const day = i + 1;
+                                        const effectiveDate = `${String(day).padStart(
+                                            2,
+                                            "0"
+                                        )}/${String(parseInt(period.slice(1))).padStart(
+                                            2,
+                                            "0"
+                                        )}/${year}`;
+                                        return (
+                                            <td
+                                                key={i}
+                                                className={`${cellBaseClass} ${columnWidth} ${rates[effectiveDate]
+                                                        ? "bg-green-100"
+                                                        : "bg-yellow-100"
+                                                    }`}
+                                            >
+                                                {rates[effectiveDate] || ""}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
             )}
         </>
