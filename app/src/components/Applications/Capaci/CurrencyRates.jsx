@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 export function CurrencyRates() {
     // États pour l'année et la période affichées dans les dropdowns
+    const [selectedView, setSelectedView] = useState(true)
     const [selectedYear, setSelectedYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
     const [selectedPeriod, setSelectedPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
 
@@ -17,58 +18,64 @@ export function CurrencyRates() {
     const daysInMonth = new Date(year, parseInt(period.slice(1)), 0).getDate();
 
     // Fonction pour récupérer les données
-    const fetchData = async () => {
+    const fetchData = async (view) => {
         setLoading(true);
-        try {
-            const token = localStorage.getItem("authToken");
-            const response = await fetch(`http://localhost:8080/api/exchange-rates?year=${selectedYear}&period=${selectedPeriod}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+        if (view === "Period") {
+            // On récupère les données pour une vue par année
 
-            if (!response.ok) {
-                throw new Error(`Erreur ${response.status} : ${response.statusText}`);
-            }
+        } else {
+            // On récupère les données pour une vue par période
+            try {
+                const token = localStorage.getItem("authToken");
+                const response = await fetch(`http://localhost:8080/api/exchange-rates?year=${selectedYear}&period=${selectedPeriod}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-            const result = await response.json();
-            setData(result);
-            localStorage.setItem("currencyData", JSON.stringify(result));
-
-            // Grouper les données par devise et par date
-            const grouped = result.reduce((acc, entry) => {
-                const { to_currency, rate, effective_date } = entry;
-                const entryDateParts = effective_date.split("/"); // Format DD/MM/YYYY
-                const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`);
-                const startDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-01`);
-                const endDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-${daysInMonth}`);
-
-                if (entryDate >= startDate && entryDate <= endDate) {
-                    if (!acc[to_currency]) {
-                        acc[to_currency] = {};
-                    }
-                    acc[to_currency][effective_date] = rate;
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status} : ${response.statusText}`);
                 }
-                return acc;
-            }, {});
-            setGroupedData(grouped);
 
-            // Mettre à jour l'année et la période utilisées dans la requête
-            setYear(selectedYear);
-            setPeriod(selectedPeriod);
-        } catch (error) {
-            console.error("Erreur lors du chargement des données :", error);
-            setData([]);
-        } finally {
-            setLoading(false);
+                const result = await response.json();
+                setData(result);
+                localStorage.setItem("currencyData", JSON.stringify(result));
+
+                // Grouper les données par devise et par date
+                const grouped = result.reduce((acc, entry) => {
+                    const { to_currency, rate, effective_date } = entry;
+                    const entryDateParts = effective_date.split("/"); // Format DD/MM/YYYY
+                    const entryDate = new Date(`${entryDateParts[2]}-${entryDateParts[1]}-${entryDateParts[0]}`);
+                    const startDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-01`);
+                    const endDate = new Date(`${selectedYear}-${String(parseInt(selectedPeriod.slice(1))).padStart(2, "0")}-${daysInMonth}`);
+
+                    if (entryDate >= startDate && entryDate <= endDate) {
+                        if (!acc[to_currency]) {
+                            acc[to_currency] = {};
+                        }
+                        acc[to_currency][effective_date] = rate;
+                    }
+                    return acc;
+                }, {});
+                setGroupedData(grouped);
+
+                // Mettre à jour l'année et la période utilisées dans la requête
+                setYear(selectedYear);
+                setPeriod(selectedPeriod);
+            } catch (error) {
+                console.error("Erreur lors du chargement des données :", error);
+                setData([]);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
     // Sauvegarder les valeurs de year et period dans localStorage quand refresh est cliqué
     const handleRefresh = () => {
-        fetchData();
+        fetchData(selectedView);
         localStorage.setItem("currencyYear", selectedYear);
         localStorage.setItem("currencyPeriod", selectedPeriod);
     };
@@ -92,6 +99,14 @@ export function CurrencyRates() {
                 </div>
                 <div className="border-l-2 pl-2 flex gap-2">
                     <div>
+                        <label htmlFor="view">Vue:</label>
+                        <select id="view" value={selectedView} onChange={(e) => setSelectedView(e.target.value)}>
+                            {["Period", "Day"].map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label htmlFor="year">Year:</label>
                         <select id="year" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
                             {[2024, 2025, 2026].map((y) => (
@@ -113,74 +128,114 @@ export function CurrencyRates() {
             {loading ? (
                 <div className="flex justify-center items-center h-64">Chargement...</div>
             ) : (
-                <div className="h-full w-full overflow-x-auto text-sm">
-                    <table className="table-auto border-collapse border border-slate-500">
-                        <thead>
-                            <tr>
-                                <th
-                                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                                >
-                                    Currency
-                                </th>
-                                {Array.from({ length: daysInMonth }, (_, i) => (
-                                    <th
-                                        key={i}
-                                        className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
-                                    >
-                                        {i + 1}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr key="EUR">
-                                <td
-                                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                                >
-                                    EUR
-                                </td>
-                                {Array.from({ length: daysInMonth }, (_, i) => (
-                                    <td
-                                        key={i}
-                                        className={`${cellBaseClass} ${columnWidth} bg-green-100`}
-                                    >
-                                        1
-                                    </td>
-                                ))}
-                            </tr>
-                            {Object.entries(groupedData).map(([currency, rates]) => (
-                                <tr key={currency}>
-                                    <td
-                                        className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                                    >
-                                        {currency}
-                                    </td>
-                                    {Array.from({ length: daysInMonth }, (_, i) => {
-                                        const day = i + 1;
-                                        const effectiveDate = `${String(day).padStart(
-                                            2,
-                                            "0"
-                                        )}/${String(parseInt(period.slice(1))).padStart(
-                                            2,
-                                            "0"
-                                        )}/${year}`;
-                                        return (
+                <>
+                    {(selectedView === "Period") ? (
+                        /* Si la vue est en "Period" */
+                        <div className="h-full w-full overflow-x-auto text-sm">
+                            <table className="table-auto border-collapse border border-slate-500">
+                                <thead>
+                                    <tr>
+                                        <th
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                        >
+                                            Currency
+                                        </th>
+                                        {/* Les periodes de P01 à P12 */}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr key="EUR">
+                                        <td
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                        >
+                                            EUR
+                                        </td>
+                                        {Array.from({ length: daysInMonth }, (_, i) => (
                                             <td
                                                 key={i}
-                                                className={`${cellBaseClass} ${columnWidth} ${rates[effectiveDate]
-                                                        ? "bg-green-100"
-                                                        : "bg-yellow-100"
-                                                    }`}
+                                                className={`${cellBaseClass} ${columnWidth} bg-green-100`}
                                             >
-                                                {rates[effectiveDate] || ""}
+                                                1
                                             </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                        ))}
+                                    </tr>
+                                    {/* les currency disponibles pour cette année (2 lignes par currency évidemment) */}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        /* Si la vue est en "Day" */
+                        <div className="h-full w-full overflow-x-auto text-sm">
+                            <table className="table-auto border-collapse border border-slate-500">
+                                <thead>
+                                    <tr>
+                                        <th
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                        >
+                                            Currency
+                                        </th>
+                                        {Array.from({ length: daysInMonth }, (_, i) => (
+                                            <th
+                                                key={i}
+                                                className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
+                                            >
+                                                {i + 1}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr key="EUR">
+                                        <td
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                        >
+                                            EUR
+                                        </td>
+                                        {Array.from({ length: daysInMonth }, (_, i) => (
+                                            <td
+                                                key={i}
+                                                className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                            >
+                                                1
+                                            </td>
+                                        ))}
+                                    </tr>
+                                    {Object.entries(groupedData).map(([currency, rates]) => (
+                                        <tr key={currency}>
+                                            <td
+                                                className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                            >
+                                                {currency}
+                                            </td>
+                                            {Array.from({ length: daysInMonth }, (_, i) => {
+                                                const day = i + 1;
+                                                const effectiveDate = `${String(day).padStart(
+                                                    2,
+                                                    "0"
+                                                )}/${String(parseInt(period.slice(1))).padStart(
+                                                    2,
+                                                    "0"
+                                                )}/${year}`;
+                                                return (
+                                                    <td
+                                                        key={i}
+                                                        className={`${cellBaseClass} ${columnWidth} ${rates[effectiveDate]
+                                                            ? "bg-green-100"
+                                                            : "bg-yellow-100"
+                                                            }`}
+                                                    >
+                                                        {rates[effectiveDate] || ""}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </>
+
 
             )}
         </>
