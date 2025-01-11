@@ -10,7 +10,7 @@ const login = async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user.id, is_admin: user.is_admin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id, is_admin: user.is_admin }, process.env.JWT_SECRET, { expiresIn: '2h' });
         res.status(200).json({ token });
     } catch (err) {
         console.error(err);
@@ -28,7 +28,7 @@ const refreshToken = async (req, res) => {
     try {
         const payload = jwt.verify(token, process.env.JWT_SECRET);
         // Générer un nouveau token
-        const newToken = jwt.sign({ id: payload.id, is_admin: payload.is_admin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const newToken = jwt.sign({ id: payload.id, is_admin: payload.is_admin }, process.env.JWT_SECRET, { expiresIn: '2h' });
         res.status(200).json({ token: newToken });
     } catch (err) {
         console.error(err);
