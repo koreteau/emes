@@ -2,9 +2,11 @@ import React, { useState } from "react";
 
 export function CurrencyRates() {
     // États pour l'année et la période affichées dans les dropdowns
-    const [selectedView, setSelectedView] = useState(true)
+    const [selectedView, setSelectedView] = useState("Period")
     const [selectedYear, setSelectedYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
     const [selectedPeriod, setSelectedPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
+
+    const [displayedView, setDisplayedView ] = useState("Period")
 
     // États pour l'année et la période de la dernière requête
     const [year, setYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
@@ -21,9 +23,11 @@ export function CurrencyRates() {
     const fetchData = async (view) => {
         setLoading(true);
         if (view === "Period") {
+            setDisplayedView("Period")
             // On récupère les données pour une vue par année
-
+            
         } else {
+            setDisplayedView("Day")
             // On récupère les données pour une vue par période
             try {
                 const token = localStorage.getItem("authToken");
@@ -116,7 +120,7 @@ export function CurrencyRates() {
                     </div>
                     <div>
                         <label htmlFor="period">Period:</label>
-                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)}>
+                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} disabled={selectedView==="Period"}>
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
@@ -129,7 +133,7 @@ export function CurrencyRates() {
                 <div className="flex justify-center items-center h-64">Chargement...</div>
             ) : (
                 <>
-                    {(selectedView === "Period") ? (
+                    {(displayedView === "Period") ? (
                         /* Si la vue est en "Period" */
                         <div className="h-full w-full overflow-x-auto text-sm">
                             <table className="table-auto border-collapse border border-slate-500">
@@ -235,8 +239,6 @@ export function CurrencyRates() {
                         </div>
                     )}
                 </>
-
-
             )}
         </>
     );
