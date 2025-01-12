@@ -7,7 +7,7 @@ export function CurrencyRates() {
     const [selectedYear, setSelectedYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
     const [selectedPeriod, setSelectedPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
 
-    const [displayedView, setDisplayedView ] = useState("Period")
+    const [displayedView, setDisplayedView] = useState("Period")
 
     // États pour l'année et la période de la dernière requête
     const [year, setYear] = useState(localStorage.getItem("currencyYear") || new Date().getFullYear());
@@ -26,7 +26,91 @@ export function CurrencyRates() {
         if (view === "Period") {
             setDisplayedView("Period")
             // On récupère les données pour une vue par année
-            
+            try {
+                const token = localStorage.getItem("authToken");
+                let yearlyData = [];
+
+                for (let month = 1; month <= 12; month++) {
+                    const response = await fetch(
+                        `http://localhost:8080/api/exchange-rates?year=${selectedYear}&period=P${String(month).padStart(2, "0")}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`Erreur ${response.status} : ${response.statusText}`);
+                    }
+
+                    const monthlyData = await response.json();
+                    yearlyData = [...yearlyData, ...monthlyData];
+                    
+                }
+
+                const grouped = yearlyData.reduce((acc, entry) => {
+                
+                    const { to_currency, rate, effective_date } = entry;
+                
+                    // Convertir le taux en nombre
+                    const numericRate = parseFloat(rate);
+                
+                    // Valider les données
+                    if (!to_currency || isNaN(numericRate) || !effective_date) {
+                        return acc;
+                    }
+                
+                    const dateParts = effective_date.split("/"); // Format DD/MM/YYYY
+                    const monthKey = `P${String(dateParts[1]).padStart(2, "0")}`; // P01, P02, ...
+                
+                    if (!acc[to_currency]) {
+                        acc[to_currency] = {};
+                    }
+                    if (!acc[to_currency][monthKey]) {
+                        acc[to_currency][monthKey] = { rates: [], dates: [], closing: null };
+                    }
+                
+                    acc[to_currency][monthKey].rates.push(numericRate);
+                    acc[to_currency][monthKey].dates.push(new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`));
+                
+                    return acc;
+                }, {});
+                                
+
+                // Trier les dates et calculer les moyennes et dernières valeurs
+                Object.keys(grouped).forEach((currency) => {
+                    Object.keys(grouped[currency]).forEach((monthKey) => {
+                        const monthData = grouped[currency][monthKey];
+
+                        // Trier les taux par date
+                        const sortedIndices = monthData.dates
+                            .map((date, index) => ({ date, index }))
+                            .sort((a, b) => a.date - b.date);
+
+                        // Mettre à jour le dernier taux (closing)
+                        if (sortedIndices.length > 0) {
+                            const lastIndex = sortedIndices[sortedIndices.length - 1].index;
+                            monthData.closing = monthData.rates[lastIndex];
+                        }
+
+                        // Calculer la moyenne
+                        const validRates = monthData.rates.filter((rate) => typeof rate === "number" && !isNaN(rate));
+                        monthData.average = validRates.length > 0
+                            ? validRates.reduce((sum, r) => sum + r, 0) / validRates.length
+                            : null; // Null si aucune donnée
+                    });
+                });
+                setGroupedData(grouped);
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données annuelles :", error);
+                setGroupedData([]);
+            } finally {
+                setLoading(false);
+            }
         } else {
             setDisplayedView("Day")
             // On récupère les données pour une vue par période
@@ -121,7 +205,7 @@ export function CurrencyRates() {
                     </div>
                     <div>
                         <label htmlFor="period">Period:</label>
-                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} disabled={selectedView==="Period"}>
+                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} disabled={selectedView === "Period"}>
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
@@ -131,7 +215,7 @@ export function CurrencyRates() {
             </div>
 
             {loading ? (
-                    <SmallSpinner />
+                <SmallSpinner />
             ) : (
                 <>
                     {(displayedView === "Period") ? (
@@ -141,31 +225,71 @@ export function CurrencyRates() {
                                 <thead>
                                     <tr>
                                         <th
-                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
                                         >
                                             Currency
                                         </th>
-                                        {/* Les periodes de P01 à P12 */}
+                                        {/* Le tableau avec les periodes de P01 à P12 */}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr key="EUR">
-                                        <td
-                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
-                                        >
-                                            EUR
+                                    <tr>
+                                        <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                            Periods
                                         </td>
-                                        {Array.from({ length: daysInMonth }, (_, i) => (
+                                        {Array.from({ length: 12 }, (_, i) => (
                                             <td
                                                 key={i}
-                                                className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                                className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
                                             >
-                                                1
+                                                P{String(i + 1).padStart(2, "0")}
                                             </td>
                                         ))}
                                     </tr>
-                                    {/* les currency disponibles pour cette année (2 lignes par currency évidemment) */}
+                                    {Object.entries(groupedData).map(([currency, data]) => (
+                                        <React.Fragment key={currency}>
+                                            {/* Ligne AVERAGE */}
+                                            <tr>
+                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                                    {currency} - AVERAGE
+                                                </td>
+                                                {Array.from({ length: 12 }, (_, i) => {
+                                                    const monthKey = `P${String(i + 1).padStart(2, "0")}`;
+                                                    return (
+                                                        <td
+                                                            key={i}
+                                                            className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                                        >
+                                                            {typeof data[monthKey]?.average === "number"
+                                                                ? data[monthKey].average.toFixed(4)
+                                                                : ""}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                            {/* Ligne CLOSING */}
+                                            <tr>
+                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                                    {currency} - CLOSING
+                                                </td>
+                                                {Array.from({ length: 12 }, (_, i) => {
+                                                    const monthKey = `P${String(i + 1).padStart(2, "0")}`;
+                                                    return (
+                                                        <td
+                                                            key={i}
+                                                            className={`${cellBaseClass} ${columnWidth} bg-blue-100`}
+                                                        >
+                                                            {typeof data[monthKey]?.closing === "number"
+                                                                ? data[monthKey].closing.toFixed(4)
+                                                                : ""}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        </React.Fragment>
+                                    ))}
                                 </tbody>
+
                             </table>
                         </div>
                     ) : (
@@ -175,7 +299,7 @@ export function CurrencyRates() {
                                 <thead>
                                     <tr>
                                         <th
-                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
                                         >
                                             Currency
                                         </th>
@@ -192,7 +316,7 @@ export function CurrencyRates() {
                                 <tbody>
                                     <tr key="EUR">
                                         <td
-                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
                                         >
                                             EUR
                                         </td>
@@ -208,7 +332,7 @@ export function CurrencyRates() {
                                     {Object.entries(groupedData).map(([currency, rates]) => (
                                         <tr key={currency}>
                                             <td
-                                                className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}
+                                                className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
                                             >
                                                 {currency}
                                             </td>
