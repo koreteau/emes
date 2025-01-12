@@ -52,33 +52,24 @@ export function CurrencyRates() {
                 }
 
                 const grouped = yearlyData.reduce((acc, entry) => {
-
                     const { to_currency, rate, effective_date } = entry;
-
-                    // Convertir le taux en nombre
+                
                     const numericRate = parseFloat(rate);
-
-                    // Valider les données
-                    if (!to_currency || isNaN(numericRate) || !effective_date) {
-                        return acc;
-                    }
-
-                    const dateParts = effective_date.split("/"); // Format DD/MM/YYYY
-                    const monthKey = `P${String(dateParts[1]).padStart(2, "0")}`; // P01, P02, ...
-
-                    if (!acc[to_currency]) {
-                        acc[to_currency] = {};
-                    }
-                    if (!acc[to_currency][monthKey]) {
-                        acc[to_currency][monthKey] = { rates: [], dates: [], closing: null };
-                    }
-
+                    if (!to_currency || isNaN(numericRate) || !effective_date) return acc;
+                
+                    const [day, month, entryYear] = effective_date.split("/").map(Number);
+                
+                    if (entryYear !== parseInt(selectedYear)) return acc; // Filtrer par année
+                
+                    const monthKey = `P${String(month).padStart(2, "0")}`;
+                    if (!acc[to_currency]) acc[to_currency] = {};
+                    if (!acc[to_currency][monthKey]) acc[to_currency][monthKey] = { rates: [], dates: [], closing: null };
+                
                     acc[to_currency][monthKey].rates.push(numericRate);
-                    acc[to_currency][monthKey].dates.push(new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`));
-
+                    acc[to_currency][monthKey].dates.push(new Date(entryYear, month - 1, day));
+                
                     return acc;
                 }, {});
-
 
                 // Trier les dates et calculer les moyennes et dernières valeurs
                 Object.keys(grouped).forEach((currency) => {
