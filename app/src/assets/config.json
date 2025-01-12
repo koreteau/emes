@@ -1,0 +1,28 @@
+{
+    "mainApp": {
+        "name": "SYNAPS.",
+        "version": "1.0.0"
+    },
+    "installedApps": [
+        {
+            "name": "CAPACI Finance",
+            "version": "1.0"
+        }
+    ],
+    "startYear": 2022,
+    "appearance": {
+        "colors": {
+            "primary": "#272727",
+            "secondary": "#000000",
+            "background": "#fffff",
+            "text": "#000000"
+        },
+        "logo": "https://example.com/logo.png"
+    },
+    "metadata": {
+        "editor": "MyWebSpace - Corto Colloc",
+        "defaultCurrency": "EUR",
+        "defaultTimezone": "GMT+1",
+        "environment": "PROD"
+    }
+}
