@@ -3,6 +3,7 @@ import { Button, Dialog, DialogHeader, DialogBody, DialogFooter } from "@materia
 
 export function SessionTimeoutDialog({ open, onClose, onLogout }) {
   const [timeLeft, setTimeLeft] = useState(60); // Compte à rebours initial à 60 secondes
+  const [loading, setLoading] = useState(false); // État de chargement pour le bouton
 
   useEffect(() => {
     if (!open) return;
@@ -22,6 +23,33 @@ export function SessionTimeoutDialog({ open, onClose, onLogout }) {
     return () => clearInterval(interval); // Nettoie l'intervalle lors de la fermeture
   }, [open, onLogout]);
 
+  const handleRefreshToken = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:8080/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh token");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("authToken", data.token); // Stocke le nouveau token
+      setLoading(false);
+      onClose(); // Ferme le dialogue après succès
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      setLoading(false);
+      onLogout(); // Déconnecte en cas d'erreur
+    }
+  };
+
   return (
     <Dialog open={open} handler={onClose}>
       <DialogHeader>Your session is about to expire!</DialogHeader>
@@ -33,9 +61,10 @@ export function SessionTimeoutDialog({ open, onClose, onLogout }) {
         <Button
           variant="gradient"
           color="green"
-          onClick={onClose}
+          onClick={handleRefreshToken}
+          disabled={loading}
         >
-          <span>Continue working</span>
+          {loading ? "Refreshing..." : "Stay Connected"}
         </Button>
         <Button
           variant="text"
