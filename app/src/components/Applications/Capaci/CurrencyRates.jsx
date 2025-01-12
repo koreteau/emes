@@ -224,7 +224,7 @@ export function CurrencyRates() {
                             <table className="table-auto border-collapse border border-slate-500">
                                 <thead>
                                     <tr>
-                                        <th className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                        <th className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
                                             Periods
                                         </th>
                                         {Array.from({ length: 12 }, (_, i) => (
@@ -243,7 +243,7 @@ export function CurrencyRates() {
                                         <React.Fragment key={currency}>
                                             {/* Ligne AVERAGE */}
                                             <tr>
-                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
                                                     {currency} - AVERAGE
                                                 </td>
                                                 {Array.from({ length: 12 }, (_, i) => {
@@ -251,18 +251,22 @@ export function CurrencyRates() {
                                                     return (
                                                         <td
                                                             key={i}
-                                                            className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                                            className={`${cellBaseClass} ${columnWidth} ${typeof data[monthKey]?.average === "number"
+                                                                    ? "bg-green-100"
+                                                                    : "bg-yellow-100"
+                                                                }`}
                                                         >
                                                             {typeof data[monthKey]?.average === "number"
                                                                 ? data[monthKey].average.toFixed(4)
                                                                 : ""}
                                                         </td>
                                                     );
+
                                                 })}
                                             </tr>
                                             {/* Ligne CLOSING */}
                                             <tr>
-                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
                                                     {currency} - CLOSING
                                                 </td>
                                                 {Array.from({ length: 12 }, (_, i) => {
@@ -270,13 +274,17 @@ export function CurrencyRates() {
                                                     return (
                                                         <td
                                                             key={i}
-                                                            className={`${cellBaseClass} ${columnWidth} bg-blue-100`}
+                                                            className={`${cellBaseClass} ${columnWidth} ${typeof data[monthKey]?.closing === "number"
+                                                                    ? "bg-green-100"
+                                                                    : "bg-yellow-100"
+                                                                }`}
                                                         >
                                                             {typeof data[monthKey]?.closing === "number"
                                                                 ? data[monthKey].closing.toFixed(4)
                                                                 : ""}
                                                         </td>
                                                     );
+
                                                 })}
                                             </tr>
                                         </React.Fragment>
