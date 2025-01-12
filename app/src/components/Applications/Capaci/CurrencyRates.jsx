@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SmallSpinner } from "../../Spinner";
 
 export function CurrencyRates() {
     // États pour l'année et la période affichées dans les dropdowns
@@ -103,7 +104,7 @@ export function CurrencyRates() {
                 </div>
                 <div className="border-l-2 pl-2 flex gap-2">
                     <div>
-                        <label htmlFor="view">Vue:</label>
+                        <label htmlFor="view">View:</label>
                         <select id="view" value={selectedView} onChange={(e) => setSelectedView(e.target.value)}>
                             {["Period", "Day"].map((y) => (
                                 <option key={y} value={y}>{y}</option>
@@ -130,7 +131,7 @@ export function CurrencyRates() {
             </div>
 
             {loading ? (
-                <div className="flex justify-center items-center h-64">Chargement...</div>
+                    <SmallSpinner />
             ) : (
                 <>
                     {(displayedView === "Period") ? (
