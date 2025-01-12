@@ -48,37 +48,37 @@ export function CurrencyRates() {
 
                     const monthlyData = await response.json();
                     yearlyData = [...yearlyData, ...monthlyData];
-                    
+
                 }
 
                 const grouped = yearlyData.reduce((acc, entry) => {
-                
+
                     const { to_currency, rate, effective_date } = entry;
-                
+
                     // Convertir le taux en nombre
                     const numericRate = parseFloat(rate);
-                
+
                     // Valider les données
                     if (!to_currency || isNaN(numericRate) || !effective_date) {
                         return acc;
                     }
-                
+
                     const dateParts = effective_date.split("/"); // Format DD/MM/YYYY
                     const monthKey = `P${String(dateParts[1]).padStart(2, "0")}`; // P01, P02, ...
-                
+
                     if (!acc[to_currency]) {
                         acc[to_currency] = {};
                     }
                     if (!acc[to_currency][monthKey]) {
                         acc[to_currency][monthKey] = { rates: [], dates: [], closing: null };
                     }
-                
+
                     acc[to_currency][monthKey].rates.push(numericRate);
                     acc[to_currency][monthKey].dates.push(new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`));
-                
+
                     return acc;
                 }, {});
-                                
+
 
                 // Trier les dates et calculer les moyennes et dernières valeurs
                 Object.keys(grouped).forEach((currency) => {
@@ -224,28 +224,21 @@ export function CurrencyRates() {
                             <table className="table-auto border-collapse border border-slate-500">
                                 <thead>
                                     <tr>
-                                        <th
-                                            className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
-                                        >
-                                            Currency
-                                        </th>
-                                        {/* Le tableau avec les periodes de P01 à P12 */}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
+                                        <th className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0 bg-white`}>
                                             Periods
-                                        </td>
+                                        </th>
                                         {Array.from({ length: 12 }, (_, i) => (
-                                            <td
+                                            <th
                                                 key={i}
                                                 className={`border border-slate-600 px-4 py-2 ${columnWidth} ${labelBaseClass}`}
                                             >
                                                 P{String(i + 1).padStart(2, "0")}
-                                            </td>
+                                            </th>
                                         ))}
                                     </tr>
+                                </thead>
+                                <tbody>
+
                                     {Object.entries(groupedData).map(([currency, data]) => (
                                         <React.Fragment key={currency}>
                                             {/* Ligne AVERAGE */}
