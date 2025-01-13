@@ -53,21 +53,21 @@ export function CurrencyRates() {
 
                 const grouped = yearlyData.reduce((acc, entry) => {
                     const { to_currency, rate, effective_date } = entry;
-                
+
                     const numericRate = parseFloat(rate);
                     if (!to_currency || isNaN(numericRate) || !effective_date) return acc;
-                
+
                     const [day, month, entryYear] = effective_date.split("/").map(Number);
-                
+
                     if (entryYear !== parseInt(selectedYear)) return acc; // Filtrer par année
-                
+
                     const monthKey = `P${String(month).padStart(2, "0")}`;
                     if (!acc[to_currency]) acc[to_currency] = {};
                     if (!acc[to_currency][monthKey]) acc[to_currency][monthKey] = { rates: [], dates: [], closing: null };
-                
+
                     acc[to_currency][monthKey].rates.push(numericRate);
                     acc[to_currency][monthKey].dates.push(new Date(entryYear, month - 1, day));
-                
+
                     return acc;
                 }, {});
 
@@ -194,14 +194,23 @@ export function CurrencyRates() {
                             ))}
                         </select>
                     </div>
-                    <div>
-                        <label htmlFor="period">Period:</label>
-                        <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} disabled={selectedView === "Period"}>
-                            {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
-                                <option key={p} value={p}>{p}</option>
-                            ))}
-                        </select>
-                    </div>
+
+                    <>
+                        {(selectedView === "Period") ? (
+                            <div>
+                                <p>Period: [None]</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <label htmlFor="period">Period:</label>
+                                <select id="period" value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)}>
+                                    {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, "0")}`).map((p) => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </>
                 </div>
             </div>
 
@@ -215,7 +224,7 @@ export function CurrencyRates() {
                             <table className="table-auto border-collapse border border-slate-500">
                                 <thead>
                                     <tr>
-                                        <th className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
+                                        <th colSpan="2" className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
                                             Periods
                                         </th>
                                         {Array.from({ length: 12 }, (_, i) => (
@@ -229,60 +238,57 @@ export function CurrencyRates() {
                                     </tr>
                                 </thead>
                                 <tbody>
-
-                                    {Object.entries(groupedData).map(([currency, data]) => (
-                                        <React.Fragment key={currency}>
-                                            {/* Ligne AVERAGE */}
-                                            <tr>
-                                                <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
-                                                    {currency} - AVERAGE
+                                    {["CLOSING", "AVERAGE"].map((type) => (
+                                        <>
+                                            {/* Ajout de la première ligne fusionnée pour le type (CLOSING/AVERAGE) */}
+                                            <tr key={`${type}-row`}>
+                                                <td
+                                                    className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}
+                                                    rowSpan={Object.keys(groupedData).length + 1} // Ajout de +1 pour la ligne EUR
+                                                >
+                                                    {type}
                                                 </td>
-                                                {Array.from({ length: 12 }, (_, i) => {
-                                                    const monthKey = `P${String(i + 1).padStart(2, "0")}`;
-                                                    return (
-                                                        <td
-                                                            key={i}
-                                                            className={`${cellBaseClass} ${columnWidth} ${typeof data[monthKey]?.average === "number"
-                                                                    ? "bg-green-100"
-                                                                    : "bg-yellow-100"
-                                                                }`}
-                                                        >
-                                                            {typeof data[monthKey]?.average === "number"
-                                                                ? data[monthKey].average.toFixed(4)
-                                                                : ""}
-                                                        </td>
-                                                    );
 
-                                                })}
-                                            </tr>
-                                            {/* Ligne CLOSING */}
-                                            <tr>
+                                                {/* Ligne fixe pour EUR */}
                                                 <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
-                                                    {currency} - CLOSING
+                                                    EUR
                                                 </td>
-                                                {Array.from({ length: 12 }, (_, i) => {
-                                                    const monthKey = `P${String(i + 1).padStart(2, "0")}`;
-                                                    return (
-                                                        <td
-                                                            key={i}
-                                                            className={`${cellBaseClass} ${columnWidth} ${typeof data[monthKey]?.closing === "number"
-                                                                    ? "bg-green-100"
-                                                                    : "bg-yellow-100"
-                                                                }`}
-                                                        >
-                                                            {typeof data[monthKey]?.closing === "number"
-                                                                ? data[monthKey].closing.toFixed(4)
-                                                                : ""}
-                                                        </td>
-                                                    );
-
-                                                })}
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <td
+                                                        key={`EUR-P${String(i + 1).padStart(2, "0")}-${type}`}
+                                                        className={`${cellBaseClass} ${columnWidth} bg-green-100`}
+                                                    >
+                                                        1.0000
+                                                    </td>
+                                                ))}
                                             </tr>
-                                        </React.Fragment>
+
+                                            {/* Lignes pour les devises dynamiques */}
+                                            {Object.entries(groupedData).map(([currency, data]) => (
+                                                <tr key={`${type}-${currency}`}>
+                                                    <td className={`border border-slate-600 px-4 py-2 ${labelBaseClass} sticky left-0`}>
+                                                        {currency}
+                                                    </td>
+                                                    {Array.from({ length: 12 }, (_, i) => {
+                                                        const monthKey = `P${String(i + 1).padStart(2, "0")}`;
+                                                        const value = type === "CLOSING" ? data[monthKey]?.closing : data[monthKey]?.average;
+                                                        return (
+                                                            <td
+                                                                key={`${currency}-${monthKey}-${type}`}
+                                                                className={`${cellBaseClass} ${columnWidth} ${typeof value === "number" ? "bg-green-100" : "bg-yellow-100"
+                                                                    }`}
+                                                            >
+                                                                {typeof value === "number" ? value.toFixed(4) : ""}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </>
                                     ))}
                                 </tbody>
-
                             </table>
+
                         </div>
                     ) : (
                         /* Si la vue est en "Day" */
