@@ -103,7 +103,7 @@ export function Accounts() {
     return (
         <>
             {/* Espace principal */}
-            <div className="">
+            <div>
                 <div className="flex items-center p-2 border-b gap-2 text-sm">
                     <div className="flex gap-2">
                         <button
@@ -222,7 +222,7 @@ export function Accounts() {
                         </div>
 
                         {/* Fenêtre de création/édition */}
-                        <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto">
+                        <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
                             <h3 className="text-lg font-bold">
                                 {selectedAccount ? "Modifier le compte" : "Créer un compte"}
                             </h3>
