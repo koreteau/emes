@@ -220,80 +220,77 @@ export function Accounts() {
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Fenêtre de création/édition */}
-                        <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
-                            <h3 className="text-lg font-bold">
-                                {selectedAccount ? "Modifier le compte" : "Créer un compte"}
-                            </h3>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleCreateOrUpdate();
-                                }}
-                            >
-                                <div className="mb-2">
-                                    <label className="block text-sm">Nom du compte</label>
-                                    <input
-                                        type="text"
-                                        name="account_name"
-                                        value={formData.account_name}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                    />
-                                </div>
-                                <div className="mb-2">
-                                    <label className="block text-sm">Type</label>
-                                    <input
-                                        type="text"
-                                        name="account_type"
-                                        value={formData.account_type}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                    />
-                                </div>
-                                <div className="mb-2">
-                                    <label className="block text-sm">Devise</label>
-                                    <input
-                                        type="text"
-                                        name="currency"
-                                        value={formData.currency}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                    />
-                                </div>
-                                <div className="mb-2">
-                                    <label className="block text-sm">Entity ID</label>
-                                    <input
-                                        type="text"
-                                        name="entity_id"
-                                        value={formData.entity_id}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                    />
-                                </div>
-                                <div className="mb-2">
-                                    <label className="block text-sm">IBAN</label>
-                                    <input
-                                        type="text"
-                                        name="iban"
-                                        value={formData.iban}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="p-2 bg-green-500 text-white rounded"
-                                >
-                                    {selectedAccount ? "Modifier" : "Créer"}
-                                </button>
-                            </form>
-                        </div>
                     </div>
-
-
                 )}
+                {/* Fenêtre de création/édition */}
+                <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
+                    <h3 className="text-lg font-bold">
+                        {selectedAccount ? "Modifier le compte" : "Créer un compte"}
+                    </h3>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleCreateOrUpdate();
+                        }}
+                    >
+                        <div className="mb-2">
+                            <label className="block text-sm">Nom du compte</label>
+                            <input
+                                type="text"
+                                name="account_name"
+                                value={formData.account_name}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Type</label>
+                            <input
+                                type="text"
+                                name="account_type"
+                                value={formData.account_type}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Devise</label>
+                            <input
+                                type="text"
+                                name="currency"
+                                value={formData.currency}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Entity ID</label>
+                            <input
+                                type="text"
+                                name="entity_id"
+                                value={formData.entity_id}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">IBAN</label>
+                            <input
+                                type="text"
+                                name="iban"
+                                value={formData.iban}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="p-2 bg-green-500 text-white rounded"
+                        >
+                            {selectedAccount ? "Modifier" : "Créer"}
+                        </button>
+                    </form>
+                </div>
             </div>
         </>
     );
