@@ -103,7 +103,7 @@ export function Accounts() {
     return (
         <>
             {/* Espace principal */}
-            <div>
+            <div className="">
                 <div className="flex items-center p-2 border-b gap-2 text-sm">
                     <div className="flex gap-2">
                         <button
@@ -172,54 +172,57 @@ export function Accounts() {
                 {loading ? (
                     <SmallSpinner />
                 ) : (
-                    <div>
+                    <div className="flex flex-col h-full">
                         {/* Liste d'éléments */}
-                        <table className="w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr>
-                                    <th className="border p-2">Nom</th>
-                                    <th className="border p-2">Type</th>
-                                    <th className="border p-2">Devise</th>
-                                    <th className="border p-2">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Array.isArray(accounts) && accounts.length > 0 ? (
-                                    accounts.map((account) => (
-                                        <tr key={account.id}>
-                                            <td className="border p-2">{account.account_name}</td>
-                                            <td className="border p-2">{account.account_type}</td>
-                                            <td className="border p-2">{account.currency}</td>
-                                            <td className="border p-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedAccount(account);
-                                                        setFormData(account);
-                                                    }}
-                                                    className="mr-2 p-1 bg-yellow-500 text-white rounded"
-                                                >
-                                                    Modifier
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(account.id)}
-                                                    className="p-1 bg-red-500 text-white rounded"
-                                                >
-                                                    Supprimer
-                                                </button>
+                        <div className="flex-grow overflow-auto">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr>
+                                        <th className="border p-2">Nom</th>
+                                        <th className="border p-2">Type</th>
+                                        <th className="border p-2">Devise</th>
+                                        <th className="border p-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(accounts) && accounts.length > 0 ? (
+                                        accounts.map((account) => (
+                                            <tr key={account.id}>
+                                                <td className="border p-2">{account.account_name}</td>
+                                                <td className="border p-2">{account.account_type}</td>
+                                                <td className="border p-2">{account.currency}</td>
+                                                <td className="border p-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedAccount(account);
+                                                            setFormData(account);
+                                                        }}
+                                                        className="mr-2 p-1 bg-yellow-500 text-white rounded"
+                                                    >
+                                                        Modifier
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(account.id)}
+                                                        className="p-1 bg-red-500 text-white rounded"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="4" className="text-center p-2">
+                                                Aucun compte trouvé.
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4" className="text-center p-2">
-                                            Aucun compte trouvé.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                        {/* Fentêtre de visualisation/édition */}
-                        <div className="p-4 border-t bg-gray-100">
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Fenêtre de création/édition */}
+                        <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto">
                             <h3 className="text-lg font-bold">
                                 {selectedAccount ? "Modifier le compte" : "Créer un compte"}
                             </h3>
@@ -288,6 +291,8 @@ export function Accounts() {
                             </form>
                         </div>
                     </div>
+
+
                 )}
             </div>
         </>
