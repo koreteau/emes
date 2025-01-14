@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SmallSpinner } from "../../Spinner";
 
 export function CurrencyRates() {
@@ -159,6 +159,10 @@ export function CurrencyRates() {
         localStorage.setItem("currencyYear", selectedYear);
         localStorage.setItem("currencyPeriod", selectedPeriod);
     };
+
+    useEffect(() => {
+        fetchData(selectedView);
+    }, []);
 
     const labelBaseClass = "bg-blue-100";
     const cellBaseClass = "border border-slate-700 px-2 py-1";
