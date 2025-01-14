@@ -1,10 +1,100 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SmallSpinner } from "../../Spinner";
 
 export function Accounts() {
 
     const [loading, setLoading] = useState(false);
     const [bottomView, setBottomView] = useState("default");
+    const [accounts, setAccounts] = useState([]);
+    const [selectedAccount, setSelectedAccount] = useState(null);
+    const [formData, setFormData] = useState({
+        account_name: "",
+        account_type: "",
+        currency: "",
+        entity_id: "",
+        iban: "",
+    });
+
+    const fetchAccounts = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("authToken");
+        try {
+            const response = await fetch("http://localhost:8080/api/accounts", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.json();
+            setAccounts(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des comptes :", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateOrUpdate = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("authToken");
+        try {
+            const method = selectedAccount ? "PUT" : "POST";
+            const url = selectedAccount
+                ? `http://localhost:8080/api/accounts/${selectedAccount.id}`
+                : "http://localhost:8080/api/accounts";
+
+            await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(formData),
+            });
+            fetchAccounts();
+            setFormData({
+                account_name: "",
+                account_type: "",
+                currency: "",
+                entity_id: "",
+                iban: "",
+            });
+            setSelectedAccount(null);
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du compte :", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        setLoading(true);
+        const token = localStorage.getItem("authToken");
+        try {
+            await fetch(`http://localhost:8080/api/accounts/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            fetchAccounts();
+        } catch (error) {
+            console.error("Erreur lors de la suppression du compte :", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAccounts();
+    }, []);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
     const handleRefresh = () => {
         setLoading(true);
@@ -17,7 +107,7 @@ export function Accounts() {
                 <div className="flex items-center p-2 border-b gap-2 text-sm">
                     <div className="flex gap-2">
                         <button
-                            onClick={handleRefresh}
+                            onClick={fetchAccounts}
                             className="p-0.5 rounded hover:bg-gray-200"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -28,7 +118,16 @@ export function Accounts() {
                     <div className="border-l-2 pl-2 flex gap-2">
                         <div>
                             <button
-                                onClick={handleRefresh}
+                                onClick={() => {
+                                    setSelectedAccount(null);
+                                    setFormData({
+                                        account_name: "",
+                                        account_type: "",
+                                        currency: "",
+                                        entity_id: "",
+                                        iban: "",
+                                    });
+                                }}
                                 className="p-0.5 rounded hover:bg-gray-200"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -75,17 +174,121 @@ export function Accounts() {
                 ) : (
                     <div>
                         {/* Liste d'éléments */}
-                        <div></div>
+                        <table className="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr>
+                                    <th className="border p-2">Nom</th>
+                                    <th className="border p-2">Type</th>
+                                    <th className="border p-2">Devise</th>
+                                    <th className="border p-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(accounts) && accounts.length > 0 ? (
+                                    accounts.map((account) => (
+                                        <tr key={account.id}>
+                                            <td className="border p-2">{account.account_name}</td>
+                                            <td className="border p-2">{account.account_type}</td>
+                                            <td className="border p-2">{account.currency}</td>
+                                            <td className="border p-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedAccount(account);
+                                                        setFormData(account);
+                                                    }}
+                                                    className="mr-2 p-1 bg-yellow-500 text-white rounded"
+                                                >
+                                                    Modifier
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(account.id)}
+                                                    className="p-1 bg-red-500 text-white rounded"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center p-2">
+                                            Aucun compte trouvé.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                         {/* Fentêtre de visualisation/édition */}
-                        <div>
-                            {/* Visuel différent en foncion de ce qu'il y a dans "bottomView" */}
+                        <div className="p-4 border-t bg-gray-100">
+                            <h3 className="text-lg font-bold">
+                                {selectedAccount ? "Modifier le compte" : "Créer un compte"}
+                            </h3>
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleCreateOrUpdate();
+                                }}
+                            >
+                                <div className="mb-2">
+                                    <label className="block text-sm">Nom du compte</label>
+                                    <input
+                                        type="text"
+                                        name="account_name"
+                                        value={formData.account_name}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div className="mb-2">
+                                    <label className="block text-sm">Type</label>
+                                    <input
+                                        type="text"
+                                        name="account_type"
+                                        value={formData.account_type}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div className="mb-2">
+                                    <label className="block text-sm">Devise</label>
+                                    <input
+                                        type="text"
+                                        name="currency"
+                                        value={formData.currency}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div className="mb-2">
+                                    <label className="block text-sm">Entity ID</label>
+                                    <input
+                                        type="text"
+                                        name="entity_id"
+                                        value={formData.entity_id}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div className="mb-2">
+                                    <label className="block text-sm">IBAN</label>
+                                    <input
+                                        type="text"
+                                        name="iban"
+                                        value={formData.iban}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="p-2 bg-green-500 text-white rounded"
+                                >
+                                    {selectedAccount ? "Modifier" : "Créer"}
+                                </button>
+                            </form>
                         </div>
                     </div>
                 )}
-            </div>
-            {/* Menu à gauche */}
-            <div>
-                ...
             </div>
         </>
     );
