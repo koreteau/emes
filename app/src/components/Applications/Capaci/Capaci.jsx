@@ -288,7 +288,7 @@ export function Capaci() {
                 </div>
 
                 {/* Contenu principal avec onglets */}
-                <div className="flex flex-col w-[calc(100vw-204px)] h-full border border-primary rounded-r-lg">
+                <div className="flex flex-col w-[calc(100vw-204px)] h-100vw border border-primary rounded-r-lg">
                     <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-primary rounded-tr-lg">
                         {tabs.map((tab) => (
                             <div
@@ -314,7 +314,7 @@ export function Capaci() {
                         ))}
                     </div>
 
-                    <div className="flex-grow overflow-hidden">
+                    <div className="flex-grow overflow-hidden relative">
                         <div className="h-full w-full overflow-x-auto overflow-y-auto">
                             {tabs.find((tab) => tab.id === activeTab)?.content || "No Content"}
                         </div>
