@@ -14,7 +14,6 @@ export function CurrencyRates() {
     const [period, setPeriod] = useState(localStorage.getItem("currencyPeriod") || "P01");
 
     // Données et états pour les données récupérées
-    const [data, setData] = useState(JSON.parse(localStorage.getItem("currencyData")) || []);
     const [groupedData, setGroupedData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -120,7 +119,6 @@ export function CurrencyRates() {
                 }
 
                 const result = await response.json();
-                setData(result);
                 localStorage.setItem("currencyData", JSON.stringify(result));
 
                 // Grouper les données par devise et par date
@@ -146,7 +144,6 @@ export function CurrencyRates() {
                 setPeriod(selectedPeriod);
             } catch (error) {
                 console.error("Erreur lors du chargement des données :", error);
-                setData([]);
             } finally {
                 setLoading(false);
             }
