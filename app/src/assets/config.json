@@ -1,7 +1,9 @@
 {
     "mainApp": {
         "name": "SYNAPS.",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "editor": "MyWebSpace - Corto Colloc",
+        "copyrights": "Corto Colloc"
     },
     "installedApps": [
         {
@@ -20,9 +22,25 @@
         "logo": "https://example.com/logo.png"
     },
     "metadata": {
-        "editor": "MyWebSpace - Corto Colloc",
         "defaultCurrency": "EUR",
         "defaultTimezone": "GMT+1",
-        "environment": "PROD"
+        "environment": "PRODUCTION"
+    },
+    "parameters": {
+        "currencyRates": {
+            "defaultView": "Period",
+            "defaultYear": 2025,
+            "defaultPeriod": ""
+        },
+        "journals": {
+            "defaultScenario": "ACT",
+            "defaultYear": 2025,
+            "defaultPeriod": "P01"
+        },
+        "processControl": {
+            "defaultScenario": "ACT",
+            "defaultYear": 2025,
+            "defaultPeriod": "P01"
+        }
     }
 }
