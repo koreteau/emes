@@ -3,14 +3,16 @@ const { checkPermissions } = require('../middleware/permissions');
 
 // Créer une entité
 const createEntity = async (req, res) => {
-    const { entity_name, entity_type, legal_identifier, parent_entity_id } = req.body;
+    const { entity_name, entity_type, legal_identifier, parent_entity_id, internal_id } = req.body;
 
     try {
         const query = `
-            INSERT INTO Entities (entity_name, entity_type, legal_identifier, parent_entity_id)
-            VALUES ($1, $2, $3, $4) RETURNING *;
+            INSERT INTO Entities (entity_name, entity_type, legal_identifier, parent_entity_id, internal_id)
+            VALUES ($1, $2, $3, $4, $5) RETURNING *;
         `;
-        const result = await db.query(query, [entity_name, entity_type, legal_identifier, parent_entity_id || null]);
+        const result = await db.query(query, [
+            entity_name, entity_type, legal_identifier, parent_entity_id || null, internal_id
+        ]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -91,7 +93,7 @@ const getEntityById = async (req, res) => {
 // Modifier une entité
 const updateEntity = async (req, res) => {
     const { entityId } = req.params;
-    const { entity_name, entity_type, legal_identifier, parent_entity_id } = req.body;
+    const { entity_name, entity_type, legal_identifier, parent_entity_id, internal_id } = req.body;
 
     try {
         const query = `
@@ -99,11 +101,14 @@ const updateEntity = async (req, res) => {
             SET entity_name = COALESCE($1, entity_name),
                 entity_type = COALESCE($2, entity_type),
                 legal_identifier = COALESCE($3, legal_identifier),
-                parent_entity_id = COALESCE($4, parent_entity_id)
-            WHERE entity_id = $5
+                parent_entity_id = COALESCE($4, parent_entity_id),
+                internal_id = COALESCE($5, internal_id)
+            WHERE entity_id = $6
             RETURNING *;
         `;
-        const values = [entity_name, entity_type, legal_identifier, parent_entity_id, entityId];
+        const values = [
+            entity_name, entity_type, legal_identifier, parent_entity_id, internal_id, entityId
+        ];
         const result = await db.query(query, values);
 
         if (result.rows.length === 0) {
