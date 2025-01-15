@@ -4,7 +4,6 @@ import { SmallSpinner } from "../../Spinner";
 export function Accounts() {
 
     const [loading, setLoading] = useState(false);
-    const [bottomView, setBottomView] = useState("default");
     const [accounts, setAccounts] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [formData, setFormData] = useState({
@@ -14,6 +13,8 @@ export function Accounts() {
         entity_id: "",
         iban: "",
     });
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [selectedAccounts, setSelectedAccounts] = useState([]);
 
     const fetchAccounts = async () => {
         setLoading(true);
@@ -36,6 +37,9 @@ export function Accounts() {
     };
 
     const handleCreateOrUpdate = async () => {
+        if (!isAdmin && selectedAccount) {
+            formData.validated = false;
+        }
         setLoading(true);
         const token = localStorage.getItem("authToken");
         try {
@@ -68,22 +72,107 @@ export function Accounts() {
         }
     };
 
-    const handleDelete = async (id) => {
-        setLoading(true);
+    const editSelectedAccount = () => {
+        if (selectedAccounts.length === 1) {
+            const account = accounts.find(acc => acc.account_id === selectedAccounts[0]);
+            setSelectedAccount(account);
+            setFormData({
+                account_name: account.account_name,
+                account_type: account.account_type,
+                currency: account.currency,
+                entity_id: account.entity_id,
+                iban: account.iban,
+            });
+        } else {
+            console.error("Veuillez sélectionner un seul compte à éditer.");
+        }
+    };
+
+    const handleValidateAccounts = async () => {
         const token = localStorage.getItem("authToken");
         try {
-            await fetch(`http://localhost:8080/api/accounts/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            await Promise.all(
+                selectedAccounts.map((id) =>
+                    fetch(`http://localhost:8080/api/accounts/${id}/validate`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ validated: true }),
+                    })
+                )
+            );
             fetchAccounts();
+            setSelectedAccounts([]);
         } catch (error) {
-            console.error("Erreur lors de la suppression du compte :", error);
-        } finally {
-            setLoading(false);
+            console.error("Erreur lors de la validation des comptes :", error);
+        }
+    };
+
+    const handleCloseAccounts = async () => {
+        const token = localStorage.getItem("authToken");
+        try {
+            await Promise.all(
+                selectedAccounts.map((id) =>
+                    fetch(`http://localhost:8080/api/accounts/${id}/close`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ closed_date: new Date().toISOString() }),
+                    })
+                )
+            );
+            fetchAccounts();
+            setSelectedAccounts([]);
+        } catch (error) {
+            console.error("Erreur lors de la fermeture des comptes :", error);
+        }
+    };
+
+    const openSelectedAccounts = async () => {
+        const token = localStorage.getItem("authToken");
+        try {
+            await Promise.all(
+                selectedAccounts.map((id) =>
+                    fetch(`http://localhost:8080/api/accounts/${id}/open`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ opened_date: new Date().toISOString() }),
+                    })
+                )
+            );
+            fetchAccounts();
+            setSelectedAccounts([]);
+        } catch (error) {
+            console.error("Erreur lors de l'ouverture des comptes :", error);
+        }
+    };
+
+    const rejectSelectedAccount = async () => {
+        const token = localStorage.getItem("authToken");
+        try {
+            await Promise.all(
+                selectedAccounts.map((id) =>
+                    fetch(`http://localhost:8080/api/accounts/${id}/reject`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ rejected: true }),
+                    })
+                )
+            );
+            fetchAccounts();
+            setSelectedAccounts([]);
+        } catch (error) {
+            console.error("Erreur lors du rejet des comptes :", error);
         }
     };
 
@@ -96,21 +185,28 @@ export function Accounts() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleRefresh = () => {
-        setLoading(true);
-    }
+    // Vérification si l'utilisateur est admin au chargement
+    useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            setIsAdmin(payload.is_admin || false);
+        }
+    }, []);
+
+    const labelBaseClass = "bg-blue-100";
 
     return (
         <>
             {/* Espace principal */}
-            <div>
+            <div className="text-sm">
                 <div className="flex items-center p-2 border-b gap-2 text-sm">
                     <div className="flex gap-2">
                         <button
                             onClick={fetchAccounts}
                             className="p-0.5 rounded hover:bg-gray-200"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
                         </button>
@@ -130,89 +226,131 @@ export function Accounts() {
                                 }}
                                 className="p-0.5 rounded hover:bg-gray-200"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
                             </button>
                         </div>
                         <div>
                             <button
-                                onClick={handleRefresh}
+                                onClick={editSelectedAccount}
                                 className="p-0.5 rounded hover:bg-gray-200"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                                 </svg>
                             </button>
                         </div>
-                        <div>
-                            <button
-                                onClick={handleRefresh}
-                                className="p-0.5 rounded hover:bg-gray-200"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                </svg>
-                            </button>
-                        </div>
+                        {isAdmin ? (
+                            <>
+                                <div>
+                                    <button
+                                        onClick={handleCloseAccounts}
+                                        className="p-0.5 rounded hover:bg-gray-200"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div>
+                                    <button
+                                        onClick={openSelectedAccounts}
+                                        className="p-0.5 rounded hover:bg-gray-200"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (<></>)}
                     </div>
-                    <div className="border-l-2 pl-2 flex gap-2">
-                        <div>
-                            <button
-                                onClick={handleRefresh}
-                                className="p-0.5 rounded hover:bg-gray-200"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                </svg>
-                            </button>
+                    {isAdmin ? (
+                        <div className="border-l-2 pl-2 flex gap-2">
+                            <div>
+                                <button
+                                    onClick={handleValidateAccounts}
+                                    className="p-0.5 rounded hover:bg-gray-200"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div>
+                                <button
+                                    onClick={rejectSelectedAccount}
+                                    className="p-0.5 rounded hover:bg-gray-200"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ) : (<></>)}
                 </div>
                 {loading ? (
                     <SmallSpinner />
                 ) : (
                     <div className="flex flex-col h-full">
-                        {/* Liste d'éléments */}
-                        <div className="flex-grow overflow-auto">
-                            <table className="w-full border-collapse border border-gray-300">
-                                <thead>
+                        <div className="overflow-auto max-w-full">
+                            <table className="table-auto border-collapse border border-gray-300">
+                                <thead className="bg-blue-100">
                                     <tr>
-                                        <th className="border p-2">Nom</th>
-                                        <th className="border p-2">Type</th>
-                                        <th className="border p-2">Devise</th>
-                                        <th className="border p-2">Actions</th>
+                                        <th className="border p-2 w-8"></th>
+                                        <th className="border p-2 w-24">Internal ID</th>
+                                        <th className="border p-2 w-40">Name</th>
+                                        <th className="border p-2 w-16">Type</th>
+                                        <th className="border p-2 w-16">Currency</th>
+                                        <th className="border p-2 w-40 truncate">Entity</th>
+                                        <th className="border p-2 w-60">IBAN</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Array.isArray(accounts) && accounts.length > 0 ? (
-                                        accounts.map((account) => (
-                                            <tr key={account.id}>
-                                                <td className="border p-2">{account.account_name}</td>
-                                                <td className="border p-2">{account.account_type}</td>
-                                                <td className="border p-2">{account.currency}</td>
-                                                <td className="border p-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedAccount(account);
-                                                            setFormData(account);
-                                                        }}
-                                                        className="mr-2 p-1 bg-yellow-500 text-white rounded"
-                                                    >
-                                                        Modifier
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(account.id)}
-                                                        className="p-1 bg-red-500 text-white rounded"
-                                                    >
-                                                        Supprimer
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        accounts.map((account) => {
+                                            const isFutureOpening =
+                                                account.opening_date && new Date(account.opening_date) > new Date();
+                                            const hasClosingDate = account.closing_date;
+                                            const textStyle = isFutureOpening || hasClosingDate ? "text-gray-500" : "";
+                                            const bgStyle = account.validated ? "bg-green-100" : "bg-yellow-100";
+
+                                            return (
+                                                <tr key={account.account_id} className={`${bgStyle} ${textStyle}`}>
+                                                    <td className="border p-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedAccounts.includes(account.account_id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedAccounts([
+                                                                        ...selectedAccounts,
+                                                                        account.account_id,
+                                                                    ]);
+                                                                } else {
+                                                                    setSelectedAccounts(
+                                                                        selectedAccounts.filter(
+                                                                            (id) => id !== account.account_id
+                                                                        )
+                                                                    );
+                                                                }
+                                                            }}
+                                                        />
+                                                    </td>
+                                                    <td className="border p-2 overflow-auto">{account.internal_id}</td>
+                                                    <td className="border p-2 overflow-auto">{account.account_name}</td>
+                                                    <td className="border p-2 overflow-auto">{account.account_type}</td>
+                                                    <td className="border p-2 overflow-auto">{account.currency}</td>
+                                                    <td className="border p-2 truncate">{account.entity_id}</td>
+                                                    <td className="border p-2 overflow-auto">{account.iban}</td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr>
-                                            <td colSpan="4" className="text-center p-2">
+                                            <td colSpan="7" className="text-center p-2">
                                                 Aucun compte trouvé.
                                             </td>
                                         </tr>
@@ -221,6 +359,7 @@ export function Accounts() {
                             </table>
                         </div>
                     </div>
+
                 )}
                 {/* Fenêtre de création/édition */}
                 <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
