@@ -16,11 +16,10 @@ export function Accounts() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [selectedAccounts, setSelectedAccounts] = useState([]);
 
-    const fetchAccounts = async () => {
-        setLoading(true);
+    const fetchEntities = async () => {
         const token = localStorage.getItem("authToken");
         try {
-            const response = await fetch("http://localhost:8080/api/accounts", {
+            const response = await fetch("http://localhost:8080/api/entities", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -28,13 +27,48 @@ export function Accounts() {
                 },
             });
             const data = await response.json();
-            setAccounts(Array.isArray(data) ? data : []);
+            // Transformer la liste des entités en un objet clé-valeur
+            return data.reduce((map, entity) => {
+                map[entity.entity_id] = { internal_id: entity.internal_id, entity_name: entity.entity_name };
+                return map;
+            }, {});
+        } catch (error) {
+            console.error("Erreur lors de la récupération des entités :", error);
+            return {};
+        }
+    };
+    
+    const fetchAccounts = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("authToken");
+        try {
+            // Récupérer les comptes
+            const accountsResponse = await fetch("http://localhost:8080/api/accounts", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const accountsData = await accountsResponse.json();
+    
+            // Récupérer les entités
+            const entitiesMap = await fetchEntities();
+    
+            // Ajouter les informations des entités aux comptes
+            const enrichedAccounts = accountsData.map((account) => ({
+                ...account,
+                entity: entitiesMap[account.entity_id] || { internal_id: "", entity_name: "Entité inconnue" },
+            }));
+    
+            setAccounts(enrichedAccounts);
         } catch (error) {
             console.error("Erreur lors de la récupération des comptes :", error);
         } finally {
             setLoading(false);
         }
     };
+    
 
     const handleCreateOrUpdate = async () => {
         if (!isAdmin && selectedAccount) {
@@ -343,7 +377,7 @@ export function Accounts() {
                                                     <td className="border p-2 overflow-auto">{account.account_name}</td>
                                                     <td className="border p-2 overflow-auto">{account.account_type}</td>
                                                     <td className="border p-2 overflow-auto">{account.currency}</td>
-                                                    <td className="border p-2 truncate">{account.entity_id}</td>
+                                                    <td className="border p-2 truncate">{account.entity.internal_id} - {account.entity.entity_name}</td>
                                                     <td className="border p-2 overflow-auto">{account.iban}</td>
                                                 </tr>
                                             );
@@ -359,7 +393,6 @@ export function Accounts() {
                             </table>
                         </div>
                     </div>
-
                 )}
                 {/* Fenêtre de création/édition */}
                 <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
