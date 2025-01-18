@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { SmallSpinner } from "../../Spinner";
 
+
 export function Accounts() {
 
     const [loading, setLoading] = useState(false);
@@ -12,6 +13,15 @@ export function Accounts() {
         currency: "",
         entity_id: "",
         iban: "",
+        internal_id: "",
+        exchange_fee_rate: "",
+        transfer_fee: "",
+        maintenance_fee: "",
+        min_balance: "",
+        max_balance: "",
+        overdraft_limit: "",
+        opening_date: "",
+        closing_date: "",
     });
     const [isAdmin, setIsAdmin] = useState(false);
     const [selectedAccounts, setSelectedAccounts] = useState([]);
@@ -37,7 +47,7 @@ export function Accounts() {
             return {};
         }
     };
-    
+
     const fetchAccounts = async () => {
         setLoading(true);
         const token = localStorage.getItem("authToken");
@@ -51,16 +61,16 @@ export function Accounts() {
                 },
             });
             const accountsData = await accountsResponse.json();
-    
+
             // Récupérer les entités
             const entitiesMap = await fetchEntities();
-    
+
             // Ajouter les informations des entités aux comptes
             const enrichedAccounts = accountsData.map((account) => ({
                 ...account,
                 entity: entitiesMap[account.entity_id] || { internal_id: "", entity_name: "Entité inconnue" },
             }));
-    
+
             setAccounts(enrichedAccounts);
         } catch (error) {
             console.error("Erreur lors de la récupération des comptes :", error);
@@ -68,18 +78,20 @@ export function Accounts() {
             setLoading(false);
         }
     };
-    
+
 
     const handleCreateOrUpdate = async () => {
-        if (!isAdmin && selectedAccount) {
-            formData.validated = false;
+        if (!formData.account_name || !formData.currency || !formData.entity_id) {
+            console.error("Tous les champs obligatoires ne sont pas remplis !");
+            return;
         }
+
         setLoading(true);
         const token = localStorage.getItem("authToken");
         try {
             const method = selectedAccount ? "PUT" : "POST";
             const url = selectedAccount
-                ? `http://localhost:8080/api/accounts/${selectedAccount.id}`
+                ? `http://localhost:8080/api/accounts/${selectedAccount.account_id}`
                 : "http://localhost:8080/api/accounts";
 
             await fetch(url, {
@@ -88,7 +100,10 @@ export function Accounts() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    entity_id: formData.entity_id || null, // Remplace undefined par null si non défini
+                }),
             });
             fetchAccounts();
             setFormData({
@@ -119,28 +134,6 @@ export function Accounts() {
             });
         } else {
             console.error("Veuillez sélectionner un seul compte à éditer.");
-        }
-    };
-
-    const handleValidateAccounts = async () => {
-        const token = localStorage.getItem("authToken");
-        try {
-            await Promise.all(
-                selectedAccounts.map((id) =>
-                    fetch(`http://localhost:8080/api/accounts/${id}/validate`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ validated: true }),
-                    })
-                )
-            );
-            fetchAccounts();
-            setSelectedAccounts([]);
-        } catch (error) {
-            console.error("Erreur lors de la validation des comptes :", error);
         }
     };
 
@@ -188,28 +181,6 @@ export function Accounts() {
         }
     };
 
-    const rejectSelectedAccount = async () => {
-        const token = localStorage.getItem("authToken");
-        try {
-            await Promise.all(
-                selectedAccounts.map((id) =>
-                    fetch(`http://localhost:8080/api/accounts/${id}/reject`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ rejected: true }),
-                    })
-                )
-            );
-            fetchAccounts();
-            setSelectedAccounts([]);
-        } catch (error) {
-            console.error("Erreur lors du rejet des comptes :", error);
-        }
-    };
-
     useEffect(() => {
         fetchAccounts();
     }, []);
@@ -228,7 +199,6 @@ export function Accounts() {
         }
     }, []);
 
-    const labelBaseClass = "bg-blue-100";
 
     return (
         <>
@@ -246,37 +216,39 @@ export function Accounts() {
                         </button>
                     </div>
                     <div className="border-l-2 pl-2 flex gap-2">
-                        <div>
-                            <button
-                                onClick={() => {
-                                    setSelectedAccount(null);
-                                    setFormData({
-                                        account_name: "",
-                                        account_type: "",
-                                        currency: "",
-                                        entity_id: "",
-                                        iban: "",
-                                    });
-                                }}
-                                className="p-0.5 rounded hover:bg-gray-200"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div>
-                            <button
-                                onClick={editSelectedAccount}
-                                className="p-0.5 rounded hover:bg-gray-200"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                </svg>
-                            </button>
-                        </div>
                         {isAdmin ? (
                             <>
+                                <div>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedAccount(null);
+                                            setFormData({
+                                                account_name: "",
+                                                account_type: "",
+                                                currency: "",
+                                                entity_id: "",
+                                                iban: "",
+                                            });
+                                        }}
+                                        className="p-0.5 rounded hover:bg-gray-200"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div>
+                                    <button
+                                        onClick={editSelectedAccount}
+                                        className="p-0.5 rounded hover:bg-gray-200"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+
                                 <div>
                                     <button
                                         onClick={handleCloseAccounts}
@@ -300,37 +272,13 @@ export function Accounts() {
                             </>
                         ) : (<></>)}
                     </div>
-                    {isAdmin ? (
-                        <div className="border-l-2 pl-2 flex gap-2">
-                            <div>
-                                <button
-                                    onClick={handleValidateAccounts}
-                                    className="p-0.5 rounded hover:bg-gray-200"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div>
-                                <button
-                                    onClick={rejectSelectedAccount}
-                                    className="p-0.5 rounded hover:bg-gray-200"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    ) : (<></>)}
                 </div>
                 {loading ? (
                     <SmallSpinner />
                 ) : (
                     <div className="flex flex-col h-full">
-                        <div className="overflow-auto max-w-full">
-                            <table className="table-auto border-collapse border border-gray-300">
+                        <div className="overflow-x-auto max-w-full">
+                            <table className="table-auto border-collapse border border-gray-300 w-full">
                                 <thead className="bg-blue-100">
                                     <tr>
                                         <th className="border p-2 w-8"></th>
@@ -338,8 +286,13 @@ export function Accounts() {
                                         <th className="border p-2 w-40">Name</th>
                                         <th className="border p-2 w-16">Type</th>
                                         <th className="border p-2 w-16">Currency</th>
-                                        <th className="border p-2 w-40 truncate">Entity</th>
+                                        <th className="border p-2 w-40">Entity</th>
+                                        <th className="border p-2 w-40">Minimum Balance</th>
+                                        <th className="border p-2 w-40">Maximum Balance</th>
                                         <th className="border p-2 w-60">IBAN</th>
+                                        <th className="border p-2 w-40">Overdraft Limit</th>
+                                        <th className="border p-2 w-40">Opening Date</th>
+                                        <th className="border p-2 w-40">Closing Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -348,11 +301,11 @@ export function Accounts() {
                                             const isFutureOpening =
                                                 account.opening_date && new Date(account.opening_date) > new Date();
                                             const hasClosingDate = account.closing_date;
-                                            const textStyle = isFutureOpening || hasClosingDate ? "text-gray-500" : "";
-                                            const bgStyle = account.validated ? "bg-green-100" : "bg-yellow-100";
+                                            const textStyle =
+                                                isFutureOpening || hasClosingDate ? "bg-yellow-100" : "bg-green-100";
 
                                             return (
-                                                <tr key={account.account_id} className={`${bgStyle} ${textStyle}`}>
+                                                <tr key={account.account_id} className={`${textStyle}`}>
                                                     <td className="border p-2">
                                                         <input
                                                             type="checkbox"
@@ -373,18 +326,38 @@ export function Accounts() {
                                                             }}
                                                         />
                                                     </td>
-                                                    <td className="border p-2 overflow-auto">{account.internal_id}</td>
-                                                    <td className="border p-2 overflow-auto">{account.account_name}</td>
-                                                    <td className="border p-2 overflow-auto">{account.account_type}</td>
-                                                    <td className="border p-2 overflow-auto">{account.currency}</td>
-                                                    <td className="border p-2 truncate">{account.entity.internal_id} - {account.entity.entity_name}</td>
-                                                    <td className="border p-2 overflow-auto">{account.iban}</td>
+                                                    <td className="border p-2">{account.internal_id}</td>
+                                                    <td
+                                                        className="border p-2 truncate max-w-[10rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        title={account.account_name} // Tooltip pour le contenu complet
+                                                    >
+                                                        {account.account_name}
+                                                    </td>
+                                                    <td className="border p-2">{account.account_type}</td>
+                                                    <td className="border p-2">{account.currency}</td>
+                                                    <td
+                                                        className="border p-2 truncate max-w-[10rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        title={`${account.entity.internal_id} - ${account.entity.entity_name}`}
+                                                    >
+                                                        {account.entity.internal_id} - {account.entity.entity_name}
+                                                    </td>
+                                                    <td className="border p-2">{account.min_balance}</td>
+                                                    <td className="border p-2">{account.max_balance}</td>
+                                                    <td
+                                                        className="border p-2 truncate max-w-[15rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        title={account.iban}
+                                                    >
+                                                        {account.iban}
+                                                    </td>
+                                                    <td className="border p-2">{account.overdraft_limit}</td>
+                                                    <td className="border p-2">{account.opening_date}</td>
+                                                    <td className="border p-2">{account.closing_date}</td>
                                                 </tr>
                                             );
                                         })
                                     ) : (
                                         <tr>
-                                            <td colSpan="7" className="text-center p-2">
+                                            <td colSpan="12" className="text-center p-2">
                                                 Aucun compte trouvé.
                                             </td>
                                         </tr>
@@ -451,6 +424,27 @@ export function Accounts() {
                                 type="text"
                                 name="iban"
                                 value={formData.iban}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Internal ID</label>
+                            <input
+                                type="text"
+                                name="internal_id"
+                                value={formData.internal_id}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Exchange Fee Rate</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="exchange_fee_rate"
+                                value={formData.exchange_fee_rate}
                                 onChange={handleInputChange}
                                 className="w-full p-2 border rounded"
                             />
