@@ -43,7 +43,16 @@ const getAllAccounts = async (req, res) => {
     try {
         if (req.user.is_admin) {
             const result = await db.query('SELECT * FROM Accounts');
-            return res.status(200).json(result.rows);
+            const adjustedData = result.rows.map((account) => ({
+                ...account,
+                opening_date: account.opening_date
+                    ? new Date(account.opening_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                    : null,
+                closing_date: account.closing_date
+                    ? new Date(account.closing_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                    : null,
+            }));
+            return res.status(200).json(adjustedData);
         }
 
         const authorizedAccounts = await checkPermissions(userId, 'account', 'read');
@@ -53,12 +62,22 @@ const getAllAccounts = async (req, res) => {
 
         const query = `SELECT * FROM Accounts WHERE account_id = ANY($1)`;
         const result = await db.query(query, [authorizedAccounts]);
-        res.status(200).json(result.rows);
+        const adjustedData = result.rows.map((account) => ({
+            ...account,
+            opening_date: account.opening_date
+                ? new Date(account.opening_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                : null,
+            closing_date: account.closing_date
+                ? new Date(account.closing_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                : null,
+        }));
+        res.status(200).json(adjustedData);
     } catch (err) {
         console.error('Error fetching accounts:', err.message);
         res.status(500).json({ error: 'Error fetching accounts' });
     }
 };
+
 
 // Récupérer un compte par ID
 const getAccountById = async (req, res) => {
@@ -66,30 +85,29 @@ const getAccountById = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        if (req.user.is_admin) {
-            const result = await db.query('SELECT * FROM Accounts WHERE account_id = $1', [accountId]);
-            if (result.rows.length === 0) {
-                return res.status(404).json({ error: 'Account not found' });
-            }
-            return res.status(200).json(result.rows[0]);
-        }
-
-        const hasAccess = await checkPermissions(userId, accountId, 'account', 'read');
-        if (!hasAccess.includes(accountId)) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
-
         const result = await db.query('SELECT * FROM Accounts WHERE account_id = $1', [accountId]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Account not found' });
         }
 
-        res.status(200).json(result.rows[0]);
+        const account = result.rows[0];
+        const adjustedAccount = {
+            ...account,
+            opening_date: account.opening_date
+                ? new Date(account.opening_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                : null,
+            closing_date: account.closing_date
+                ? new Date(account.closing_date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+                : null,
+        };
+
+        res.status(200).json(adjustedAccount);
     } catch (err) {
         console.error('Error fetching account:', err.message);
         res.status(500).json({ error: 'Error fetching account' });
     }
 };
+
 
 // Modifier un compte
 const updateAccount = async (req, res) => {
