@@ -85,7 +85,7 @@ export function Accounts() {
             console.error("Tous les champs obligatoires ne sont pas remplis !");
             return;
         }
-
+    
         setLoading(true);
         const token = localStorage.getItem("authToken");
         try {
@@ -93,17 +93,20 @@ export function Accounts() {
             const url = selectedAccount
                 ? `http://localhost:8080/api/accounts/${selectedAccount.account_id}`
                 : "http://localhost:8080/api/accounts";
-
+    
+            // Retirer la date de fermeture si elle est vide
+            const filteredData = { ...formData };
+            if (!filteredData.closing_date) {
+                delete filteredData.closing_date;
+            }
+    
             await fetch(url, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    entity_id: formData.entity_id || null, // Remplace undefined par null si non défini
-                }),
+                body: JSON.stringify(filteredData),
             });
             fetchAccounts();
             setFormData({
@@ -112,6 +115,15 @@ export function Accounts() {
                 currency: "",
                 entity_id: "",
                 iban: "",
+                internal_id: "",
+                exchange_fee_rate: "",
+                transfer_fee: "",
+                maintenance_fee: "",
+                min_balance: "",
+                max_balance: "",
+                overdraft_limit: "",
+                opening_date: "",
+                closing_date: "",
             });
             setSelectedAccount(null);
         } catch (error) {
@@ -119,7 +131,7 @@ export function Accounts() {
         } finally {
             setLoading(false);
         }
-    };
+    };    
 
     const editSelectedAccount = () => {
         if (selectedAccounts.length === 1) {
@@ -289,10 +301,13 @@ export function Accounts() {
                                         <th className="border p-2 w-40">Entity</th>
                                         <th className="border p-2 w-40">Minimum Balance</th>
                                         <th className="border p-2 w-40">Maximum Balance</th>
-                                        <th className="border p-2 w-60">IBAN</th>
                                         <th className="border p-2 w-40">Overdraft Limit</th>
-                                        <th className="border p-2 w-40">Opening Date</th>
-                                        <th className="border p-2 w-40">Closing Date</th>
+                                        <th className="border p-2 w-40">Exchanhe Fee Rates</th>
+                                        <th className="border p-2 w-40">Transfer Fee</th>
+                                        <th className="border p-2 w-60">Maintenance Fee</th>
+                                        <th className="border p-2 w-60">Opening Date</th>
+                                        <th className="border p-2 w-60">Closing Date</th>
+                                        <th className="border p-2 w-60">IBAN</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -328,7 +343,7 @@ export function Accounts() {
                                                     </td>
                                                     <td className="border p-2">{account.internal_id}</td>
                                                     <td
-                                                        className="border p-2 truncate max-w-[10rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        className="border p-2 truncate overflow-hidden text-ellipsis whitespace-nowrap"
                                                         title={account.account_name} // Tooltip pour le contenu complet
                                                     >
                                                         {account.account_name}
@@ -336,22 +351,25 @@ export function Accounts() {
                                                     <td className="border p-2">{account.account_type}</td>
                                                     <td className="border p-2">{account.currency}</td>
                                                     <td
-                                                        className="border p-2 truncate max-w-[10rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        className="border p-2 truncate overflow-hidden text-ellipsis whitespace-nowrap"
                                                         title={`${account.entity.internal_id} - ${account.entity.entity_name}`}
                                                     >
                                                         {account.entity.internal_id} - {account.entity.entity_name}
                                                     </td>
                                                     <td className="border p-2">{account.min_balance}</td>
                                                     <td className="border p-2">{account.max_balance}</td>
+                                                    <td className="border p-2">{account.overdraft_limit}</td>
+                                                    <td className="border p-2">{account.exchange_fee_rate}</td>
+                                                    <td className="border p-2">{account.transfer_fee}</td>
+                                                    <td className="border p-2">{account.maintenance_fee}</td>
+                                                    <td className="border p-2">{account.opening_date}</td>
+                                                    <td className="border p-2">{account.closing_date}</td>
                                                     <td
-                                                        className="border p-2 truncate max-w-[15rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                                                        className="border p-2 truncate overflow-hidden text-ellipsis whitespace-nowrap"
                                                         title={account.iban}
                                                     >
                                                         {account.iban}
                                                     </td>
-                                                    <td className="border p-2">{account.overdraft_limit}</td>
-                                                    <td className="border p-2">{account.opening_date}</td>
-                                                    <td className="border p-2">{account.closing_date}</td>
                                                 </tr>
                                             );
                                         })
@@ -445,6 +463,81 @@ export function Accounts() {
                                 step="0.01"
                                 name="exchange_fee_rate"
                                 value={formData.exchange_fee_rate}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Frais de transfert</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="transfer_fee"
+                                value={formData.transfer_fee}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Frais de maintenance</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="maintenance_fee"
+                                value={formData.maintenance_fee}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Solde minimum</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="min_balance"
+                                value={formData.min_balance}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Solde maximum</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="max_balance"
+                                value={formData.max_balance}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Limite de découvert</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="overdraft_limit"
+                                value={formData.overdraft_limit}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Date d'ouverture</label>
+                            <input
+                                type="date"
+                                name="opening_date"
+                                value={formData.opening_date}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-2">
+                            <label className="block text-sm">Date de fermeture</label>
+                            <input
+                                type="date"
+                                name="closing_date"
+                                value={formData.closing_date}
                                 onChange={handleInputChange}
                                 className="w-full p-2 border rounded"
                             />
