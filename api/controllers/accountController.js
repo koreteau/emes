@@ -6,7 +6,7 @@ const createAccount = async (req, res) => {
     const {
         account_name, account_type, currency, entity_id, iban, internal_id,
         exchange_fee_rate, transfer_fee, maintenance_fee, min_balance,
-        max_balance, overdraft_limit, opening_date, closing_date, validated
+        max_balance, overdraft_limit, opening_date, closing_date
     } = req.body;
 
     try {
@@ -14,52 +14,51 @@ const createAccount = async (req, res) => {
             INSERT INTO Accounts (
                 account_name, account_type, currency, entity_id, iban, internal_id,
                 exchange_fee_rate, transfer_fee, maintenance_fee, min_balance,
-                max_balance, overdraft_limit, opening_date, closing_date, validated
+                max_balance, overdraft_limit, opening_date, closing_date
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
             ) RETURNING *;
         `;
         const values = [
             account_name, account_type, currency, entity_id, iban, internal_id,
             exchange_fee_rate, transfer_fee, maintenance_fee, min_balance,
-            max_balance, overdraft_limit, opening_date, closing_date, validated
+            max_balance, overdraft_limit, opening_date, closing_date
         ];
         const result = await db.query(query, values);
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error(err);
         if (err.code === '23505') {
+            // Gestion de l'unicité de l'IBAN ou autre clé unique
             return res.status(400).json({ error: 'IBAN or Internal ID must be unique.' });
         }
         res.status(500).json({ error: 'Error creating account' });
     }
 };
 
-
 // Récupérer tous les comptes
 const getAllAccounts = async (req, res) => {
     const userId = req.user.id;
-    try {
-        let query = 'SELECT * FROM Accounts';
-        let values = [];
 
-        if (!req.user.is_admin) {
-            const authorizedAccounts = await checkPermissions(userId, 'account', 'read');
-            if (authorizedAccounts.length === 0) {
-                return res.status(200).json([]);
-            }
-            query += ' WHERE account_id = ANY($1) AND validated = TRUE';
-            values = [authorizedAccounts];
+    try {
+        if (req.user.is_admin) {
+            const result = await db.query('SELECT * FROM Accounts');
+            return res.status(200).json(result.rows);
         }
 
-        const result = await db.query(query, values);
+        const authorizedAccounts = await checkPermissions(userId, 'account', 'read');
+        if (authorizedAccounts.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        const query = `SELECT * FROM Accounts WHERE account_id = ANY($1)`;
+        const result = await db.query(query, [authorizedAccounts]);
         res.status(200).json(result.rows);
     } catch (err) {
         console.error('Error fetching accounts:', err.message);
         res.status(500).json({ error: 'Error fetching accounts' });
     }
 };
-
 
 // Récupérer un compte par ID
 const getAccountById = async (req, res) => {
@@ -98,7 +97,7 @@ const updateAccount = async (req, res) => {
     const {
         account_name, account_type, currency, entity_id, iban, internal_id,
         exchange_fee_rate, transfer_fee, maintenance_fee, min_balance,
-        max_balance, overdraft_limit, opening_date, closing_date, validated
+        max_balance, overdraft_limit, opening_date, closing_date
     } = req.body;
 
     try {
@@ -117,15 +116,14 @@ const updateAccount = async (req, res) => {
                 max_balance = COALESCE($11, max_balance),
                 overdraft_limit = COALESCE($12, overdraft_limit),
                 opening_date = COALESCE($13, opening_date),
-                closing_date = COALESCE($14, closing_date),
-                validated = COALESCE($15, validated)
-            WHERE account_id = $16
+                closing_date = COALESCE($14, closing_date)
+            WHERE account_id = $15
             RETURNING *;
         `;
         const values = [
             account_name, account_type, currency, entity_id, iban, internal_id,
             exchange_fee_rate, transfer_fee, maintenance_fee, min_balance,
-            max_balance, overdraft_limit, opening_date, closing_date, validated, accountId
+            max_balance, overdraft_limit, opening_date, closing_date, accountId
         ];
         const result = await db.query(query, values);
 
@@ -142,7 +140,6 @@ const updateAccount = async (req, res) => {
         res.status(500).json({ error: 'Error updating account' });
     }
 };
-
 
 // Supprimer un compte
 const deleteAccount = async (req, res) => {
