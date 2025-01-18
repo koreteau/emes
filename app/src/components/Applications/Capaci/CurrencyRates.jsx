@@ -163,7 +163,7 @@ export function CurrencyRates() {
 
     const labelBaseClass = "bg-blue-100";
     const cellBaseClass = "border border-slate-700 px-2 py-1";
-    const columnWidth = "w-32";
+    const columnWidth = "w-16";
 
     return (
         <>
