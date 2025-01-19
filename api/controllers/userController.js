@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 
 // Créer un utilisateur
 const createUser = async (req, res) => {
@@ -34,6 +36,7 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+
 // Récupérer un utilisateur par ID
 const getUserById = async (req, res) => {
     const { userId } = req.params;
@@ -52,6 +55,36 @@ const getUserById = async (req, res) => {
     }
 };
 
+
+// Récupérer un utilistateur connecté
+const getCurrentUser = async (req, res) => {
+    const userId = req.user?.id; // ID extrait par authenticateToken
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID missing from request.' });
+    }
+
+    try {
+        // Requête pour récupérer les données utilisateur
+        const result = await db.query(
+            'SELECT id, username, is_admin, security_classes FROM Users WHERE id = $1',
+            [userId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        // Renvoi des informations utilisateur
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching user:', err.message);
+        res.status(500).json({ error: 'Error fetching user' });
+    }
+};
+
+
+// mettre à jour un utilisateur
 const updateUser = async (req, res) => {
     const { userId } = req.params;
     const { username, password, is_admin, security_classes } = req.body;
@@ -103,11 +136,12 @@ const deleteUser = async (req, res) => {
     }
 };
 
+
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
+    getCurrentUser,
     updateUser,
     deleteUser,
 };
-
