@@ -10,10 +10,10 @@ const {
 
 const router = express.Router();
 
-// Routes pour gérer les SecurityClasses (admin uniquement)
+// Routes pour gérer les SecurityClasses
 router.post('/', authenticateToken, isAdmin, createSecurityClass); // Créer une classe
 router.get('/', authenticateToken, isAdmin, getAllSecurityClasses); // Récupérer toutes les classes
-router.get('/:securityClassId', authenticateToken, isAdmin, getSecurityClassById); // Récupérer une classe par ID
+router.get('/:securityClassId', authenticateToken, getSecurityClassById); // Accessible par tous les utilisateurs connectés
 router.put('/:securityClassId', authenticateToken, isAdmin, updateSecurityClass); // Modifier une classe par ID
 router.delete('/:securityClassId', authenticateToken, isAdmin, deleteSecurityClass); // Supprimer une classe par ID
 
