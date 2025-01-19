@@ -109,6 +109,28 @@ const getAccountById = async (req, res) => {
 };
 
 
+// Récupérer les comptes associés à une entité spécifique
+const getAccountsByEntityId = async (req, res) => {
+    const { entityId } = req.params;
+
+    try {
+        const result = await db.query(
+            'SELECT * FROM Accounts WHERE entity_id = $1',
+            [entityId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'No accounts found for this entity.' });
+        }
+
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error('Error fetching accounts by entity:', err);
+        res.status(500).json({ error: 'Error fetching accounts.' });
+    }
+};
+
+
 // Modifier un compte
 const updateAccount = async (req, res) => {
     const { accountId } = req.params;
@@ -181,6 +203,7 @@ module.exports = {
     createAccount,
     getAllAccounts,
     getAccountById,
+    getAccountsByEntityId,
     updateAccount,
     deleteAccount,
 };
