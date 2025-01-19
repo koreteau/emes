@@ -51,33 +51,95 @@ export function Accounts() {
     const fetchAccounts = async () => {
         setLoading(true);
         const token = localStorage.getItem("authToken");
+    
         try {
-            // Récupérer les comptes
-            const accountsResponse = await fetch("http://localhost:8080/api/accounts", {
+            // Récupérer les entités pour enrichir les comptes
+            const entitiesMap = await fetchEntities();
+    
+            // Récupérer les données utilisateur
+            const userResponse = await fetch("http://localhost:8080/api/users/me", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
             });
-            const accountsData = await accountsResponse.json();
-
-            // Récupérer les entités
-            const entitiesMap = await fetchEntities();
-
-            // Ajouter les informations des entités aux comptes
-            const enrichedAccounts = accountsData.map((account) => ({
+    
+            if (!userResponse.ok) {
+                throw new Error("Impossible de récupérer les informations utilisateur.");
+            }
+    
+            const userData = await userResponse.json();
+    
+            let accounts = [];
+            if (userData.is_admin) {
+                // Si admin, récupérer tous les comptes
+                const accountsResponse = await fetch("http://localhost:8080/api/accounts", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+    
+                if (!accountsResponse.ok) {
+                    throw new Error("Impossible de récupérer les comptes.");
+                }
+    
+                accounts = await accountsResponse.json();
+            } else {
+                // Sinon, récupérer les comptes par entité
+                const securityClasses = await Promise.all(
+                    userData.security_classes.map(async (classId) => {
+                        const classResponse = await fetch(`http://localhost:8080/api/security-classes/${classId}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+    
+                        if (!classResponse.ok) {
+                            throw new Error(`Erreur lors de la récupération de la classe de sécurité : ${classId}`);
+                        }
+    
+                        return await classResponse.json();
+                    })
+                );
+    
+                // Extraire les IDs d'entités
+                const entityIds = [...new Set(securityClasses.map((securityClass) => securityClass.entity_id))];
+    
+                // Récupérer les comptes pour chaque entité
+                for (const entityId of entityIds) {
+                    const response = await fetch(`http://localhost:8080/api/accounts/${entityId}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+    
+                    if (response.ok) {
+                        const data = await response.json();
+                        accounts.push(...data);
+                    }
+                }
+            }
+    
+            // Enrichir les comptes avec les données des entités
+            const enrichedAccounts = accounts.map((account) => ({
                 ...account,
-                entity: entitiesMap[account.entity_id] || { internal_id: "", entity_name: "Entité inconnue" },
+                entity: entitiesMap[account.entity_id] || { internal_id: "N/A", entity_name: "Entité inconnue" },
             }));
-
+    
             setAccounts(enrichedAccounts);
         } catch (error) {
             console.error("Erreur lors de la récupération des comptes :", error);
         } finally {
             setLoading(false);
         }
-    };
+    };    
 
 
     const handleCreateOrUpdate = async () => {
