@@ -3,28 +3,31 @@ import { SmallSpinner } from "../../Spinner";
 
 
 export function Accounts() {
-
     const [loading, setLoading] = useState(false);
     const [accounts, setAccounts] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [selectedAccounts, setSelectedAccounts] = useState([]);
+    const [isAdmin, setIsAdmin] = useState(false);
+
     const [formData, setFormData] = useState({
         account_name: "",
         account_type: "",
         currency: "",
         entity_id: "",
-        iban: "",
-        internal_id: "",
-        exchange_fee_rate: "",
-        transfer_fee: "",
-        maintenance_fee: "",
-        min_balance: "",
-        max_balance: "",
-        overdraft_limit: "",
-        opening_date: "",
-        closing_date: "",
+        opening: "open",
+        increase: "open",
+        decrease: "open",
+        equity: "open",
+        adjustment: "open",
+        checking: "open",
+        closing: "open",
+        revenue: "open",
+        expense: "open",
+        transfer: "open",
+        provision: "open",
+        depreciation: "open",
+        gain_loss: "open",
     });
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [selectedAccounts, setSelectedAccounts] = useState([]);
 
     const fetchEntities = async () => {
         const token = localStorage.getItem("authToken");
@@ -51,11 +54,11 @@ export function Accounts() {
     const fetchAccounts = async () => {
         setLoading(true);
         const token = localStorage.getItem("authToken");
-    
+
         try {
             // Récupérer les entités pour enrichir les comptes
             const entitiesMap = await fetchEntities();
-    
+
             // Récupérer les données utilisateur
             const userResponse = await fetch("http://localhost:8080/api/users/me", {
                 method: "GET",
@@ -64,13 +67,13 @@ export function Accounts() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-    
+
             if (!userResponse.ok) {
                 throw new Error("Impossible de récupérer les informations utilisateur.");
             }
-    
+
             const userData = await userResponse.json();
-    
+
             let accounts = [];
             if (userData.is_admin) {
                 // Si admin, récupérer tous les comptes
@@ -81,11 +84,11 @@ export function Accounts() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-    
+
                 if (!accountsResponse.ok) {
                     throw new Error("Impossible de récupérer les comptes.");
                 }
-    
+
                 accounts = await accountsResponse.json();
             } else {
                 // Sinon, récupérer les comptes par entité
@@ -98,18 +101,18 @@ export function Accounts() {
                                 Authorization: `Bearer ${token}`,
                             },
                         });
-    
+
                         if (!classResponse.ok) {
                             throw new Error(`Erreur lors de la récupération de la classe de sécurité : ${classId}`);
                         }
-    
+
                         return await classResponse.json();
                     })
                 );
-    
+
                 // Extraire les IDs d'entités
                 const entityIds = [...new Set(securityClasses.map((securityClass) => securityClass.entity_id))];
-    
+
                 // Récupérer les comptes pour chaque entité
                 for (const entityId of entityIds) {
                     const response = await fetch(`http://localhost:8080/api/accounts/${entityId}`, {
@@ -119,27 +122,27 @@ export function Accounts() {
                             Authorization: `Bearer ${token}`,
                         },
                     });
-    
+
                     if (response.ok) {
                         const data = await response.json();
                         accounts.push(...data);
                     }
                 }
             }
-    
+
             // Enrichir les comptes avec les données des entités
             const enrichedAccounts = accounts.map((account) => ({
                 ...account,
                 entity: entitiesMap[account.entity_id] || { internal_id: "N/A", entity_name: "Entité inconnue" },
             }));
-    
+
             setAccounts(enrichedAccounts);
         } catch (error) {
             console.error("Erreur lors de la récupération des comptes :", error);
         } finally {
             setLoading(false);
         }
-    };    
+    };
 
 
     const handleCreateOrUpdate = async () => {
@@ -176,16 +179,19 @@ export function Accounts() {
                 account_type: "",
                 currency: "",
                 entity_id: "",
-                iban: "",
-                internal_id: "",
-                exchange_fee_rate: "",
-                transfer_fee: "",
-                maintenance_fee: "",
-                min_balance: "",
-                max_balance: "",
-                overdraft_limit: "",
-                opening_date: "",
-                closing_date: "",
+                opening: "open",
+                increase: "open",
+                decrease: "open",
+                equity: "open",
+                adjustment: "open",
+                checking: "open",
+                closing: "open",
+                revenue: "open",
+                expense: "open",
+                transfer: "open",
+                provision: "open",
+                depreciation: "open",
+                gain_loss: "open",
             });
             setSelectedAccount(null);
         } catch (error) {
@@ -204,74 +210,38 @@ export function Accounts() {
                 account_type: account.account_type,
                 currency: account.currency,
                 entity_id: account.entity_id,
-                iban: account.iban,
+                opening: account.opening || "open",
+                increase: account.increase || "open",
+                decrease: account.decrease || "open",
+                equity: account.equity || "open",
+                adjustment: account.adjustment || "open",
+                checking: account.checking || "open",
+                closing: account.closing || "open",
+                revenue: account.revenue || "open",
+                expense: account.expense || "open",
+                transfer: account.transfer || "open",
+                provision: account.provision || "open",
+                depreciation: account.depreciation || "open",
+                gain_loss: account.gain_loss || "open",
             });
         } else {
             console.error("Veuillez sélectionner un seul compte à éditer.");
         }
     };
 
-    const handleCloseAccounts = async () => {
-        const token = localStorage.getItem("authToken");
-        try {
-            await Promise.all(
-                selectedAccounts.map((id) =>
-                    fetch(`http://localhost:8080/api/accounts/${id}/close`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ closed_date: new Date().toISOString() }),
-                    })
-                )
-            );
-            fetchAccounts();
-            setSelectedAccounts([]);
-        } catch (error) {
-            console.error("Erreur lors de la fermeture des comptes :", error);
-        }
-    };
-
-    const openSelectedAccounts = async () => {
-        const token = localStorage.getItem("authToken");
-        try {
-            await Promise.all(
-                selectedAccounts.map((id) =>
-                    fetch(`http://localhost:8080/api/accounts/${id}/open`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ opened_date: new Date().toISOString() }),
-                    })
-                )
-            );
-            fetchAccounts();
-            setSelectedAccounts([]);
-        } catch (error) {
-            console.error("Erreur lors de l'ouverture des comptes :", error);
-        }
-    };
-
     useEffect(() => {
         fetchAccounts();
-    }, []);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    // Vérification si l'utilisateur est admin au chargement
-    useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (token) {
             const payload = JSON.parse(atob(token.split(".")[1]));
             setIsAdmin(payload.is_admin || false);
         }
     }, []);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
 
     return (
@@ -301,7 +271,19 @@ export function Accounts() {
                                                 account_type: "",
                                                 currency: "",
                                                 entity_id: "",
-                                                iban: "",
+                                                opening: "open",
+                                                increase: "open",
+                                                decrease: "open",
+                                                equity: "open",
+                                                adjustment: "open",
+                                                checking: "open",
+                                                closing: "open",
+                                                revenue: "open",
+                                                expense: "open",
+                                                transfer: "open",
+                                                provision: "open",
+                                                depreciation: "open",
+                                                gain_loss: "open",
                                             });
                                         }}
                                         className="p-0.5 rounded hover:bg-gray-200"
@@ -321,28 +303,6 @@ export function Accounts() {
                                         </svg>
                                     </button>
                                 </div>
-
-
-                                <div>
-                                    <button
-                                        onClick={handleCloseAccounts}
-                                        className="p-0.5 rounded hover:bg-gray-200"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div>
-                                    <button
-                                        onClick={openSelectedAccounts}
-                                        className="p-0.5 rounded hover:bg-gray-200"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                                        </svg>
-                                    </button>
-                                </div>
                             </>
                         ) : (<></>)}
                     </div>
@@ -355,93 +315,71 @@ export function Accounts() {
                             <table className="table-auto border-collapse border border-gray-300 w-full">
                                 <thead className="bg-blue-100">
                                     <tr>
-                                        <th className="border p-2 w-8"></th>
-                                        <th className="border p-2 w-24 ">Internal ID</th>
-                                        <th className="border p-2 w-40">Name</th>
-                                        <th className="border p-2 w-16">Type</th>
-                                        <th className="border p-2 w-16">Currency</th>
-                                        <th className="border p-2 w-40">Entity</th>
-                                        <th className="border p-2 w-40 truncate">Minimum Balance</th>
-                                        <th className="border p-2 w-40 truncate">Maximum Balance</th>
-                                        <th className="border p-2 w-40 truncate">Overdraft Limit</th>
-                                        <th className="border p-2 w-40 truncate">Exchange Fee Rates</th>
-                                        <th className="border p-2 w-40 truncate">Transfer Fee</th>
-                                        <th className="border p-2 w-60 truncate">Maintenance Fee</th>
-                                        <th className="border p-2 w-60 truncate">Opening Date</th>
-                                        <th className="border p-2 w-60 truncate">Closing Date</th>
-                                        <th className="border p-2 w-60">IBAN</th>
+                                        <th className="border p-2">Nom</th>
+                                        <th className="border p-2">Type</th>
+                                        <th className="border p-2">Devise</th>
+                                        <th className="border p-2">Entité</th>
+                                        {[
+                                            "opening",
+                                            "increase",
+                                            "decrease",
+                                            "equity",
+                                            "adjustment",
+                                            "checking",
+                                            "closing",
+                                            "revenue",
+                                            "expense",
+                                            "transfer",
+                                            "provision",
+                                            "depreciation",
+                                            "gain_loss",
+                                        ].map((field) => (
+                                            <th key={field} className="border p-2">{field}</th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Array.isArray(accounts) && accounts.length > 0 ? (
-                                        accounts.map((account) => {
-                                            const isFutureOpening =
-                                                account.opening_date && new Date(account.opening_date) > new Date();
-                                            const hasClosingDate = account.closing_date;
-                                            const textStyle =
-                                                isFutureOpening || hasClosingDate ? "bg-yellow-100" : "bg-green-100";
-
-                                            return (
-                                                <tr key={account.account_id} className={`${textStyle}`}>
-                                                    <td className="border p-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedAccounts.includes(account.account_id)}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) {
-                                                                    setSelectedAccounts([
-                                                                        ...selectedAccounts,
-                                                                        account.account_id,
-                                                                    ]);
-                                                                } else {
-                                                                    setSelectedAccounts(
-                                                                        selectedAccounts.filter(
-                                                                            (id) => id !== account.account_id
-                                                                        )
-                                                                    );
-                                                                }
-                                                            }}
-                                                        />
-                                                    </td>
-                                                    <td className="border p-2">{account.internal_id}</td>
-                                                    <td
-                                                        className="border p-2 truncate overflow-hidden text-ellipsis whitespace-nowrap"
-                                                        title={account.account_name} // Tooltip pour le contenu complet
-                                                    >
-                                                        {account.account_name}
-                                                    </td>
-                                                    <td className="border p-2">{account.account_type}</td>
-                                                    <td className="border p-2">{account.currency}</td>
-                                                    <td
-                                                        className="border p-2 max-w-40 truncate overflow-hidden text-ellipsis whitespace-nowrap"
-                                                        title={`${account.entity.internal_id} - ${account.entity.entity_name}`}
-                                                    >
-                                                        {account.entity.internal_id} - {account.entity.entity_name}
-                                                    </td>
-                                                    <td className="border p-2">{account.min_balance}</td>
-                                                    <td className="border p-2">{account.max_balance}</td>
-                                                    <td className="border p-2">{account.overdraft_limit}</td>
-                                                    <td className="border p-2">{account.exchange_fee_rate}</td>
-                                                    <td className="border p-2">{account.transfer_fee}</td>
-                                                    <td className="border p-2">{account.maintenance_fee}</td>
-                                                    <td className="border p-2">{account.opening_date}</td>
-                                                    <td className="border p-2">{account.closing_date}</td>
-                                                    <td
-                                                        className="border p-2 truncate overflow-hidden text-ellipsis whitespace-nowrap"
-                                                        title={account.iban}
-                                                    >
-                                                        {account.iban}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
+                                        accounts.map((account) => (
+                                            <tr key={account.account_id}>
+                                                <td className="border p-2 max-w-40 truncate overflow-hidden text-ellipsis whitespace-nowrap">{account.account_name}</td>
+                                                <td className="border p-2">{account.account_type}</td>
+                                                <td className="border p-2">{account.currency}</td>
+                                                <td
+                                                    className="border p-2 max-w-40 truncate overflow-hidden text-ellipsis whitespace-nowrap"
+                                                    title={`${account.entity.internal_id} - ${account.entity.entity_name}`}
+                                                >
+                                                    {account.entity.internal_id} - {account.entity.entity_name}
+                                                </td>
+                                                {[
+                                                    "opening",
+                                                    "increase",
+                                                    "decrease",
+                                                    "equity",
+                                                    "adjustment",
+                                                    "checking",
+                                                    "closing",
+                                                    "revenue",
+                                                    "expense",
+                                                    "transfer",
+                                                    "provision",
+                                                    "depreciation",
+                                                    "gain_loss",
+                                                ].map((field) => (
+                                                    <td key={field} className="border p-2">{account[field]}</td>
+                                                ))}
+                                            </tr>
+                                        ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="12" className="text-center p-2">
+                                            <td colSpan="17" className="text-center p-2">
                                                 Aucun compte trouvé.
                                             </td>
                                         </tr>
                                     )}
+                                </tbody>
+                                <tbody>
+                                    
                                 </tbody>
                             </table>
                         </div>
