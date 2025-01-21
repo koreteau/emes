@@ -7,7 +7,7 @@ const createAccount = async (req, res) => {
         account_name, account_type, currency, entity_id,
         opening, increase, decrease, equity,
         adjustment, checking, closing, revenue,
-        expense, transfer, provision, depreciation, gain_loss
+        expense, transfer, provision, depreciation, gain_loss, internal_id
     } = req.body;
 
     try {
@@ -15,15 +15,15 @@ const createAccount = async (req, res) => {
             INSERT INTO Accounts (
                 account_name, account_type, currency, entity_id,
                 opening, increase, decrease, equity, adjustment, checking, closing,
-                revenue, expense, transfer, provision, depreciation, gain_loss
+                revenue, expense, transfer, provision, depreciation, gain_loss, internal_id
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
             ) RETURNING *;
         `;
         const values = [
             account_name, account_type, currency, entity_id,
             opening, increase, decrease, equity, adjustment, checking, closing,
-            revenue, expense, transfer, provision, depreciation, gain_loss
+            revenue, expense, transfer, provision, depreciation, gain_loss, internal_id
         ];
         const result = await db.query(query, values);
         res.status(201).json(result.rows[0]);
@@ -101,7 +101,7 @@ const updateAccount = async (req, res) => {
         account_name, account_type, currency, entity_id,
         opening, increase, decrease, equity,
         adjustment, checking, closing, revenue,
-        expense, transfer, provision, depreciation, gain_loss
+        expense, transfer, provision, depreciation, gain_loss, internal_id
     } = req.body;
 
     try {
@@ -123,7 +123,8 @@ const updateAccount = async (req, res) => {
                 transfer = COALESCE($14, transfer),
                 provision = COALESCE($15, provision),
                 depreciation = COALESCE($16, depreciation),
-                gain_loss = COALESCE($17, gain_loss)
+                gain_loss = COALESCE($17, gain_loss),
+                internal_id - COALESCE($18, internal_id)
             WHERE account_id = $18
             RETURNING *;
         `;
@@ -131,7 +132,7 @@ const updateAccount = async (req, res) => {
             account_name, account_type, currency, entity_id,
             opening, increase, decrease, equity,
             adjustment, checking, closing, revenue,
-            expense, transfer, provision, depreciation, gain_loss, accountId
+            expense, transfer, provision, depreciation, gain_loss, accountId, internal_id
         ];
         const result = await db.query(query, values);
 
