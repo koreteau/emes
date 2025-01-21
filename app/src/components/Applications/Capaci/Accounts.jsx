@@ -315,6 +315,7 @@ export function Accounts() {
                             <table className="table-auto border-collapse border border-gray-300 w-full">
                                 <thead className="bg-blue-100">
                                     <tr>
+                                        <th className="border p-2">Code</th>
                                         <th className="border p-2">Nom</th>
                                         <th className="border p-2">Type</th>
                                         <th className="border p-2">Devise</th>
@@ -342,6 +343,7 @@ export function Accounts() {
                                     {Array.isArray(accounts) && accounts.length > 0 ? (
                                         accounts.map((account) => (
                                             <tr key={account.account_id}>
+                                                <td className="border p-2">{account.internal_id}</td>
                                                 <td className="border p-2 max-w-40 truncate overflow-hidden text-ellipsis whitespace-nowrap">{account.account_name}</td>
                                                 <td className="border p-2">{account.account_type}</td>
                                                 <td className="border p-2">{account.currency}</td>
@@ -385,173 +387,6 @@ export function Accounts() {
                         </div>
                     </div>
                 )}
-                {/* Fenêtre de création/édition pour les Admin*/}
-                {isAdmin ? (
-                    <div className="absolute bottom-0 left-0 w-full border-t bg-gray-100 p-4 max-h-64 overflow-y-auto rounded-br-lg">
-                        <h3 className="text-lg font-bold">
-                            {selectedAccount ? "Modifier le compte" : "Créer un compte"}
-                        </h3>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleCreateOrUpdate();
-                            }}
-                        >
-                            <div className="mb-2">
-                                <label className="block text-sm">Nom du compte</label>
-                                <input
-                                    type="text"
-                                    name="account_name"
-                                    value={formData.account_name}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Type</label>
-                                <input
-                                    type="text"
-                                    name="account_type"
-                                    value={formData.account_type}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Devise</label>
-                                <input
-                                    type="text"
-                                    name="currency"
-                                    value={formData.currency}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Entity ID</label>
-                                <input
-                                    type="text"
-                                    name="entity_id"
-                                    value={formData.entity_id}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">IBAN</label>
-                                <input
-                                    type="text"
-                                    name="iban"
-                                    value={formData.iban}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Internal ID</label>
-                                <input
-                                    type="text"
-                                    name="internal_id"
-                                    value={formData.internal_id}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Exchange Fee Rate</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="exchange_fee_rate"
-                                    value={formData.exchange_fee_rate}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Frais de transfert</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="transfer_fee"
-                                    value={formData.transfer_fee}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Frais de maintenance</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="maintenance_fee"
-                                    value={formData.maintenance_fee}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Solde minimum</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="min_balance"
-                                    value={formData.min_balance}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Solde maximum</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="max_balance"
-                                    value={formData.max_balance}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Limite de découvert</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="overdraft_limit"
-                                    value={formData.overdraft_limit}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Date d'ouverture</label>
-                                <input
-                                    type="date"
-                                    name="opening_date"
-                                    value={formData.opening_date}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-sm">Date de fermeture</label>
-                                <input
-                                    type="date"
-                                    name="closing_date"
-                                    value={formData.closing_date}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="p-2 bg-green-500 text-white rounded"
-                            >
-                                {selectedAccount ? "Modifier" : "Créer"}
-                            </button>
-                        </form>
-                    </div>
-                ) : (<></>)}
             </div>
         </>
     );
