@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ProcessControl } from "./ProcessControl";
-import { CurrencyRates } from "./CurrencyRates";
-import { DataLoad } from "./LoadData";
-import { Accounts } from "./Accounts";
+import { ProcessControl } from "./Data/ProcessControl";
+import { CurrencyRates } from "./Data/CurrencyRates";
+import { DataLoad } from "./Load/LoadData";
+import { Accounts } from "./Data/Accounts";
 
 export function Capaci() {
     const [openDropdowns, setOpenDropdowns] = useState(new Set()); // Dropdowns ouverts
