@@ -5,25 +5,39 @@ const { checkPermissions } = require('../middleware/permissions');
 const createAccount = async (req, res) => {
     const {
         account_name, account_type, currency, entity_id,
-        opening, increase, decrease, equity,
-        adjustment, checking, closing, revenue,
-        expense, transfer, provision, depreciation, gain_loss, internal_id
+        internal_id, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, 
+        flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, 
+        flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, 
+        flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, 
+        flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, 
+        flow_mkv, flow_le1, flow_chk, flow_clo
     } = req.body;
 
     try {
         const query = `
             INSERT INTO Accounts (
-                account_name, account_type, currency, entity_id,
-                opening, increase, decrease, equity, adjustment, checking, closing,
-                revenue, expense, transfer, provision, depreciation, gain_loss, internal_id
+                account_name, account_type, currency, entity_id, internal_id,
+                flow_ope, flow_cho, flow_ini, flow_inc, flow_dec,
+                flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev,
+                flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou,
+                flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div,
+                flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel,
+                flow_mkv, flow_le1, flow_chk, flow_clo
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+                $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+                $31, $32, $33, $34, $35
             ) RETURNING *;
         `;
         const values = [
-            account_name, account_type, currency, entity_id,
-            opening, increase, decrease, equity, adjustment, checking, closing,
-            revenue, expense, transfer, provision, depreciation, gain_loss, internal_id
+            account_name, account_type, currency, entity_id, internal_id,
+            flow_ope, flow_cho, flow_ini, flow_inc, flow_dec,
+            flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev,
+            flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou,
+            flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div,
+            flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel,
+            flow_mkv, flow_le1, flow_chk, flow_clo
         ];
         const result = await db.query(query, values);
         res.status(201).json(result.rows[0]);
@@ -98,41 +112,67 @@ const getAccountsByEntityId = async (req, res) => {
 const updateAccount = async (req, res) => {
     const { accountId } = req.params;
     const {
-        account_name, account_type, currency, entity_id,
-        opening, increase, decrease, equity,
-        adjustment, checking, closing, revenue,
-        expense, transfer, provision, depreciation, gain_loss, internal_id
+        account_name, account_type, currency, entity_id, internal_id,
+        flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, 
+        flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, 
+        flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, 
+        flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, 
+        flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, 
+        flow_mkv, flow_le1, flow_chk, flow_clo
     } = req.body;
 
     try {
         const query = `
             UPDATE Accounts
-            SET account_name = COALESCE($1, account_name),
+            SET 
+                account_name = COALESCE($1, account_name),
                 account_type = COALESCE($2, account_type),
                 currency = COALESCE($3, currency),
                 entity_id = COALESCE($4, entity_id),
-                opening = COALESCE($5, opening),
-                increase = COALESCE($6, increase),
-                decrease = COALESCE($7, decrease),
-                equity = COALESCE($8, equity),
-                adjustment = COALESCE($9, adjustment),
-                checking = COALESCE($10, checking),
-                closing = COALESCE($11, closing),
-                revenue = COALESCE($12, revenue),
-                expense = COALESCE($13, expense),
-                transfer = COALESCE($14, transfer),
-                provision = COALESCE($15, provision),
-                depreciation = COALESCE($16, depreciation),
-                gain_loss = COALESCE($17, gain_loss),
-                internal_id - COALESCE($18, internal_id)
-            WHERE account_id = $18
+                internal_id = COALESCE($5, internal_id),
+                flow_ope = COALESCE($6, flow_ope),
+                flow_cho = COALESCE($7, flow_cho),
+                flow_ini = COALESCE($8, flow_ini),
+                flow_inc = COALESCE($9, flow_inc),
+                flow_dec = COALESCE($10, flow_dec),
+                flow_dcp = COALESCE($11, flow_dcp),
+                flow_dco = COALESCE($12, flow_dco),
+                flow_dcm = COALESCE($13, flow_dcm),
+                flow_cti = COALESCE($14, flow_cti),
+                flow_riv = COALESCE($15, flow_riv),
+                flow_dev = COALESCE($16, flow_dev),
+                flow_cwc = COALESCE($17, flow_cwc),
+                flow_cai = COALESCE($18, flow_cai),
+                flow_cad = COALESCE($19, flow_cad),
+                flow_mrg = COALESCE($20, flow_mrg),
+                flow_sin = COALESCE($21, flow_sin),
+                flow_sou = COALESCE($22, flow_sou),
+                flow_sva = COALESCE($23, flow_sva),
+                flow_rec = COALESCE($24, flow_rec),
+                flow_act = COALESCE($25, flow_act),
+                flow_app = COALESCE($26, flow_app),
+                flow_nin = COALESCE($27, flow_nin),
+                flow_div = COALESCE($28, flow_div),
+                flow_varpl = COALESCE($29, flow_varpl),
+                flow_vareq = COALESCE($30, flow_vareq),
+                flow_ctrpl = COALESCE($31, flow_ctrpl),
+                flow_ctreq = COALESCE($32, flow_ctreq),
+                flow_rel = COALESCE($33, flow_rel),
+                flow_mkv = COALESCE($34, flow_mkv),
+                flow_le1 = COALESCE($35, flow_le1),
+                flow_chk = COALESCE($36, flow_chk),
+                flow_clo = COALESCE($37, flow_clo)
+            WHERE account_id = $38
             RETURNING *;
         `;
         const values = [
-            account_name, account_type, currency, entity_id,
-            opening, increase, decrease, equity,
-            adjustment, checking, closing, revenue,
-            expense, transfer, provision, depreciation, gain_loss, accountId, internal_id
+            account_name, account_type, currency, entity_id, internal_id,
+            flow_ope, flow_cho, flow_ini, flow_inc, flow_dec,
+            flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev,
+            flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou,
+            flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div,
+            flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel,
+            flow_mkv, flow_le1, flow_chk, flow_clo, accountId
         ];
         const result = await db.query(query, values);
 
