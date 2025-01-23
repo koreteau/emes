@@ -5,6 +5,7 @@ const {
     getAllAccounts,
     getAccountById,
     getAccountsByEntityId,
+    getAccountsByParentAccountId,
     updateAccount,
     deleteAccount,
 } = require('../controllers/accountController');
@@ -18,7 +19,8 @@ router.put('/:accountId', authenticateToken, isAdmin, updateAccount); // Modifie
 router.delete('/:accountId', authenticateToken, isAdmin, deleteAccount); // Supprimer un compte
 
 // Routes accessibles à tous les utilisateurs connectés
-router.get('/:entityId', authenticateToken, getAccountsByEntityId);
 router.get('/:accountId', authenticateToken, getAccountById); // Récupérer un compte par ID
+router.get('/:entityId', authenticateToken, getAccountsByEntityId);
+router.get('/:parentAccountId', authenticateToken, getAccountsByParentAccountId);
 
 module.exports = router;
