@@ -4,40 +4,32 @@ const { checkPermissions } = require('../middleware/permissions');
 // Créer un compte
 const createAccount = async (req, res) => {
     const {
-        account_name, account_type, currency, entity_id,
-        internal_id, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, 
-        flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, 
-        flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, 
-        flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, 
-        flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, 
-        flow_mkv, flow_le1, flow_chk, flow_clo
+        account_name, account_type, currency, entity_id, internal_id, parent_account_id,
+        flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, 
+        flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, 
+        flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, 
+        flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo
     } = req.body;
 
     try {
         const query = `
             INSERT INTO Accounts (
-                account_name, account_type, currency, entity_id, internal_id,
-                flow_ope, flow_cho, flow_ini, flow_inc, flow_dec,
-                flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev,
-                flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou,
-                flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div,
-                flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel,
-                flow_mkv, flow_le1, flow_chk, flow_clo
+                account_name, account_type, currency, entity_id, internal_id, parent_account_id,
+                flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm,
+                flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin,
+                flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl,
+                flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-                $31, $32, $33, $34, $35
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+                $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38
             ) RETURNING *;
         `;
         const values = [
-            account_name, account_type, currency, entity_id, internal_id,
-            flow_ope, flow_cho, flow_ini, flow_inc, flow_dec,
-            flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev,
-            flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou,
-            flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div,
-            flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel,
-            flow_mkv, flow_le1, flow_chk, flow_clo
+            account_name, account_type, currency, entity_id, internal_id, parent_account_id,
+            flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm,
+            flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin,
+            flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl,
+            flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo
         ];
         const result = await db.query(query, values);
         res.status(201).json(result.rows[0]);
@@ -46,6 +38,7 @@ const createAccount = async (req, res) => {
         res.status(500).json({ error: 'Error creating account' });
     }
 };
+
 
 // Récupérer tous les comptes
 const getAllAccounts = async (req, res) => {
@@ -104,6 +97,43 @@ const getAccountsByEntityId = async (req, res) => {
         res.status(200).json(result.rows);
     } catch (err) {
         console.error('Error fetching accounts by entity:', err.message);
+        res.status(500).json({ error: 'Error fetching accounts.' });
+    }
+};
+
+// Récupérer les comptes par parent_account_id
+const getAccountsByParentAccountId = async (req, res) => {
+    const { parentAccountId } = req.params;
+
+    try {
+        // Récupérer le compte parent
+        const parentAccountQuery = `
+            SELECT * 
+            FROM Accounts 
+            WHERE account_id = $1
+        `;
+        const parentResult = await db.query(parentAccountQuery, [parentAccountId]);
+
+        if (parentResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Parent account not found' });
+        }
+
+        const parentAccount = parentResult.rows[0];
+
+        // Récupérer les comptes enfants
+        const childAccountsQuery = `
+            SELECT * 
+            FROM Accounts 
+            WHERE parent_account_id = $1
+        `;
+        const childResult = await db.query(childAccountsQuery, [parentAccountId]);
+
+        res.status(200).json({
+            parentAccount,
+            childAccounts: childResult.rows,
+        });
+    } catch (err) {
+        console.error('Error fetching accounts by parent_account_id:', err.message);
         res.status(500).json({ error: 'Error fetching accounts.' });
     }
 };
@@ -210,6 +240,7 @@ module.exports = {
     getAllAccounts,
     getAccountById,
     getAccountsByEntityId,
+    getAccountsByParentAccountId,
     updateAccount,
     deleteAccount,
 };
