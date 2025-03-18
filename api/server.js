@@ -28,30 +28,17 @@ const verifyDatabaseConnection = async () => {
 const authRoutes = require('./routes/auth');
 const securityRoutes = require('./routes/security');
 const userRoutes = require('./routes/users');
-const costCenterRoutes = require('./routes/costCenters');
-const profitCenterRoutes = require('./routes/profitCenters');
-const entitiesRoutes = require('./routes/entities');
-const accountsRoutes = require('./routes/accounts');
-const scenariosRoutes = require('./routes/scenarios');
-const periodsRoutes = require('./routes/periods');
-const exchangeRatesRoutes = require('./routes/exchangeRates');
-// const interCostsRoutes = require('./routes/interCosts');
 const transactionsRoutes = require('./routes/transactions');
 const dataRoutes = require('./routes/data');
+const webformRoutes = require('./routes/webforms');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/cost-centers', costCenterRoutes);
-app.use('/api/profit-centers', profitCenterRoutes);
-app.use('/api/entities', entitiesRoutes);
-app.use('/api/accounts', accountsRoutes);
-app.use('/api/scenarios', scenariosRoutes);
-app.use('/api/periods', periodsRoutes);
-app.use('/api/exchange-rates', exchangeRatesRoutes);
-// app.use('/api/inter-costs', interCostsRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/webforms', webformRoutes);
+
 
 // Lancer le serveur uniquement si la base est connectée
 const startServer = async () => {
