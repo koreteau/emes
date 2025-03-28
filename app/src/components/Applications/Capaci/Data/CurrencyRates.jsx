@@ -325,7 +325,7 @@ export function CurrencyRates() {
                                                 key={i}
                                                 className={`${cellBaseClass} ${columnWidth} bg-green-100`}
                                             >
-                                                1
+                                                1.000
                                             </td>
                                         ))}
                                     </tr>
