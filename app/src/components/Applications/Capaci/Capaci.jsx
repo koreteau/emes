@@ -3,6 +3,10 @@ import { ProcessControl } from "./Data/ProcessControl";
 import { CurrencyRates } from "./Data/CurrencyRates";
 import { DataLoad } from "./Load/LoadData";
 import { Accounts } from "./Data/Accounts";
+import Explorer from "./Explorer";
+import { Webform } from "./Webform";
+
+
 
 export function Capaci() {
     const [openDropdowns, setOpenDropdowns] = useState(new Set()); // Dropdowns ouverts
@@ -45,6 +49,8 @@ export function Capaci() {
 
     const renderContentForTab = (name) => {
         switch (name) {
+            case "Documents":
+                return <Explorer onOpenDocument={handleOpenDocument} />;
             case "Process Control":
                 return <ProcessControl />;
             case "Accounts":
@@ -60,6 +66,28 @@ export function Capaci() {
         }
     };
 
+    const handleOpenDocument = (doc) => {
+        if (doc.type === "webform") {
+            const existingTab = tabs.find((tab) => tab.name === doc.name);
+            if (existingTab) {
+                setActiveTab(existingTab.id);
+            } else {
+                const newTab = {
+                    id: Date.now(),
+                    name: doc.name,
+                    content: <Webform docId={doc.id} />,
+                    icon: (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25..." />
+                        </svg>
+                    ),
+                };
+                setTabs((prev) => [...prev, newTab]);
+                setActiveTab(newTab.id);
+            }
+        }
+    };
+
     return (
         <div className="flex flex-col h-full">
             <div className="p-1 h-full w-full flex flex-row gap-1">
@@ -68,6 +96,20 @@ export function Capaci() {
                     <p className="border-b border-primary p-1 text-center font-bold text-sm h-8">Menu</p>
                     <div className="p-1 text-sm py-2">
                         <ul className="space-y-2">
+                            {/* Dropdown: Documents */}
+                            <li
+                                className="cursor-pointer hover:underline flex items-center gap-1"
+                                onClick={() => openTab("Documents", renderContentForTab("Documents"),
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                )}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
+                                Documents
+                            </li>
                             {/* Dropdown: Journals */}
                             <li>
                                 <p
