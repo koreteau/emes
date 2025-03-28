@@ -149,7 +149,6 @@ export function Accounts() {
         }
     };
 
-
     const renderAccounts = (accounts, level = 0) => {
         return accounts.map(account => (
             <React.Fragment key={account.account_id}>
@@ -160,12 +159,6 @@ export function Accounts() {
                     </td>
                     <td className="border p-2">{account.account_type}</td>
                     <td className="border p-2">{account.currency}</td>
-                    <td
-                        className="border p-2 max-w-40 truncate overflow-hidden text-ellipsis whitespace-nowrap"
-                        title={`${account.entity?.internal_id} - ${account.entity?.entity_name}`}
-                    >
-                        {account.entity?.internal_id} - {account.entity?.entity_name}
-                    </td>
                     {[
                         "flow_ope",
                         "flow_cho",
@@ -261,40 +254,39 @@ export function Accounts() {
                                         <th className="border p-2">Nom</th>
                                         <th className="border p-2">Type</th>
                                         <th className="border p-2">Devise</th>
-                                        <th className="border p-2">Entité</th>
                                         {[
-                                            "flow_ope",
-                                            "flow_cho",
-                                            "flow_ini",
-                                            "flow_inc",
-                                            "flow_dec",
-                                            "flow_dcp",
-                                            "flow_dco",
-                                            "flow_dcm",
-                                            "flow_cti",
-                                            "flow_riv",
-                                            "flow_dev",
-                                            "flow_cwc",
-                                            "flow_cai",
-                                            "flow_cad",
-                                            "flow_mrg",
-                                            "flow_sin",
-                                            "flow_sou",
-                                            "flow_sva",
-                                            "flow_rec",
-                                            "flow_act",
-                                            "flow_app",
-                                            "flow_nin",
-                                            "flow_div",
-                                            "flow_varpl",
-                                            "flow_vareq",
-                                            "flow_ctrpl",
-                                            "flow_ctreq",
-                                            "flow_rel",
-                                            "flow_mkv",
-                                            "flow_le1",
-                                            "flow_chk",
-                                            "flow_clo",
+                                            "OPE",
+                                            "CHO",
+                                            "INI",
+                                            "INC",
+                                            "DEC",
+                                            "DCP",
+                                            "DCO",
+                                            "DCM",
+                                            "CTI",
+                                            "RIV",
+                                            "DEV",
+                                            "CWC",
+                                            "CAI",
+                                            "CAD",
+                                            "MRG",
+                                            "SIN",
+                                            "SOU",
+                                            "SVA",
+                                            "REC",
+                                            "ACT",
+                                            "APP",
+                                            "NIN",
+                                            "DIV",
+                                            "VARPL",
+                                            "VAREQ",
+                                            "CTRPL",
+                                            "CTREQ",
+                                            "REL",
+                                            "MKV",
+                                            "LE1",
+                                            "CHK",
+                                            "CLO",
                                         ].map((field) => (
                                             <th key={field} className="border p-2">{field.toUpperCase()}</th>
                                         ))}
