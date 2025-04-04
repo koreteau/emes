@@ -14,6 +14,8 @@ export function SessionTimeoutDialog({ open, onClose, onLogout }) {
         if (prev <= 1) {
           clearInterval(interval);
           onLogout(); // Déconnecte l'utilisateur automatiquement
+          window.reload();
+          alert('You have been log out due to long inactivity. Please reconect')
           return 0;
         }
         return prev - 1;
@@ -27,7 +29,7 @@ export function SessionTimeoutDialog({ open, onClose, onLogout }) {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:8080/refresh", {
+      const response = await fetch("http://localhost:8080/api/auth/refresh", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
