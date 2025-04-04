@@ -1,0 +1,43 @@
+[
+  {
+    "title": "Documents",
+    "icon": "<svg ...></svg>",
+    "items": [
+      { "name": "Documents", "icon": "<svg ...></svg>" }
+    ]
+  },
+  {
+    "title": "Journals",
+    "icon": "<svg ...></svg>",
+    "items": [
+      { "name": "Manage Journals", "icon": "<svg ...></svg>" },
+      { "name": "Journal Templates", "icon": "<svg ...></svg>" }
+    ]
+  },
+  {
+    "title": "Data",
+    "icon": "<svg ...></svg>",
+    "items": [
+      { "name": "Process Control", "icon": "<svg ...></svg>" },
+      { "name": "Accounts", "icon": "<svg ...></svg>" },
+      { "name": "Currency Rates", "icon": "<svg ...></svg>" },
+      { "name": "Ownership", "icon": "<svg ...></svg>" }
+    ]
+  },
+  {
+    "title": "Load",
+    "icon": "<svg ...></svg>",
+    "items": [
+      { "name": "Load Data", "icon": "<svg ...></svg>" },
+      { "name": "Load Journals", "icon": "<svg ...></svg>" }
+    ]
+  },
+  {
+    "title": "Extract",
+    "icon": "<svg ...></svg>",
+    "items": [
+      { "name": "Extract Data", "icon": "<svg ...></svg>" },
+      { "name": "Extract Journals", "icon": "<svg ...></svg>" }
+    ]
+  }
+]
