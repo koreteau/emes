@@ -16,7 +16,7 @@ export function Home() {
                     </div>
                 </div>
                 <div class="flex flex-col w-1/2 h-full gap-1">
-                    <div class="border border-primary h-full p-4 rounded-tr-lg">3</div>
+                    <div class="border border-primary h-full p-4 rounded-tr-lg">Kronos</div>
                     <div class="border border-primary h-full p-4 rounded-br-lg">4</div>
                 </div>
             </div>
