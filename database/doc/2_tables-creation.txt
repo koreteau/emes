@@ -330,3 +330,151 @@ ALTER TABLE Ownerships
 
 INSERT INTO Ownerships (from_currency, description, account_id, entity_id)
 VALUES ('100', 'Ownership description', '315baf6e-6cb6-4586-a613-984169295164', '94bd378f-746e-4b1b-b460-e6ff4a503b56');
+
+
+ALTER TABLE accounts 
+    DROP COLUMN flow_ope,
+    DROP COLUMN flow_cho,
+    DROP COLUMN flow_ini,
+    DROP COLUMN flow_inc,
+    DROP COLUMN flow_dec,
+    DROP COLUMN flow_dcp,
+    DROP COLUMN flow_dco,
+    DROP COLUMN flow_dcm,
+    DROP COLUMN flow_cti,
+    DROP COLUMN flow_riv,
+    DROP COLUMN flow_dev,
+    DROP COLUMN flow_cwc,
+    DROP COLUMN flow_cai;
+    
+
+ALTER TABLE accounts
+    DROP COLUMN flow_cad,
+    DROP COLUMN flow_mrg,
+    DROP COLUMN flow_sin,
+    DROP COLUMN flow_sou,
+    DROP COLUMN flow_sva,
+    DROP COLUMN flow_rec,
+    DROP COLUMN flow_act,
+    DROP COLUMN flow_app,
+    DROP COLUMN flow_nin,
+    DROP COLUMN flow_div,
+    DROP COLUMN flow_varpl,
+    DROP COLUMN flow_vareq,
+    DROP COLUMN flow_ctrpl,
+    DROP COLUMN flow_ctreq,
+    DROP COLUMN flow_rel,
+    DROP COLUMN flow_mkv,
+    DROP COLUMN flow_le1,
+    DROP COLUMN flow_chk,
+    DROP COLUMN flow_clo;
+
+
+INSERT INTO accounts (internal_id, account_name, account_type, currency, dimension_scenario, dimension_year, dimension_period, dimension_entity, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo) VALUES ('BS512000', 'Main Bank Account', 'BS', 'EUR', '[None]', '[None]', '[None]', '[None]', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated');
+INSERT INTO accounts (internal_id, account_name, account_type, currency, parent_account_id, dimension_scenario, dimension_year, dimension_period, dimension_entity, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo) VALUES ('BS512100', 'Caisse d Epargne Bank Account', 'Balance Sheet', 'EUR', '43068d5e-b4d7-4931-a8f7-b5124ff517af', '7f33d604-8e82-4956-8c57-362b7bd94754', '[None]', '[None]', '[None]', '[None]', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'closed', 'closed', 'invalid', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'invalid', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'calculated', 'closed', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'closed');
+INSERT INTO accounts (internal_id, account_name, account_type, currency, parent_account_id, dimension_scenario, dimension_year, dimension_period, dimension_entity, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo) VALUES ('BS512200', 'Societe Genarale Bank Account', 'Balance Sheet', 'EUR', '43068d5e-b4d7-4931-a8f7-b5124ff517af', '7f33d604-8e82-4956-8c57-362b7bd94754', '[None]', '[None]', '[None]', '[None]', 'calculated', 'calculated', 'calculated', 'calculated', 'calculated', 'closed', 'closed', 'invalid', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'invalid', 'calculated', 'calculated', 'closed', 'calculated', 'calculated', 'calculated', 'closed', 'closed', 'calculated', 'calculated', 'closed', 'calculated', 'closed');
+INSERT INTO accounts (internal_id, account_name, account_type, currency, parent_account_id, dimension_scenario, dimension_year, dimension_period, dimension_entity, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo) VALUES ('BS512101', 'Account 047753104566', 'Balance Sheet', 'EUR', '77d1a1ec-6568-4d04-b6d4-781e90fa221c', '71ca10b6-bfe7-4134-84df-522c9c018e5e', '[None]', '[None]', '[None]', '[None]', 'calculated', 'open', 'calculated', 'open', 'open', 'closed', 'closed', 'invalid', 'calculated', 'open', 'closed', 'calculated', 'open', 'closed', 'calculated', 'open', 'closed', 'calculated', 'invalid', 'calculated', 'open', 'closed', 'open', 'calculated', 'calculated', 'closed', 'closed', 'open', 'calculated', 'closed', 'calculated', 'closed');
+INSERT INTO accounts (internal_id, account_name, account_type, currency, parent_account_id, dimension_scenario, dimension_year, dimension_period, dimension_entity, flow_ope, flow_cho, flow_ini, flow_inc, flow_dec, flow_dcp, flow_dco, flow_dcm, flow_cti, flow_riv, flow_dev, flow_cwc, flow_cai, flow_cad, flow_mrg, flow_sin, flow_sou, flow_sva, flow_rec, flow_act, flow_app, flow_nin, flow_div, flow_varpl, flow_vareq, flow_ctrpl, flow_ctreq, flow_rel, flow_mkv, flow_le1, flow_chk, flow_clo) VALUES ('BS512201', 'Account 561280694434', 'Balance Sheet', 'EUR', '77d1a1ec-6568-4d04-b6d4-781e90fa221c', '6e98b856-b05a-4b5c-8603-9de9ed43dc6d', '[None]', '[None]', '[None]', '[None]', 'calculated', 'open', 'calculated', 'open', 'open', 'closed', 'closed', 'invalid', 'calculated', 'open', 'closed', 'calculated', 'open', 'closed', 'calculated', 'open', 'closed', 'calculated', 'invalid', 'calculated', 'open', 'closed', 'open', 'calculated', 'calculated', 'closed', 'closed', 'open', 'calculated', 'closed', 'calculated', 'closed');
+
+[None]
+'77d1a1ec-6568-4d04-b6d4-781e90fa221c'
+
+ALTER TABLE accounts 
+    ADD COLUMN flow_ope VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_cho VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_ini VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_inc VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_dec VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_dcp VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_dco VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_dcm VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_cti VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_riv VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_dev VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_cwc VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_cai VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_cad VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_mrg VARCHAR(10) NOT NULL;
+    
+
+ALTER TABLE accounts
+    ADD COLUMN flow_sin VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_sou VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_sva VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_rec VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_act VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_app VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_nin VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_div VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_varpl VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_vareq VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_ctrpl VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_ctreq VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_rel VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_mkv VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_le1 VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_chk VARCHAR(10) NOT NULL,
+    ADD COLUMN flow_clo VARCHAR(10) NOT NULL;
+
+ALTER TABLE accounts
+    DROP COLUMN entity_id;
+
+ALTER TABLE accounts
+    ADD COLUMN dimension_scenario TEXT NOT NULL,
+    ADD COLUMN dimension_year TEXT NOT NULL,
+    ADD COLUMN dimension_period TEXT NOT NULL,
+    ADD COLUMN dimension_entity TEXT NOT NULL;
+
+
+
+ALTER TABLE webforms ADD COLUMN parent TEXT NOT NULL,
+
+INSERT INTO webforms (name, path, parent, security_group) VALUES ('ExchangeRates', 'webform_003.json', '', 'ALLUSER');
+
+
+
+
+CREATE TABLE documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    path TEXT,
+    parent_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    security_classes TEXT NOT NULL DEFAULT 'public',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+
+INSERT INTO documents (name, type, path, parent_id, security_classes) VALUES ('1. Reports', 'folder', NULL, NULL, 'public');
+INSERT INTO documents (name, type, path, parent_id, security_classes) VALUES ('Annual Report', 'report', 'report_001.json', '4c903ddb-ea7d-4ec1-933a-53b6e959ca63', 'public');
+INSERT INTO documents (name, type, path, parent_id, security_classes) VALUES ('Exchange Rates', 'webform', 'webform_002.json', NULL, 'public');
+
+
+
+CREATE TABLE journals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    description TEXT,
+    author TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE data (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    scenario TEXT NOT NULL,
+    year TEXT NOT NULL,
+    period TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    account TEXT NOT NULL,
+    custom1 TEXT NOT NULL,
+    custom2 TEXT NOT NULL,
+    custom3 TEXT NOT NULL,
+    custom4 TEXT NOT NULL,
+    ICP TEXT NOT NULL,
+    view TEXT NOT NULL,
+    value TEXT NOT NULL,
+    data_value TEXT NOT NULL,
+    author TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    journal_id UUID REFERENCES journals(id) ON DELETE SET NULL
+);
