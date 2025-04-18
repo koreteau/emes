@@ -4,123 +4,179 @@ import { SmallSpinner } from "../../Spinner";
 import { PointOfView } from "./PointOfView";
 import { ToolBar } from "./ToolBar";
 
+// Utilitaire pour construire toutes les combinaisons de dimensions
+const cartesianProduct = (arrays) =>
+  arrays.reduce(
+    (acc, curr) =>
+      acc
+        .map((a) => curr.map((b) => [...a, b]))
+        .flat(),
+    [[]]
+  );
 
 export function Webform({ docId }) {
-    const [webformData, setWebformData] = useState(null);
+  const [currentPov, setCurrentPov] = useState(null);
+  const [webformData, setWebformData] = useState(null);
+  const [data, setData] = useState([]);
 
-    useEffect(() => {
-        const fetchWebform = async () => {
-            const token = localStorage.getItem("authToken");
-            try {
-                const res = await fetch(`http://localhost:8080/api/documents/${docId}/content`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                  });                  
-    
-                const data = await res.json();
-                setWebformData(data);
-            } catch (error) {
-                toast.error("❌ Erreur lors du fetch de la webform");
-            }
-        };
-    
-        if (docId) {
-            fetchWebform();
+  const [rowCombinations, setRowCombinations] = useState([]);
+  const [columnCombinations, setColumnCombinations] = useState([]);
+
+  useEffect(() => {
+    const fetchDefinition = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/documents/${docId}/content`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const json = await res.json();
+        setWebformData(json);
+      } catch (err) {
+        toast.error("❌ Erreur lors du chargement de la définition de la webform");
+      }
+    };
+    fetchDefinition();
+  }, [docId]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentPov || !webformData?.structure) return;
+
+      const token = localStorage.getItem("authToken");
+      const fixedDims = webformData.structure.fixed;
+      const params = new URLSearchParams();
+
+      fixedDims.forEach((dim) => {
+        if (currentPov[dim]) {
+          params.append(dim, currentPov[dim]);
         }
-    }, [docId]);
-    
+      });
 
-    if (!webformData || !webformData.layout || !webformData.data || !Array.isArray(webformData.data) || webformData.data.length === 0) {
-        return <p className="p-4 text-sm">Chargement ou données invalides…</p>;
-    }
-    if (!webformData) return <SmallSpinner />;
-
-    const layout = webformData.layout;
-    const data = webformData.data[0].cells; // Utilisation du premier "pov" pour l'affichage
-    const mergedCells = layout.merged_cells || [];
-
-    // Gestion des couleurs des cellules
-    const colors = layout.colors || {};
-    const colorClasses = {
-        default: colors.default || "#bedbff",
-        locked: colors.locked || "#ffd6a8",
-        calculated: colors.calculated || "#b9f8cf",
-        open: colors.open || "#fef9c2",
+      try {
+        const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        toast.error("❌ Erreur lors du chargement des données");
+      }
     };
 
-    // Fonction pour retrouver les fusions de cellules
-    const mergeMap = {};
-    mergedCells.forEach(({ start, end }) => {
-        const [startRow, startCol] = start.slice(1).split("C").map(Number);
-        const [endRow, endCol] = end.slice(1).split("C").map(Number);
+    fetchData();
+  }, [webformData, currentPov]);
 
-        for (let r = startRow; r <= endRow; r++) {
-            for (let c = startCol; c <= endCol; c++) {
-                mergeMap[`R${r}C${c}`] = { startRow, startCol, endRow, endCol };
-            }
-        }
+  useEffect(() => {
+    if (!webformData?.structure) return;
+
+    const allDims = {
+      account: ["CLOSING", "AVERAGE"],
+      custom1: ["EUR", "GBP", "USD"],
+      period: ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12"]
+      // ⚠️ à remplacer par une vraie source plus tard
+    };
+
+    const rowDims = webformData.structure.rows;
+    const colDims = webformData.structure.columns;
+
+    const rowValues = rowDims.map((dim) => allDims[dim] || []);
+    const colValues = colDims.map((dim) => allDims[dim] || []);
+
+    const rowCombos = cartesianProduct(rowValues);
+    const colCombos = cartesianProduct(colValues);
+
+    setRowCombinations(rowCombos);
+    setColumnCombinations(colCombos);
+  }, [webformData]);
+
+  const getCellValue = (rowDimVals, colDimVals) => {
+    if (!webformData?.structure || !currentPov) return "";
+
+    const filter = {
+      ...currentPov,
+    };
+
+    webformData.structure.rows.forEach((dim, idx) => {
+      filter[dim] = rowDimVals[idx];
     });
 
-    // Fonction pour vérifier si une cellule doit être affichée ou fusionnée
-    const shouldRenderCell = (row, col) => {
-        const key = `R${row}C${col}`;
-        if (!mergeMap[key]) return true;
-        return mergeMap[key].startRow === row && mergeMap[key].startCol === col;
-    };
+    webformData.structure.columns.forEach((dim, idx) => {
+      filter[dim] = colDimVals[idx];
+    });
 
-    // Fonction pour récupérer les attributs de fusion
-    const getMergeAttributes = (row, col) => {
-        const key = `R${row}C${col}`;
-        if (!mergeMap[key]) return {};
-        const { startRow, startCol, endRow, endCol } = mergeMap[key];
-
-        return {
-            rowSpan: endRow - startRow + 1,
-            colSpan: endCol - startCol + 1,
-        };
-    };
-
-    // Rendu du tableau
-    return (
-        <div>
-            <ToolBar
-            onRefresh={() => console.log("🔁 Refresh clicked")}
-            onCalculate={() => console.log("📊 Calculate clicked")}
-            onSave={() => console.log("💾 Save clicked")}
-        />
-            <PointOfView parameters={webformData.parameters} />
-            <table className="table-auto border-collapse border border-gray-500 text-xs">
-                <tbody>
-                    {Array.from({ length: layout.rows }, (_, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {Array.from({ length: layout.columns }, (_, colIndex) => {
-                                const cellKey = `R${rowIndex + 1}C${colIndex + 1}`;
-                                const cell = data[cellKey];
-
-                                if (!shouldRenderCell(rowIndex + 1, colIndex + 1)) {
-                                    return null; // Ne pas afficher une cellule qui fait partie d'une fusion déjà affichée
-                                }
-
-                                const { rowSpan, colSpan } = getMergeAttributes(rowIndex + 1, colIndex + 1);
-
-                                const backgroundColor = cell ? colorClasses[cell.type] : "#ffffff";
-                                const fontWeight = cell?.bold ? "bold" : "normal";
-
-                                return (
-                                    <td
-                                        key={colIndex}
-                                        className="border border-gray-700 px-2 py-1 text-center"
-                                        style={{ backgroundColor, fontWeight }}
-                                        rowSpan={rowSpan}
-                                        colSpan={colSpan}
-                                    >
-                                        {cell?.value || ""}
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+    const found = data.find((d) =>
+      Object.entries(filter).every(([k, v]) => d[k] === v)
     );
+
+    return found?.data_value || "";
+  };
+
+  return (
+    <div>
+      <ToolBar
+        onRefresh={() => console.log("🔁 Refresh clicked")}
+        onCalculate={() => console.log("📊 Calculate clicked")}
+        onSave={() => console.log("💾 Save clicked")}
+      />
+
+      {webformData?.parameters && (
+        <PointOfView
+          parameters={webformData.parameters}
+          onChangePov={(pov) => setCurrentPov(pov)}
+        />
+      )}
+
+      {!webformData || !currentPov ? (
+        <SmallSpinner />
+      ) : (
+        <table className="table-auto border-collapse border border-gray-500 text-xs w-full mt-2">
+          <thead>
+            <tr>
+              {webformData.structure.rows.map((dim, i) => (
+                <th
+                  key={`dim-${i}`}
+                  className="border border-gray-700 bg-gray-200 font-bold px-2 py-1 text-left"
+                >
+                  {dim}
+                </th>
+              ))}
+              {columnCombinations.map((colVals, idx) => (
+                <th
+                  key={`col-${idx}`}
+                  className="border border-gray-700 bg-gray-100 font-bold px-2 py-1 text-center"
+                >
+                  {colVals.join(" / ")}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rowCombinations.map((rowVals, rowIdx) => (
+              <tr key={`row-${rowIdx}`}>
+                {rowVals.map((v, i) => (
+                  <td
+                    key={`label-${i}`}
+                    className="border border-gray-300 px-2 py-1 font-medium"
+                  >
+                    {v}
+                  </td>
+                ))}
+                {columnCombinations.map((colVals, colIdx) => (
+                  <td
+                    key={`cell-${rowIdx}-${colIdx}`}
+                    className="border border-gray-300 text-center px-2 py-1"
+                  >
+                    {getCellValue(rowVals, colVals)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 }
