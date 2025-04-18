@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const DIMENSION_ORDER = [
     "scenario", "year", "period", "entity", "account",
@@ -21,14 +21,13 @@ const DEFAULT_VALUES = {
     view: "[None]"
 };
 
-
 const MOCK_OPTIONS = {
-    scenario: ["ACT", "BUD", "FCST", "[None]"],
+    scenario: ["ACTUAL", "BUD", "[None]"],
     year: ["2023", "2024", "2025", "[None]"],
     entity: ["[Base]", "Entity A", "Entity B", "[None]"],
 };
 
-export function PointOfView({ parameters }) {
+export function PointOfView({ parameters, onChangePov }) {
     const [selection, setSelection] = useState(() => {
         const initial = {};
         for (const dim of DIMENSION_ORDER) {
@@ -39,15 +38,22 @@ export function PointOfView({ parameters }) {
         return initial;
     });
 
+
     const [openDropdown, setOpenDropdown] = useState(null);
 
     const handleSelect = (dim, value) => {
         setSelection(prev => ({ ...prev, [dim]: value }));
         setOpenDropdown(null);
-    };
+    };    
+    
+    useEffect(() => {
+        if (onChangePov) {
+            onChangePov(selection);
+        }
+    }, [selection]);
 
     return (
-        <div className="flex p-2 flew-wrap gap-3 text-xs border-b shadow-sm">
+        <div className="flex p-2 flex-wrap gap-3 text-xs border-b shadow-sm">
             {DIMENSION_ORDER.map((dim) => {
                 const isActivated = parameters?.[dim]?.isActivated ?? false;
                 const options = MOCK_OPTIONS[dim] ?? [DEFAULT_VALUES[dim]];
