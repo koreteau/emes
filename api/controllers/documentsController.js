@@ -89,45 +89,52 @@ const getDocumentById = async (req, res) => {
 const getDocumentContentById = async (req, res) => {
     const { documentId } = req.params;
     const userId = req.user.id;
-
+  
+    console.log("📥 Requête pour document ID :", documentId);
+  
     try {
-        let query = `SELECT * FROM documents WHERE id = $1`;
-        let values = [documentId];
-
-        if (!req.user.is_admin) {
-            const authorizedClasses = await checkPermissions(userId, 'documents', 'read');
-            query += ` AND security_classes = ANY($2)`;
-            values.push(authorizedClasses);
-        }
-
-        const result = await db.query(query, values);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Document introuvable ou non autorisé" });
-        }
-
-        const doc = result.rows[0];
-        const fullPath = path.join(WEBFORM_ROOT, doc.path); // fonctionne même si le doc est un report
-
-        if (!fs.existsSync(fullPath)) {
-            return res.status(404).json({ error: "Fichier JSON introuvable sur le disque" });
-        }
-
-        const fileContent = fs.readFileSync(fullPath, "utf-8");
-        const parsed = JSON.parse(fileContent);
-
-        res.status(200).json({
-            name: doc.name,
-            type: doc.type,
-            parameters: parsed.parameters,
-            layout: parsed.layout,
-            data: parsed.data,
-        });
-
+      let query = `SELECT * FROM documents WHERE id = $1`;
+      let values = [documentId];
+  
+      if (!req.user.is_admin) {
+        const authorizedClasses = await checkPermissions(userId, "documents", "read");
+        console.log("🔐 Permissions utilisateur :", authorizedClasses);
+  
+        query += ` AND security_classes = ANY($2)`;
+        values.push(authorizedClasses);
+      }
+  
+      const result = await db.query(query, values);
+      if (result.rows.length === 0) {
+        console.log("❌ Document introuvable ou non autorisé avec query :", query);
+        return res.status(404).json({ error: "Document introuvable ou non autorisé" });
+      }
+  
+      const doc = result.rows[0];
+      console.log("✅ Document trouvé :", doc.name, "| path =", doc.path);
+  
+      const fullPath = path.join(WEBFORM_ROOT, `${doc.path}.json`);
+      console.log("📁 Chemin absolu vers le fichier JSON :", fullPath);
+  
+      if (!fs.existsSync(fullPath)) {
+        console.log("❌ Fichier JSON introuvable sur le disque");
+        return res.status(404).json({ error: "Fichier JSON introuvable sur le disque" });
+      }
+  
+      const fileContent = fs.readFileSync(fullPath, "utf-8");
+      const parsed = JSON.parse(fileContent);
+  
+      // ✅ On ne retourne que ce qui est utile maintenant
+      res.status(200).json({
+        parameters: parsed.parameters || {},
+        structure: parsed.structure || {}
+      });
+  
     } catch (err) {
-        console.error("Erreur getDocumentContentById:", err.message);
-        res.status(500).json({ error: "Erreur serveur lors de la lecture du fichier JSON" });
+      console.error("❌ Erreur interne :", err.message);
+      res.status(500).json({ error: "Erreur serveur lors de la lecture du fichier JSON" });
     }
-};
+  };
 
 // Modifier un document
 const updateDocument = async (req, res) => {
