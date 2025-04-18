@@ -56,7 +56,7 @@ export const Tabs = forwardRef((_, ref) => {
     return (
         <>
             {/* Tab Bar */}
-            <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-gray-300 text-xs">
+            <div className="flex bg-gray-200 px-2 pt-1 space-x-2 border-b border-gray-300 text-sm">
                 {tabs.map(
                     (tab) =>
                         tab.isOpen && (
