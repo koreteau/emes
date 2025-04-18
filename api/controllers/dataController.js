@@ -1,45 +1,32 @@
 const db = require('../config/db');
-const { checkPermissions } = require('../middleware/permissions');
 
-// Créer une entrée dans la table Data
+// Créer une entrée
 const createData = async (req, res) => {
     const {
-        data_date,
-        amount,
-        currency,
-        description,
-        account_id,
-        profit_center_id,
-        cost_center_id,
-        entity_id,
-        scenario_id,
+        scenario, year, period, entity, account,
+        custom1, custom2, custom3, custom4, ICP,
+        value, view, data_value, author, journal_id
     } = req.body;
 
     try {
         const query = `
             INSERT INTO data (
-                data_date, amount, currency, description, account_id, profit_center_id,
-                cost_center_id, entity_id, scenario_id
+                scenario, year, period, entity, account,
+                custom1, custom2, custom3, custom4, ICP,
+                value, view, data_value, author, journal_id
             )
             VALUES (
-                $1, $2, $3, $4, 
-                CAST(NULLIF($5, '') AS uuid), CAST(NULLIF($6, '') AS uuid),
-                CAST(NULLIF($7, '') AS uuid), CAST(NULLIF($8, '') AS uuid),
-                CAST(NULLIF($9, '') AS uuid)
+                $1, $2, $3, $4, $5,
+                $6, $7, $8, $9, $10,
+                $11, $12, $13, $14, $15
             )
             RETURNING *;
         `;
 
         const values = [
-            data_date,
-            amount,
-            currency,
-            description,
-            account_id,
-            profit_center_id,
-            cost_center_id,
-            entity_id,
-            scenario_id,
+            scenario, year, period, entity, account,
+            custom1, custom2, custom3, custom4, ICP,
+            value, view, data_value, author, journal_id || null
         ];
 
         const result = await db.query(query, values);
@@ -50,34 +37,28 @@ const createData = async (req, res) => {
     }
 };
 
-// Récupérer toutes les entrées Data (avec filtrage par permissions)
+// Lire les entrées avec filtres dynamiques
 const getAllData = async (req, res) => {
-    const userId = req.user.id;
+    const filters = [
+        'scenario', 'year', 'period', 'entity', 'account',
+        'custom1', 'custom2', 'custom3', 'custom4', 'ICP',
+        'view', 'value'
+    ];
+
+    const conditions = [];
+    const values = [];
+
+    filters.forEach((field) => {
+        if (req.query[field]) {
+            conditions.push(`${field} = $${values.length + 1}`);
+            values.push(req.query[field]);
+        }
+    });
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     try {
-        let query;
-        let values = [];
-
-        if (req.user.is_admin) {
-            // Admin : Récupère toutes les entrées
-            query = 'SELECT * FROM data ORDER BY data_date DESC';
-        } else {
-            // Filtrage par permissions pour les utilisateurs non-admin
-            const authorizedEntities = await checkPermissions(userId, 'entity', 'read');
-            const authorizedCostCenters = await checkPermissions(userId, 'cost_center', 'read');
-            const authorizedProfitCenters = await checkPermissions(userId, 'profit_center', 'read');
-
-            query = `
-                SELECT * FROM data
-                WHERE entity_id = ANY($1)
-                OR cost_center_id = ANY($2)
-                OR profit_center_id = ANY($3)
-                ORDER BY data_date DESC;
-            `;
-            values = [authorizedEntities, authorizedCostCenters, authorizedProfitCenters];
-        }
-
-        const result = await db.query(query, values);
+        const result = await db.query(`SELECT * FROM data ${whereClause} ORDER BY timestamp DESC`, values);
         res.status(200).json(result.rows);
     } catch (err) {
         console.error('Error fetching data:', err.message);
@@ -85,88 +66,26 @@ const getAllData = async (req, res) => {
     }
 };
 
-// Récupérer une entrée Data par ID
-const getDataById = async (req, res) => {
-    const { dataId } = req.params;
-    const userId = req.user.id;
-
-    try {
-        let query = 'SELECT * FROM data WHERE data_id = $1';
-        let values = [dataId];
-
-        if (!req.user.is_admin) {
-            const authorizedEntities = await checkPermissions(userId, 'entity', 'read');
-            const authorizedCostCenters = await checkPermissions(userId, 'cost_center', 'read');
-            const authorizedProfitCenters = await checkPermissions(userId, 'profit_center', 'read');
-
-            query += `
-                AND (entity_id = ANY($2)
-                     OR cost_center_id = ANY($3)
-                     OR profit_center_id = ANY($4))
-            `;
-            values = [dataId, authorizedEntities, authorizedCostCenters, authorizedProfitCenters];
-        }
-
-        const result = await db.query(query, values);
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Data not found' });
-        }
-
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error('Error fetching data:', err.message);
-        res.status(500).json({ error: 'Error fetching data' });
-    }
-};
-
-// Modifier une entrée Data
+// Modifier une donnée
 const updateData = async (req, res) => {
     const { dataId } = req.params;
-    const {
-        data_date,
-        amount,
-        currency,
-        description,
-        account_id,
-        profit_center_id,
-        cost_center_id,
-        entity_id,
-        scenario_id,
-    } = req.body;
+    const fields = Object.keys(req.body);
+    const values = Object.values(req.body);
+
+    if (fields.length === 0) {
+        return res.status(400).json({ error: 'Aucune donnée à modifier' });
+    }
+
+    const setClause = fields.map((key, i) => `${key} = $${i + 1}`).join(', ');
 
     try {
-        const query = `
-            UPDATE data
-            SET data_date = COALESCE($1, data_date),
-                amount = COALESCE($2, amount),
-                currency = COALESCE($3, currency),
-                description = COALESCE($4, description),
-                account_id = COALESCE(CAST(NULLIF($5, '') AS uuid), account_id),
-                profit_center_id = COALESCE(CAST(NULLIF($6, '') AS uuid), profit_center_id),
-                cost_center_id = COALESCE(CAST(NULLIF($7, '') AS uuid), cost_center_id),
-                entity_id = COALESCE(CAST(NULLIF($8, '') AS uuid), entity_id),
-                scenario_id = COALESCE(CAST(NULLIF($9, '') AS uuid), scenario_id)
-            WHERE data_id = $10
-            RETURNING *;
-        `;
-        const values = [
-            data_date,
-            amount,
-            currency,
-            description,
-            account_id,
-            profit_center_id,
-            cost_center_id,
-            entity_id,
-            scenario_id,
-            dataId,
-        ];
-
-        const result = await db.query(query, values);
+        const result = await db.query(
+            `UPDATE data SET ${setClause} WHERE id = $${fields.length + 1} RETURNING *`,
+            [...values, dataId]
+        );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Data not found' });
+            return res.status(404).json({ error: 'Entrée non trouvée' });
         }
 
         res.status(200).json(result.rows[0]);
@@ -176,18 +95,18 @@ const updateData = async (req, res) => {
     }
 };
 
-// Supprimer une entrée Data
+// Supprimer une donnée
 const deleteData = async (req, res) => {
     const { dataId } = req.params;
 
     try {
-        const result = await db.query('DELETE FROM data WHERE data_id = $1 RETURNING *', [dataId]);
+        const result = await db.query('DELETE FROM data WHERE id = $1 RETURNING *', [dataId]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Data not found' });
+            return res.status(404).json({ error: 'Entrée non trouvée' });
         }
 
-        res.status(200).json({ message: 'Data deleted', dataId: result.rows[0].data_id });
+        res.status(200).json({ message: 'Entrée supprimée', dataId });
     } catch (err) {
         console.error('Error deleting data:', err.message);
         res.status(500).json({ error: 'Error deleting data' });
@@ -197,7 +116,6 @@ const deleteData = async (req, res) => {
 module.exports = {
     createData,
     getAllData,
-    getDataById,
     updateData,
     deleteData,
 };
