@@ -4,20 +4,13 @@ import { SmallSpinner } from "../../Spinner";
 import { PointOfView } from "./PointOfView";
 import { ToolBar } from "./ToolBar";
 
-// Utilitaire pour construire toutes les combinaisons de dimensions
 const cartesianProduct = (arrays) =>
-  arrays.reduce(
-    (acc, curr) =>
-      acc
-        .map((a) => curr.map((b) => [...a, b]))
-        .flat(),
-    [[]]
-  );
+  arrays.reduce((acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])), [[]]);
 
 export function Webform({ docId }) {
   const [currentPov, setCurrentPov] = useState(null);
   const [webformData, setWebformData] = useState(null);
-  const [data, setData] = useState([]);
+  const [dataMap, setDataMap] = useState(new Map());
 
   const [rowCombinations, setRowCombinations] = useState([]);
   const [columnCombinations, setColumnCombinations] = useState([]);
@@ -26,12 +19,9 @@ export function Webform({ docId }) {
     const fetchDefinition = async () => {
       const token = localStorage.getItem("authToken");
       try {
-        const res = await fetch(
-          `http://localhost:8080/api/documents/${docId}/content`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`http://localhost:8080/api/documents/${docId}/content`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const json = await res.json();
         setWebformData(json);
       } catch (err) {
@@ -42,76 +32,75 @@ export function Webform({ docId }) {
   }, [docId]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDataPerCell = async () => {
       if (!currentPov || !webformData?.structure) return;
 
       const token = localStorage.getItem("authToken");
-      const fixedDims = webformData.structure.fixed;
-      const params = new URLSearchParams();
 
-      fixedDims.forEach((dim) => {
-        if (currentPov[dim]) {
-          params.append(dim, currentPov[dim]);
+      const { fixed = [], rows = [], columns = [] } = webformData.structure;
+
+      const allDims = {
+        account: ["CLOSING", "AVERAGE"],
+        custom1: ["EUR", "GBP", "USD"],
+        period: ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12"],
+        // Tu pourras remplacer ça par un vrai fetch plus tard
+      };
+
+      const rowValues = rows.map((dim) => allDims[dim] || []);
+      const colValues = columns.map((dim) => allDims[dim] || []);
+
+      const rowCombos = cartesianProduct(rowValues);
+      const colCombos = cartesianProduct(colValues);
+
+      setRowCombinations(rowCombos);
+      setColumnCombinations(colCombos);
+
+      const tempMap = new Map();
+
+      for (const row of rowCombos) {
+        for (const col of colCombos) {
+          const filter = { ...currentPov };
+
+          rows.forEach((dim, i) => {
+            filter[dim] = row[i];
+          });
+
+          columns.forEach((dim, i) => {
+            filter[dim] = col[i];
+          });
+
+          const params = new URLSearchParams();
+          [...fixed, ...rows, ...columns].forEach((dim) => {
+            if (filter[dim]) {
+              params.append(dim, filter[dim]);
+            }
+          });
+
+          try {
+            const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const json = await res.json();
+            if (json.length > 0) {
+              const key = [...row, ...col].join("|");
+              tempMap.set(key, json[0]); // première valeur trouvée
+            }
+          } catch (err) {
+            console.error("❌ Erreur cellule :", err.message);
+          }
         }
-      });
-
-      try {
-        const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        toast.error("❌ Erreur lors du chargement des données");
       }
+
+      setDataMap(tempMap);
     };
 
-    fetchData();
+    fetchDataPerCell();
   }, [webformData, currentPov]);
 
-  useEffect(() => {
-    if (!webformData?.structure) return;
-
-    const allDims = {
-      account: ["CLOSING", "AVERAGE"],
-      custom1: ["EUR", "GBP", "USD"],
-      period: ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12"]
-      // ⚠️ à remplacer par une vraie source plus tard
-    };
-
-    const rowDims = webformData.structure.rows;
-    const colDims = webformData.structure.columns;
-
-    const rowValues = rowDims.map((dim) => allDims[dim] || []);
-    const colValues = colDims.map((dim) => allDims[dim] || []);
-
-    const rowCombos = cartesianProduct(rowValues);
-    const colCombos = cartesianProduct(colValues);
-
-    setRowCombinations(rowCombos);
-    setColumnCombinations(colCombos);
-  }, [webformData]);
-
   const getCellValue = (rowDimVals, colDimVals) => {
-    if (!webformData?.structure || !currentPov) return "";
-
-    const filter = {
-      ...currentPov,
-    };
-
-    webformData.structure.rows.forEach((dim, idx) => {
-      filter[dim] = rowDimVals[idx];
-    });
-
-    webformData.structure.columns.forEach((dim, idx) => {
-      filter[dim] = colDimVals[idx];
-    });
-
-    const found = data.find((d) =>
-      Object.entries(filter).every(([k, v]) => d[k] === v)
-    );
-
-    return found?.data_value || "";
+    const key = [...rowDimVals, ...colDimVals].join("|");
+    return dataMap.get(key)?.data_value || "";
   };
 
   return (
