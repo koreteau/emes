@@ -66,6 +66,36 @@ const getAllData = async (req, res) => {
     }
 };
 
+const getFilteredData = async (req, res) => {
+    try {
+      const allowedDims = [
+        "scenario", "year", "period", "entity", "account",
+        "custom1", "custom2", "custom3", "custom4", "ICP",
+        "value", "view"
+      ];
+  
+      const filters = [];
+      const values = [];
+  
+      allowedDims.forEach((dim) => {
+        if (req.query[dim]) {
+          filters.push(`${dim} = $${filters.length + 1}`);
+          values.push(req.query[dim]);
+        }
+      });
+  
+      const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+  
+      const result = await db.query(`SELECT * FROM data ${whereClause}`, values);
+  
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error("❌ getFilteredData error:", err.message);
+      res.status(500).json({ error: "Erreur lors de la récupération des données" });
+    }
+};
+  
+
 // Modifier une donnée
 const updateData = async (req, res) => {
     const { dataId } = req.params;
@@ -115,7 +145,7 @@ const deleteData = async (req, res) => {
 
 module.exports = {
     createData,
-    getAllData,
+    getFilteredData,
     updateData,
     deleteData,
 };
