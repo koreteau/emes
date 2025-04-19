@@ -2,7 +2,7 @@ const express = require('express');
 const { authenticateToken, isAdmin } = require('../middleware/auth');
 const {
     createData,
-    getAllData,
+    getFilteredData,
     updateData,
     deleteData,
 } = require('../controllers/dataController');
@@ -10,8 +10,9 @@ const {
 const router = express.Router();
 
 router.post('/', authenticateToken, isAdmin, createData);
+router.get('/', authenticateToken, getFilteredData);
 router.put('/:dataId', authenticateToken, isAdmin, updateData);
 router.delete('/:dataId', authenticateToken, isAdmin, deleteData);
-router.get('/', authenticateToken, getAllData);
+
 
 module.exports = router;
