@@ -121,7 +121,7 @@ export function Webform({ docId }) {
       {!webformData || !currentPov ? (
         <SmallSpinner />
       ) : (
-        <table className="table-auto border-collapse border border-gray-500 text-xs w-full mt-2">
+        <table className="table-auto border-collapse border border-gray-500 text-xs w-full">
           <thead>
             <tr>
               {webformData.structure.rows.map((dim, i) => (
