@@ -24,10 +24,10 @@ const DEFAULT_VALUES = {
 const MOCK_OPTIONS = {
     scenario: ["ACTUAL", "BUD", "[None]"],
     year: ["2023", "2024", "2025", "[None]"],
-    entity: ["[Base]", "Entity A", "Entity B", "[None]"],
+    entity: ["[Base]", "Entity A", "Entity B", "[None]"]
 };
 
-export function PointOfView({ parameters, onChangePov }) {
+export function PointOfView({ parameters, structure, onChangePov }) {
     const [selection, setSelection] = useState(() => {
         const initial = {};
         for (const dim of DIMENSION_ORDER) {
@@ -38,44 +38,47 @@ export function PointOfView({ parameters, onChangePov }) {
         return initial;
     });
 
-
     const [openDropdown, setOpenDropdown] = useState(null);
 
     const handleSelect = (dim, value) => {
         setSelection(prev => ({ ...prev, [dim]: value }));
         setOpenDropdown(null);
-    };    
-    
+    };
+
     useEffect(() => {
         if (onChangePov) {
             onChangePov(selection);
         }
     }, [selection]);
 
+    // 🔎 Masquer les dimensions utilisées dans la webform
+    const dimsUsedInWebform = new Set([
+        ...(structure?.rows || []),
+        ...(structure?.columns || [])
+    ]);
+
     return (
         <div className="flex p-2 flex-wrap gap-3 text-xs border-b shadow-sm">
-            {DIMENSION_ORDER.map((dim) => {
+            {DIMENSION_ORDER.filter(dim => {
                 const isActivated = parameters?.[dim]?.isActivated ?? false;
+                return isActivated && !dimsUsedInWebform.has(dim);
+            }).map((dim) => {
                 const options = MOCK_OPTIONS[dim] ?? [DEFAULT_VALUES[dim]];
                 const selected = selection[dim];
 
                 return (
                     <div key={dim} className="relative">
-                        <span className="text-gray-700 font-medium">{dim.charAt(0).toUpperCase() + dim.slice(1)}:</span>{" "}
-                        {isActivated ? (
-                            <span
-                                className="hover:underline cursor-pointer hover:text-blue-800"
-                                onClick={() =>
-                                    setOpenDropdown(openDropdown === dim ? null : dim)
-                                }
-                            >
-                                {selected}
-                            </span>
-                        ) : (
-                            <span className="text-gray-400 cursor-not-allowed">{selected}</span>
-                        )}
+                        <span className="text-gray-700 font-medium">
+                            {dim.charAt(0).toUpperCase() + dim.slice(1)}:
+                        </span>{" "}
+                        <span
+                            className="hover:underline cursor-pointer hover:text-blue-800"
+                            onClick={() => setOpenDropdown(openDropdown === dim ? null : dim)}
+                        >
+                            {selected}
+                        </span>
 
-                        {openDropdown === dim && isActivated && (
+                        {openDropdown === dim && (
                             <div className="absolute z-10 mt-1 bg-white border rounded shadow w-36">
                                 {options.map((opt) => (
                                     <div
