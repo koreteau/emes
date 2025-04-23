@@ -1,0 +1,136 @@
+{
+    "meta": {
+		"app_name": "CAPACI",
+		"version": "0.1.0",
+		"generated": "2025-04-11T12:00:00Z",
+		"description": "Données de référence pour les dimensions utilisées dans l'application (POV, Webform, etc.)",
+		"author": "admin"
+    },
+    "scenario": {
+		"members": [
+			{ "id": "ACT", "label": "Actual", "type": "base" },
+			{ "id": "BDG", "label": "Budget", "type": "base" },
+			{ "id": "ACT_ACTLY", "label": "Actual vs Last Year", "type": "calculated", "formula": "ACTUAL[year=t] - ACTUAL[year=t-1]"}
+		]
+    },
+    "year": {
+		"members": [
+			{ "id": "2023" },
+			{ "id": "2024" },
+			{ "id": "2025" },
+			{ "id": "2026" },
+			{ "id": "2027" }
+		]
+    },
+    "period": {
+		"members": [
+			{ "id": "[Year]", "label": "Year", "parent": null },
+			{ "id": "H1", "label": "First Half", "parent": "YTD" },
+			{ "id": "H2", "label": "Second Half", "parent": "YTD" },
+			{ "id": "Q1", "label": "Quarter 1", "parent": "H1" },
+			{ "id": "Q2", "label": "Quarter 2", "parent": "H1" },
+			{ "id": "Q3", "label": "Quarter 3", "parent": "H2" },
+			{ "id": "Q4", "label": "Quarter 4", "parent": "H2" },
+			{ "id": "P01", "label": "January", "parent": "Q1" },
+			{ "id": "P02", "label": "February", "parent": "Q1" },
+			{ "id": "P03", "label": "March", "parent": "Q1" },
+			{ "id": "P04", "label": "April", "parent": "Q2" },
+			{ "id": "P05", "label": "May", "parent": "Q2" },
+			{ "id": "P06", "label": "June", "parent": "Q2" },
+			{ "id": "P07", "label": "July", "parent": "Q3" },
+			{ "id": "P08", "label": "August", "parent": "Q3" },
+			{ "id": "P09", "label": "September", "parent": "Q3" },
+			{ "id": "P10", "label": "October", "parent": "Q4" },
+			{ "id": "P11", "label": "November", "parent": "Q4" },
+			{ "id": "P12", "label": "December", "parent": "Q4" }
+		]
+	},
+    "entity": {
+		"members": [
+			{ "id": "[Hierarchy]", "label": "Entities", "parent": null },
+			{ "id": "CC", "label": "CC", "parent": null }
+		]
+    },
+    "account": {
+		"members": [
+			{ "id": "[None]", "label": "Accounts", "parent": null },
+			{ "id": "BNKACC", "label": "Bank Accounts", "parent": null, "type": "totalizer" },
+			{ "id": "CH00000T", "label": "Daily Banking", "parent": "BNKACC", "type": "totalizer" },
+			{ "id": "CH01000T", "label": "Checking Accounts", "parent": "CH00000T", "type": "totalizer" },
+			{ "id": "CH010101", "label": "Courant", "parent": [ "CH01000T", "OTHER_CE" ], "type": "single" },
+			{ "id": "CH010102", "label": "PEA Numéraire", "parent": [ "CH01000T", "OTHER_CE" ], "type": "single" },
+			{ "id": "SA00000T", "label": "Savings Accounts", "parent": "BNKACC", "type": "totalizer" },
+			{ "id": "SA01000T", "label": "Savings Accounts (tax-free)", "parent": "SA00000T", "type": "totalizer" },
+			{ "id": "SA01010T", "label": "Livrets A", "parent": "SA01000T", "type": "totalizer" },
+			{ "id": "SA010101", "label": "Livret A", "parent": [ "SA01010T", "OTHER_CE" ], "type": "single" },
+			{ "id": "SA01020T", "label": "Livrets Jeune", "parent": "SA01000T", "type": "totalizer" },
+			{ "id": "SA010201", "label": "Livret Jeune", "parent": [ "SA01020T", "OTHER_CE" ], "type": "single" },
+			{ "id": "SA02000T", "label": "Employee & Retirement Savings Accounts", "parent": "SA00000T", "type": "totalizer" },
+			{ "id": "SA02010T", "label": "Company Savings Plan", "parent": "SA02000T", "type": "totalizer" },
+			{ "id": "SA020101", "label": "Company Savings Plan - IONIS GROUP IONIS SCHOOLS OF TECHNOLOGY AND MANAGEMENT", "parent": [ "SA02010T", "OTHER_SG" ], "type": "single" },
+			{ "id": "SA020102", "label": "Company Savings Plan - KERING SA", "parent": [ "SA02010T", "OTHER_BNP" ], "type": "single" },
+			{ "id": "SA02020T", "label": "Corporate Retirement Savings Plan", "parent": "SA02000T", "type": "totalizer" },
+			{ "id": "SA020201", "label": "Corporate Retirement Savings Plan - KERING SA", "parent": "SA02020T", "type": "single" },
+			{ "id": "IN00000T", "label": "Investment Accounts", "parent": "BNKACC", "type": "totalizer" },
+			{ "id": "IN01000T", "label": "Equity Savings Plan", "parent": "IN00000T", "type": "totalizer" },
+			{ "id": "IN010101", "label": "PEA", "parent": [ "IN01000T", "OTHER_CE" ], "type": "single" },
+			{ "id": "OTHERBNK", "label": "Bank Accounts by Banks", "parent": null, "type": "totalizer" },
+			{ "id": "OTHER_CE", "label": "Caisse d'Epargne", "parent": "OTHERBNK", "type": "totalizer" },
+			{ "id": "OTHER_SG", "label": "Société Générale", "parent": "OTHERBNK", "type": "totalizer" },
+			{ "id": "OTHER_BNP", "label": "BNP Paribas", "parent": "OTHERBNK", "type": "totalizer" }
+		]
+    },
+    "custom1": {
+		"members": [
+			{ "id": "[None]", "label": "Custom1" },
+			{ "id": "EUR", "label": "Euro" },
+			{ "id": "GBP", "label": "Great Britan Pound" },
+			{ "id": "USD", "label": "United States Dollar" }
+		]
+    },
+    "custom2": {
+		"members": [
+			{ "id": "[None]", "label": "Custom2" }
+		]
+	},
+    "custom3": {
+		"members": [
+			{ "id": "[None]", "label": "Custom3" }
+		]
+	},
+    "custom4": {
+		"members": [
+			{ "id": "[None]", "label": "Custom4" }
+		]
+	},
+    "ICP": {
+		"members": [
+			{ "id": "[None]", "label": "ICP" }
+		]
+    },
+    "value": {
+		"members": [
+			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null },
+			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]" },
+			{ "id": "[Contribution]", "label": "FX Adjustment", "parent": "[Contribution Total]" },
+			{ "id": "[Elimintaion]", "label": "Elimination", "parent": "[Contribution]" },
+			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]" },
+			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]" },
+			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]" },
+			{ "id": "[Parent]", "label": "Parent", "parent": "[Parent Total]" },
+			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]" },
+			{ "id": "<Parent Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>" },
+			{ "id": "<Parent Curr>", "label": "Parent Currency", "parent": "<Parent Curr Total>" },
+			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>" },
+			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>" },
+			{ "id": "<Entity Curr>", "label": "Entity Currency", "parent": "<Entity Curr Total>" }
+		]
+    },
+    "view": {
+		"members": [
+			{ "id": "YTD" },
+			{ "id": "MTD" },
+			{ "id": "QTD" }
+		]
+    }
+}  
