@@ -478,3 +478,16 @@ CREATE TABLE data (
     timestamp TIMESTAMPTZ DEFAULT NOW(),
     journal_id UUID REFERENCES journals(id) ON DELETE SET NULL
 );
+
+CREATE TABLE dimensionData (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    version TEXT NOT NULL,
+    label TEXT,
+    path TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by TEXT
+);
+
+INSERT INTO dimensionData (version, label, path, created_by) VALUES ('0.1.0', '', 'dimensionData_001', 'admin');
+
+http://localhost:8080/api/dimensions/27c5775c-0df3-404d-a85b-4d1ca8db2617/content
