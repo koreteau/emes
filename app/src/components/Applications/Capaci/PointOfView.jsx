@@ -1,99 +1,87 @@
 import React, { useState, useEffect } from "react";
+import { resolveDimensionMembers } from "./utils/dimensionUtils";
 
 const DIMENSION_ORDER = [
-    "scenario", "year", "period", "entity", "account",
-    "custom1", "custom2", "custom3", "custom4",
-    "ICP", "value", "view"
+  "scenario", "year", "period", "entity", "account",
+  "custom1", "custom2", "custom3", "custom4", "ICP", "value", "view"
 ];
 
-const DEFAULT_VALUES = {
-    scenario: "[None]",
-    year: "[None]",
-    period: "[None]",
-    entity: "[Base]",
-    account: "[None]",
-    custom1: "[None]",
-    custom2: "[None]",
-    custom3: "[None]",
-    custom4: "[None]",
-    ICP: "[None]",
-    value: "[None]",
-    view: "[None]"
-};
+export function PointOfView({ parameters, structure, dimensionData, onChangePov }) {
+  const [selection, setSelection] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
 
-const MOCK_OPTIONS = {
-    scenario: ["ACTUAL", "BUD", "[None]"],
-    year: ["2023", "2024", "2025", "[None]"],
-    entity: ["[Base]", "Entity A", "Entity B", "[None]"]
-};
+  useEffect(() => {
+    const initial = {};
+    for (const dim of DIMENSION_ORDER) {
+      const isActive = parameters?.[dim]?.isActivated ?? false;
+      if (isActive) {
+        initial[dim] = parameters?.[dim]?.default || "[None]";
+      }
+    }
+    setSelection(initial);
+  }, [parameters]);
 
-export function PointOfView({ parameters, structure, onChangePov }) {
-    const [selection, setSelection] = useState(() => {
-        const initial = {};
-        for (const dim of DIMENSION_ORDER) {
-            const isActive = parameters?.[dim]?.isActivated ?? false;
-            const defaultVal = isActive ? parameters?.[dim]?.default : DEFAULT_VALUES[dim];
-            initial[dim] = defaultVal;
-        }
-        return initial;
-    });
+  useEffect(() => {
+    if (onChangePov) {
+      onChangePov(selection);
+    }
+  }, [selection]);
 
-    const [openDropdown, setOpenDropdown] = useState(null);
+  const dimsUsedInWebform = new Set([
+    ...(structure?.rows || []),
+    ...(structure?.columns || [])
+  ]);
 
-    const handleSelect = (dim, value) => {
-        setSelection(prev => ({ ...prev, [dim]: value }));
-        setOpenDropdown(null);
-    };
+  const getOptionsForDimension = (dim) => {
+    const allMembers = dimensionData?.[dim]?.members || [];
+    const defaultFilter = parameters?.[dim]?.filter;
+    if (defaultFilter) {
+      const members = resolveDimensionMembers(allMembers, defaultFilter);
+      return members.map(m => m.id);
+    }
+    return allMembers.map(m => m.id);
+  };
 
-    useEffect(() => {
-        if (onChangePov) {
-            onChangePov(selection);
-        }
-    }, [selection]);
+  return (
+    <div className="flex p-2 flex-wrap gap-3 text-xs border-b shadow-sm">
+      {DIMENSION_ORDER.filter(dim => {
+        const isActivated = parameters?.[dim]?.isActivated ?? false;
+        return isActivated && !dimsUsedInWebform.has(dim);
+      }).map((dim) => {
+        const options = getOptionsForDimension(dim);
+        const selected = selection[dim];
 
-    // 🔎 Masquer les dimensions utilisées dans la webform
-    const dimsUsedInWebform = new Set([
-        ...(structure?.rows || []),
-        ...(structure?.columns || [])
-    ]);
+        return (
+          <div key={dim} className="relative">
+            <span className="text-gray-700 font-medium">
+              {dim.charAt(0).toUpperCase() + dim.slice(1)}:
+            </span>{" "}
+            <span
+              className="hover:underline cursor-pointer hover:text-blue-800"
+              onClick={() => setOpenDropdown(openDropdown === dim ? null : dim)}
+            >
+              {selected}
+            </span>
 
-    return (
-        <div className="flex p-2 flex-wrap gap-3 text-xs border-b shadow-sm">
-            {DIMENSION_ORDER.filter(dim => {
-                const isActivated = parameters?.[dim]?.isActivated ?? false;
-                return isActivated && !dimsUsedInWebform.has(dim);
-            }).map((dim) => {
-                const options = MOCK_OPTIONS[dim] ?? [DEFAULT_VALUES[dim]];
-                const selected = selection[dim];
-
-                return (
-                    <div key={dim} className="relative">
-                        <span className="text-gray-700 font-medium">
-                            {dim.charAt(0).toUpperCase() + dim.slice(1)}:
-                        </span>{" "}
-                        <span
-                            className="hover:underline cursor-pointer hover:text-blue-800"
-                            onClick={() => setOpenDropdown(openDropdown === dim ? null : dim)}
-                        >
-                            {selected}
-                        </span>
-
-                        {openDropdown === dim && (
-                            <div className="absolute z-10 mt-1 bg-white border rounded shadow w-36">
-                                {options.map((opt) => (
-                                    <div
-                                        key={opt}
-                                        onClick={() => handleSelect(dim, opt)}
-                                        className="px-2 py-1 hover:bg-blue-100 cursor-pointer text-sm"
-                                    >
-                                        {opt}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
-    );
+            {openDropdown === dim && (
+              <div className="absolute z-10 mt-1 bg-white border rounded shadow w-36">
+                {options.map((opt) => (
+                  <div
+                    key={opt}
+                    onClick={() => {
+                      setSelection(prev => ({ ...prev, [dim]: opt }));
+                      setOpenDropdown(null);
+                    }}
+                    className="px-2 py-1 hover:bg-blue-100 cursor-pointer text-sm"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
