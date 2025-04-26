@@ -491,3 +491,6 @@ CREATE TABLE dimensionData (
 INSERT INTO dimensionData (version, label, path, created_by) VALUES ('0.1.0', '', 'dimensionData_001', 'admin');
 
 http://localhost:8080/api/dimensions/27c5775c-0df3-404d-a85b-4d1ca8db2617/content
+
+UPDATE data SET data_value = '9999' WHERE id = 'bf4cb55e-6806-4a73-83c8-ceb2000c5abf';
+
