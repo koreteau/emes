@@ -54,11 +54,11 @@
 	},
 	"structure": {
 		"rows": [
-			"account",
-			"custom1"
+			"account=CURRENCY[Descendants]",
+			"custom1=CUR[Base]"
 		],
 		"columns": [
-			"period"
+			"period=Year[Base]"
 		],
 		"fixed": [
 			"scenario",
