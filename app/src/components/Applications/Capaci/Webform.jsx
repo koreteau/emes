@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { SmallSpinner } from "../../Spinner";
 import { ToolBar } from "./ToolBar";
 import { PointOfView } from "./PointOfView";
@@ -11,6 +11,8 @@ export function Webform({ docId }) {
     const [rowItems, setRowItems] = useState([]);
     const [columnItems, setColumnItems] = useState([]);
     const [dataMap, setDataMap] = useState(new Map());
+    const [isLoadingData, setIsLoadingData] = useState(false);
+
 
     useEffect(() => {
         const fetchDefinition = async () => {
@@ -68,57 +70,63 @@ export function Webform({ docId }) {
         setColumnItems(buildAxis(webformData.structure.columns));
     }, [webformData, dimensionData]);
 
-    useEffect(() => {
-        const fetchDataPerCell = async () => {
-            if (!rowItems.length || !columnItems.length || !currentPov) return;
+    const fetchDataMap = useCallback(async () => {
+        if (!rowItems.length || !columnItems.length || !currentPov) return;
 
-            const token = localStorage.getItem("authToken");
-            const tempMap = new Map();
+        setIsLoadingData(true);
 
-            const cartesianProduct = (arrays) => {
-                return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [...a, b])), [[]]);
-            };
+        const token = localStorage.getItem("authToken");
+        const tempMap = new Map();
 
-            const rowCombos = cartesianProduct(rowItems.map(item => item.members));
-            const colCombos = cartesianProduct(columnItems.map(item => item.members));
-
-            for (const row of rowCombos) {
-                for (const col of colCombos) {
-                    const filter = { ...currentPov };
-
-                    rowItems.forEach((item, idx) => {
-                        filter[item.dim] = row[idx];
-                    });
-                    columnItems.forEach((item, idx) => {
-                        filter[item.dim] = col[idx];
-                    });
-
-                    const params = new URLSearchParams();
-                    Object.entries(filter).forEach(([k, v]) => {
-                        if (v) params.append(k, v);
-                    });
-
-                    try {
-                        const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
-                        const json = await res.json();
-
-                        if (json.length > 0) {
-                            const key = [...row, ...col].join("|");
-                            tempMap.set(key, json[0]);
-                        }
-                    } catch (err) {
-                        console.error("❌ Erreur fetch cellule:", err.message);
-                    }
-                }
-            }
-
-            setDataMap(tempMap);
+        const cartesianProduct = (arrays) => {
+            return arrays.reduce((acc, curr) =>
+                acc.flatMap(a => curr.map(b => [...a, b])), [[]]);
         };
 
-        fetchDataPerCell();
+        const rowCombos = cartesianProduct(rowItems.map(item => item.members));
+        const colCombos = cartesianProduct(columnItems.map(item => item.members));
+
+        for (const row of rowCombos) {
+            for (const col of colCombos) {
+                const filter = { ...currentPov };
+
+                rowItems.forEach((item, idx) => {
+                    filter[item.dim] = row[idx];
+                });
+                columnItems.forEach((item, idx) => {
+                    filter[item.dim] = col[idx];
+                });
+
+                const params = new URLSearchParams();
+                Object.entries(filter).forEach(([k, v]) => {
+                    if (v) params.append(k, v);
+                });
+
+                try {
+                    const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const json = await res.json();
+
+                    if (json.length > 0) {
+                        const key = [...row, ...col].join("|");
+                        tempMap.set(key, json[0]);
+                    }
+                } catch (err) {
+                    console.error("❌ Erreur fetch cellule:", err.message);
+                }
+            }
+        }
+
+        setDataMap(tempMap);
+        setIsLoadingData(false);
     }, [rowItems, columnItems, currentPov]);
+
+    useEffect(() => {
+        if (rowItems.length && columnItems.length && currentPov) {
+            fetchDataMap();
+        }
+    }, [rowItems, columnItems, currentPov, fetchDataMap]);
 
     const getCellValue = (rowVals, colVals) => {
         const key = [...rowVals, ...colVals].join("|");
@@ -137,7 +145,7 @@ export function Webform({ docId }) {
     return (
         <div>
             <ToolBar
-                onRefresh={() => console.log("🔁 Refresh clicked")}
+                onRefresh={fetchDataMap}
                 onCalculate={() => console.log("📊 Calculate clicked")}
                 onSave={() => console.log("💾 Save clicked")}
             />
@@ -151,7 +159,7 @@ export function Webform({ docId }) {
                 />
             )}
 
-            {!currentPov ? (
+            {isLoadingData ? (
                 <SmallSpinner />
             ) : (
                 <div className="overflow-x-auto">
