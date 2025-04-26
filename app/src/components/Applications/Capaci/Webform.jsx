@@ -1,93 +1,115 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import { SmallSpinner } from "../../Spinner";
-import { PointOfView } from "./PointOfView";
 import { ToolBar } from "./ToolBar";
-
-const cartesianProduct = (arrays) =>
-    arrays.reduce((acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])), [[]]);
+import { PointOfView } from "./PointOfView";
+import { resolveDimensionMembers } from "./utils/dimensionUtils";
 
 export function Webform({ docId }) {
     const [currentPov, setCurrentPov] = useState(null);
     const [webformData, setWebformData] = useState(null);
+    const [dimensionData, setDimensionData] = useState(null);
+    const [rowItems, setRowItems] = useState([]);
+    const [columnItems, setColumnItems] = useState([]);
     const [dataMap, setDataMap] = useState(new Map());
-
-    const [rowCombinations, setRowCombinations] = useState([]);
-    const [columnCombinations, setColumnCombinations] = useState([]);
 
     useEffect(() => {
         const fetchDefinition = async () => {
             const token = localStorage.getItem("authToken");
-            try {
-                const res = await fetch(`http://localhost:8080/api/documents/${docId}/content`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const json = await res.json();
-                setWebformData(json);
-            } catch (err) {
-                toast.error("❌ Erreur lors du chargement de la définition de la webform");
-            }
+            const res = await fetch(`http://localhost:8080/api/documents/${docId}/content`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const json = await res.json();
+            setWebformData(json);
         };
         fetchDefinition();
     }, [docId]);
 
     useEffect(() => {
+        const fetchDimensionData = async () => {
+            const token = localStorage.getItem("authToken");
+            const res = await fetch(`http://localhost:8080/api/dimensions/latest`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const json = await res.json();
+            setDimensionData(json);
+        };
+        fetchDimensionData();
+    }, []);
+
+    useEffect(() => {
+        if (!webformData || !dimensionData) return;
+
+        const parseStructureItem = (item) => {
+            if (item.includes('=')) {
+                const [dim, expr] = item.split('=');
+                return { dim: dim.trim(), expr: expr.trim() };
+            } else {
+                return { dim: item.trim(), expr: null };
+            }
+        };
+
+        const buildAxis = (axisList) => {
+            const results = [];
+            for (const item of axisList) {
+                const { dim, expr } = parseStructureItem(item);
+                const members = dimensionData[dim]?.members || [];
+
+                if (expr) {
+                    const resolved = resolveDimensionMembers(members, expr);
+                    results.push({ dim, members: resolved.map(m => m.id) });
+                } else {
+                    results.push({ dim, members: members.map(m => m.id) });
+                }
+            }
+            return results;
+        };
+
+        setRowItems(buildAxis(webformData.structure.rows));
+        setColumnItems(buildAxis(webformData.structure.columns));
+    }, [webformData, dimensionData]);
+
+    useEffect(() => {
         const fetchDataPerCell = async () => {
-            if (!currentPov || !webformData?.structure) return;
+            if (!rowItems.length || !columnItems.length || !currentPov) return;
 
             const token = localStorage.getItem("authToken");
+            const tempMap = new Map();
 
-            const { fixed = [], rows = [], columns = [] } = webformData.structure;
-
-            const allDims = {
-                account: ["CLOSING", "AVERAGE"],
-                custom1: ["EUR", "GBP", "USD"],
-                period: ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12"],
-                // Tu pourras remplacer ça par un vrai fetch plus tard
+            const cartesianProduct = (arrays) => {
+                return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [...a, b])), [[]]);
             };
 
-            const rowValues = rows.map((dim) => allDims[dim] || []);
-            const colValues = columns.map((dim) => allDims[dim] || []);
-
-            const rowCombos = cartesianProduct(rowValues);
-            const colCombos = cartesianProduct(colValues);
-
-            setRowCombinations(rowCombos);
-            setColumnCombinations(colCombos);
-
-            const tempMap = new Map();
+            const rowCombos = cartesianProduct(rowItems.map(item => item.members));
+            const colCombos = cartesianProduct(columnItems.map(item => item.members));
 
             for (const row of rowCombos) {
                 for (const col of colCombos) {
                     const filter = { ...currentPov };
 
-                    rows.forEach((dim, i) => {
-                        filter[dim] = row[i];
+                    rowItems.forEach((item, idx) => {
+                        filter[item.dim] = row[idx];
                     });
-
-                    columns.forEach((dim, i) => {
-                        filter[dim] = col[i];
+                    columnItems.forEach((item, idx) => {
+                        filter[item.dim] = col[idx];
                     });
 
                     const params = new URLSearchParams();
-                    [...fixed, ...rows, ...columns].forEach((dim) => {
-                        if (filter[dim]) {
-                            params.append(dim, filter[dim]);
-                        }
+                    Object.entries(filter).forEach(([k, v]) => {
+                        if (v) params.append(k, v);
                     });
 
                     try {
                         const res = await fetch(`http://localhost:8080/api/data?${params.toString()}`, {
-                            headers: { Authorization: `Bearer ${token}` },
+                            headers: { Authorization: `Bearer ${token}` }
                         });
-
                         const json = await res.json();
+
                         if (json.length > 0) {
                             const key = [...row, ...col].join("|");
-                            tempMap.set(key, json[0]); // première valeur trouvée
+                            tempMap.set(key, json[0]);
                         }
                     } catch (err) {
-                        console.error("❌ Erreur cellule :", err.message);
+                        console.error("❌ Erreur fetch cellule:", err.message);
                     }
                 }
             }
@@ -96,12 +118,21 @@ export function Webform({ docId }) {
         };
 
         fetchDataPerCell();
-    }, [webformData, currentPov]);
+    }, [rowItems, columnItems, currentPov]);
 
-    const getCellValue = (rowDimVals, colDimVals) => {
-        const key = [...rowDimVals, ...colDimVals].join("|");
+    const getCellValue = (rowVals, colVals) => {
+        const key = [...rowVals, ...colVals].join("|");
         return dataMap.get(key)?.data_value || "";
     };
+
+    if (!webformData || !dimensionData) return <SmallSpinner />;
+
+    const cartesianProduct = (arrays) => {
+        return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [...a, b])), [[]]);
+    };
+
+    const rows = rowItems.length ? cartesianProduct(rowItems.map(item => item.members)) : [];
+    const cols = columnItems.length ? cartesianProduct(columnItems.map(item => item.members)) : [];
 
     return (
         <div>
@@ -115,57 +146,60 @@ export function Webform({ docId }) {
                 <PointOfView
                     parameters={webformData.parameters}
                     structure={webformData.structure}
+                    dimensionData={dimensionData}
                     onChangePov={(pov) => setCurrentPov(pov)}
                 />
             )}
 
-            {!webformData || !currentPov ? (
+            {!currentPov ? (
                 <SmallSpinner />
             ) : (
-                <table className="table-auto border-collapse border border-gray-500 text-xs w-full">
-                    <thead>
-                        <tr>
-                            {webformData.structure.rows.map((dim, i) => (
-                                <th
-                                    key={`dim-${i}`}
-                                    className="border border-gray-700 bg-gray-200 font-bold px-2 py-1 text-left"
-                                >
-                                    {dim}
-                                </th>
-                            ))}
-                            {columnCombinations.map((colVals, idx) => (
-                                <th
-                                    key={`col-${idx}`}
-                                    className="border border-gray-700 bg-gray-100 font-bold px-2 py-1 text-center"
-                                >
-                                    {colVals.join(" / ")}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rowCombinations.map((rowVals, rowIdx) => (
-                            <tr key={`row-${rowIdx}`}>
-                                {rowVals.map((v, i) => (
-                                    <td
-                                        key={`label-${i}`}
-                                        className="border border-gray-300 px-2 py-1 font-medium"
+                <div className="overflow-x-auto">
+                    <table className="table-auto border-collapse border border-gray-500 text-xs">
+                        <thead>
+                            <tr>
+                                {rowItems.map((item, idx) => (
+                                    <th
+                                        key={`rhead-${idx}`}
+                                        className="border border-gray-700 bg-gray-200 font-bold px-2 py-2 min-w-[80px] text-left whitespace-nowrap"
                                     >
-                                        {v}
-                                    </td>
+                                        {item.dim}
+                                    </th>
                                 ))}
-                                {columnCombinations.map((colVals, colIdx) => (
-                                    <td
-                                        key={`cell-${rowIdx}-${colIdx}`}
-                                        className="border border-gray-300 text-center px-2 py-1"
+                                {cols.map((colVals, colIdx) => (
+                                    <th
+                                        key={`chead-${colIdx}`}
+                                        className="border border-gray-700 bg-gray-200 font-bold px-2 py-2 min-w-[80px] text-center whitespace-nowrap"
                                     >
-                                        {getCellValue(rowVals, colVals)}
-                                    </td>
+                                        {colVals.join(" / ")}
+                                    </th>
                                 ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {rows.map((rowVals, rowIdx) => (
+                                <tr key={`rbody-${rowIdx}`}>
+                                    {rowVals.map((val, idx) => (
+                                        <td
+                                            key={`rbodylabel-${idx}`}
+                                            className="border border-gray-300 px-2 py-1 font-medium"
+                                        >
+                                            {val}
+                                        </td>
+                                    ))}
+                                    {cols.map((colVals, colIdx) => (
+                                        <td
+                                            key={`rcell-${rowIdx}-${colIdx}`}
+                                            className="border border-gray-300 text-center px-2 py-1"
+                                        >
+                                            {getCellValue(rowVals, colVals)}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );
