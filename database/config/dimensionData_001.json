@@ -8,8 +8,8 @@
     },
     "scenario": {
 		"members": [
-			{ "id": "ACTUAL", "label": "Actual" },
-			{ "id": "BUDGET", "label": "Budget" },
+			{ "id": "ACT", "label": "Actual" },
+			{ "id": "BDG", "label": "Budget" },
 			{ "id": "ACT_ACTLY", "label": "Actual vs Last Year" }
 		]
     },
