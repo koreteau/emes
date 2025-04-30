@@ -5,7 +5,7 @@
 	"parameters": {
 		"scenario": {
 			"isActivated": true,
-			"default": "ACTUAL"
+			"default": "ACT"
 		},
 		"year": {
 			"isActivated": true,
