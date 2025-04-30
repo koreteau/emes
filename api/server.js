@@ -33,6 +33,7 @@ const dataRoutes = require('./routes/data');
 const webformRoutes = require('./routes/webforms');
 const documentsRoutes = require('./routes/documents');
 const dimensionRoutes = require('./routes/dimension');
+const journalRoutes = require('./routes/journal');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
@@ -42,6 +43,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/webforms', webformRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dimensions', dimensionRoutes);
+app.use('/api/journals', journalRoutes);
 
 
 // Lancer le serveur uniquement si la base est connectée
