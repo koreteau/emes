@@ -55,7 +55,7 @@
 	"structure": {
 		"rows": [
 			"account=CURRENCY[Descendants]",
-			"custom1=CUR[Base]"
+			"custom2=CUR[Base]"
 		],
 		"columns": [
 			"period=Year[Base]"
@@ -66,7 +66,7 @@
 			"entity",
 			"value",
 			"view",
-			"custom2",
+			"custom1",
 			"custom3",
 			"custom4",
 			"ICP"
