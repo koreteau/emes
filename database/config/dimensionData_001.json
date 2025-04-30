@@ -58,7 +58,31 @@
     "account": {
 		"members": [
 			{ "id": "[None]", "label": "Accounts", "parent": null },
-			{ "id": "BNKACC", "label": "Bank Accounts", "parent": null, "type": "node" },
+			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node" },
+			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base" },
+			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base" }
+		]
+    },
+    "custom1": {
+		"members": [
+			{ "id": "[None]", "label": "Custom1", "parent": null, "type": "base" },
+            		{ "id": "FLOWS", "label": "FLOWS", "parent": null, "type": "node" }
+		]
+    },
+    "custom2": {
+		"members": [
+			{ "id": "[None]", "label": "Custom2" },
+            		{ "id": "CUR", "label": "Currencies", "parent": null, "type": "node" },
+			{ "id": "EUR", "label": "Euro", "parent": "CUR", "type": "base" },
+			{ "id": "GBP", "label": "Great Britan Pound", "parent": "CUR", "type": "base" },
+			{ "id": "USD", "label": "United States Dollar", "parent": "CUR", "type": "base" },
+            		{ "id": "CC", "label": "Cost Centers", "parent": null, "type": "node" }
+		]
+	},
+    "custom3": {
+		"members": [
+			{ "id": "[None]", "label": "Custom3" },
+            		{ "id": "BNKACC", "label": "Bank Accounts", "parent": null, "type": "node" },
 			{ "id": "CH00000T", "label": "Daily Banking", "parent": "BNKACC", "type": "node" },
 			{ "id": "CH01000T", "label": "Checking Accounts", "parent": "CH00000T", "type": "node" },
 			{ "id": "CH010101", "label": "Courant", "parent": [ "CH01000T", "OTHER_CE" ], "type": "base" },
@@ -81,34 +105,13 @@
 			{ "id": "OTHERBNK", "label": "Bank Accounts by Banks", "parent": null, "type": "node" },
 			{ "id": "OTHER_CE", "label": "Caisse d'Epargne", "parent": "OTHERBNK", "type": "node" },
 			{ "id": "OTHER_SG", "label": "Société Générale", "parent": "OTHERBNK", "type": "node" },
-			{ "id": "OTHER_BNP", "label": "BNP Paribas", "parent": "OTHERBNK", "type": "node" },
-			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node" },
-			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base" },
-			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base" }
-		]
-    },
-    "custom1": {
-		"members": [
-			{ "id": "[None]", "label": "Custom1", "parent": null, "type": "base" },
-			{ "id": "CUR", "label": "Currencies", "parent": null, "type": "node" },
-			{ "id": "EUR", "label": "Euro", "parent": "CUR", "type": "base" },
-			{ "id": "GBP", "label": "Great Britan Pound", "parent": "CUR", "type": "base" },
-			{ "id": "USD", "label": "United States Dollar", "parent": "CUR", "type": "base" }
-		]
-    },
-    "custom2": {
-		"members": [
-			{ "id": "[None]", "label": "Custom2" }
-		]
-	},
-    "custom3": {
-		"members": [
-			{ "id": "[None]", "label": "Custom3" }
+			{ "id": "OTHER_BNP", "label": "BNP Paribas", "parent": "OTHERBNK", "type": "node" }	
 		]
 	},
     "custom4": {
 		"members": [
-			{ "id": "[None]", "label": "Custom4" }
+			{ "id": "[None]", "label": "Custom4" },
+            		{ "id": "WEEK52", "label": "Year 52 weeks", "parent": null, "type": "node" }
 		]
 	},
     "ICP": {
@@ -141,4 +144,4 @@
 			{ "id": "QTD" }
 		]
     }
-}  
+}
