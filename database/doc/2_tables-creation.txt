@@ -493,4 +493,50 @@ INSERT INTO dimensionData (version, label, path, created_by) VALUES ('0.1.0', ''
 http://localhost:8080/api/dimensions/27c5775c-0df3-404d-a85b-4d1ca8db2617/content
 
 UPDATE data SET data_value = '9999' WHERE id = 'bf4cb55e-6806-4a73-83c8-ceb2000c5abf';
+UPDATE data SET scenario = 'ACT' WHERE id = 'ccda2da9-71e9-423b-a11b-45b7041e5812';
 
+
+CREATE TABLE journals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    label TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft',
+    author TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    posted_at TIMESTAMPTZ
+);
+
+CREATE TABLE journal_lines (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    journal_id UUID REFERENCES journals(id) ON DELETE CASCADE,
+    scenario TEXT NOT NULL,
+    year TEXT NOT NULL,
+    period TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    account TEXT NOT NULL,
+    custom1 TEXT NOT NULL,
+    custom2 TEXT NOT NULL,
+    custom3 TEXT NOT NULL,
+    custom4 TEXT NOT NULL,
+    icp TEXT NOT NULL,
+    view TEXT NOT NULL,
+    value TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+ALTER TABLE journals
+ADD COLUMN scenario TEXT NOT NULL,
+ADD COLUMN year TEXT NOT NULL,
+ADD COLUMN period TEXT NOT NULL,
+ADD COLUMN entity TEXT NOT NULL,
+ADD COLUMN view TEXT NOT NULL;
+
+-- Plus besoin de scenario, year, period, entity, view dans journal_lines
+ALTER TABLE journal_lines
+DROP COLUMN scenario,
+DROP COLUMN year,
+DROP COLUMN period,
+DROP COLUMN entity,
+DROP COLUMN view;
