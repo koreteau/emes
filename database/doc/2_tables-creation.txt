@@ -533,6 +533,7 @@ ADD COLUMN period TEXT NOT NULL,
 ADD COLUMN entity TEXT NOT NULL,
 ADD COLUMN view TEXT NOT NULL;
 
+
 -- Plus besoin de scenario, year, period, entity, view dans journal_lines
 ALTER TABLE journal_lines
 DROP COLUMN scenario,
@@ -540,3 +541,7 @@ DROP COLUMN year,
 DROP COLUMN period,
 DROP COLUMN entity,
 DROP COLUMN view;
+DROP COLUMN value;
+
+ALTER TABLE journals ADD COLUMN value TEXT NOT NULL;
+ALTER TABLE journal_lines DROP COLUMN value;
