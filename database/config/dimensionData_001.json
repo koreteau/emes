@@ -51,7 +51,7 @@
 	},
     "entity": {
 		"members": [
-			{ "id": "[Hierarchy]", "label": "Entities", "parent": null },
+			{ "id": "[None]", "label": "Entities", "parent": null },
 			{ "id": "CC", "label": "CC", "parent": null }
 		]
     },
@@ -66,23 +66,22 @@
     "custom1": {
 		"members": [
 			{ "id": "[None]", "label": "Custom1", "parent": null, "type": "base" },
-            		{ "id": "FLOWS", "label": "FLOWS", "parent": null, "type": "node" }
+            { "id": "FLOWS", "label": "FLOWS", "parent": null, "type": "node" }
 		]
     },
     "custom2": {
 		"members": [
 			{ "id": "[None]", "label": "Custom2" },
-            		{ "id": "CUR", "label": "Currencies", "parent": null, "type": "node" },
+            { "id": "CUR", "label": "Currencies", "parent": null, "type": "node" },
 			{ "id": "EUR", "label": "Euro", "parent": "CUR", "type": "base" },
 			{ "id": "GBP", "label": "Great Britan Pound", "parent": "CUR", "type": "base" },
-			{ "id": "USD", "label": "United States Dollar", "parent": "CUR", "type": "base" },
-            		{ "id": "CC", "label": "Cost Centers", "parent": null, "type": "node" }
+			{ "id": "USD", "label": "United States Dollar", "parent": "CUR", "type": "base" }
 		]
 	},
     "custom3": {
 		"members": [
 			{ "id": "[None]", "label": "Custom3" },
-            		{ "id": "BNKACC", "label": "Bank Accounts", "parent": null, "type": "node" },
+            { "id": "BNKACC", "label": "Bank Accounts", "parent": null, "type": "node" },
 			{ "id": "CH00000T", "label": "Daily Banking", "parent": "BNKACC", "type": "node" },
 			{ "id": "CH01000T", "label": "Checking Accounts", "parent": "CH00000T", "type": "node" },
 			{ "id": "CH010101", "label": "Courant", "parent": [ "CH01000T", "OTHER_CE" ], "type": "base" },
@@ -111,7 +110,8 @@
     "custom4": {
 		"members": [
 			{ "id": "[None]", "label": "Custom4" },
-            		{ "id": "WEEK52", "label": "Year 52 weeks", "parent": null, "type": "node" }
+            { "id": "52WEEKS", "label": "Year 52 weeks", "parent": null, "type": "node" },
+			{ "id": "WEEK1", "label": "Week 1", "parent": "52WEEKS", "type": "base" }
 		]
 	},
     "ICP": {
