@@ -5,6 +5,7 @@ import { DataLoad } from "./Load/LoadData";
 import { Accounts } from "./Data/Accounts";
 import Explorer from "./Explorer";
 import { Webform } from "./Webform";
+import { Journals } from "./Journals";
 
 
 
@@ -61,6 +62,8 @@ export function Capaci() {
                 return <div>Ownership</div>;
             case "Load Data":
                 return <DataLoad />;
+            case "Manage Journals":
+                return <Journals />;
             default:
                 return <div>{name} Content</div>;
         }
