@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { resolveDimensionMembers } from "./utils/dimensionUtils";
 
 const DIMENSION_ORDER = [
-    "scenario", "year", "period", "entity", "account",
-    "custom1", "custom2", "custom3", "custom4", "ICP", "value", "view"
+    "scenario", "year", "period", "entity", "account", "custom1", "custom2", "custom3", "custom4", "ICP", "value", "view"
 ];
 
 export function PointOfView({ parameters, structure, dimensionData, onChangePov }) {
