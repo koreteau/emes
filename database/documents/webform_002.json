@@ -17,7 +17,7 @@
 		},
 		"entity": {
 			"isActivated": true,
-			"default": "CC"
+			"default": "[None]"
 		},
 		"account": {
 			"isActivated": false,
