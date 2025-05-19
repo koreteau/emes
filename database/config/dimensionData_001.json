@@ -163,7 +163,7 @@
 			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null },
 			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]" },
 			{ "id": "[Contribution]", "label": "FX Adjustment", "parent": "[Contribution Total]" },
-			{ "id": "[Elimintaion]", "label": "Elimination", "parent": "[Contribution]" },
+			{ "id": "[Elimination]", "label": "Elimination", "parent": "[Contribution]" },
 			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]" },
 			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]" },
 			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]" },
