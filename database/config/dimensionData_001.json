@@ -8,12 +8,16 @@
     },
     "scenario": {
 		"members": [
-			{ "id": "ACT", "label": "Actual", "ud1": null },
-			{ "id": "BDG", "label": "Budget", "ud1": null },
-			{ "id": "FC1", "label": "Forecast 1", "ud1": null },
-			{ "id": "ACT_ACTLY", "label": "Actual vs Last Year", "ud1": "calculated" },
-			{ "id": "BDG_ACT", "label": "Budget vs Actual", "ud1": "calculated" },
-			{ "id": "FC1_ACT", "label": "Forecast 1 vs Actual", "ud1": "calculated" }
+            { "id": "[Hierarchy]", "label": "Scenario", "parent": null, "defaultView": null, "ud1": null, "ud2": null, "ud3": null, "processManagement": "N" },
+            { "id": "ScenRep", "label": "Reporting Scenarios", "parent": null, "defaultView": null, "ud1": null, "ud2": null, "ud3": null, "processManagement": "N" },
+			{ "id": "ACT", "label": "Actual", "parent": "ScenRep","defaultView": "YTD", "ud1": "ACT", "ud2": null, "ud3": null, "processManagement": "Y" },
+			{ "id": "BDG", "label": "Budget", "parent": "ScenRep","defaultView": "YTD", "ud1": "BDG", "ud2": null, "ud3": null, "processManagement": "Y" },
+			{ "id": "FC1", "label": "Forecast 1", "parent": "ScenRep", "defaultView": "YTD", "ud1": "FC1", "ud2": null, "ud3": null, "processManagement": "Y" },
+            { "id": "ScenComp", "label": "Comparability Scenarios", "parent": null, "defaultView": null, "ud1": null, "ud2": null, "ud3": null, "processManagement": "N" },
+			{ "id": "ACT_ACTLY", "label": "Actual vs Last Year", "parent": "ScenComp", "defaultView": "YTD", "ud1": "ACT", "ud2": "ACT", "ud3": -1, "processManagement": "Y" },
+			{ "id": "BDG_ACT", "label": "Budget vs Actual", "parent": "ScenComp", "defaultView": "YTD", "ud1": "BDG", "ud2": "ACT", "ud3": 0, "processManagement": "Y" },
+            { "id": "BDG_FC1", "label": "Budget vs Forecast 1", "parent": "ScenComp", "defaultView": "YTD", "ud1": "BDG", "ud2": "FC1", "ud3": 0, "processManagement": "Y" },
+			{ "id": "FC1_ACT", "label": "Forecast 1 vs Actual", "parent": "ScenComp", "defaultView": "YTD", "ud1": "FC1", "ud2": "ACT", "ud3": 0, "processManagement": "Y" }
 		]
     },
     "year": {
@@ -30,26 +34,26 @@
     },
     "period": {
 		"members": [
-			{ "id": "[None]", "label": "None", "parent": null, "type": "base" },
-			{ "id": "Year", "label": "Year", "parent": null, "type": "node" },
-			{ "id": "H1", "label": "First Half", "parent": "Year", "type": "node" },
-			{ "id": "H2", "label": "Second Half", "parent": "Year", "type": "node" },
-			{ "id": "Q1", "label": "Quarter 1", "parent": "H1", "type": "node" },
-			{ "id": "Q2", "label": "Quarter 2", "parent": "H1", "type": "node" },
-			{ "id": "Q3", "label": "Quarter 3", "parent": "H2", "type": "node" },
-			{ "id": "Q4", "label": "Quarter 4", "parent": "H2", "type": "node" },
-			{ "id": "P01", "label": "January", "parent": "Q1", "type": "base" },
-			{ "id": "P02", "label": "February", "parent": "Q1", "type": "base" },
-			{ "id": "P03", "label": "March", "parent": "Q1", "type": "base" },
-			{ "id": "P04", "label": "April", "parent": "Q2", "type": "base" },
-			{ "id": "P05", "label": "May", "parent": "Q2", "type": "base" },
-			{ "id": "P06", "label": "June", "parent": "Q2", "type": "base" },
-			{ "id": "P07", "label": "July", "parent": "Q3", "type": "base" },
-			{ "id": "P08", "label": "August", "parent": "Q3", "type": "base" },
-			{ "id": "P09", "label": "September", "parent": "Q3", "type": "base" },
-			{ "id": "P10", "label": "October", "parent": "Q4", "type": "base" },
-			{ "id": "P11", "label": "November", "parent": "Q4", "type": "base" },
-			{ "id": "P12", "label": "December", "parent": "Q4", "type": "base" }
+			{ "id": "[None]", "label": "None", "parent": null, "type": "base", "ud1": null },
+			{ "id": "Year", "label": "Year", "parent": null, "type": "node", "ud1": "Y" },
+			{ "id": "H1", "label": "First Half", "parent": "Year", "type": "node", "ud1": "H" },
+			{ "id": "H2", "label": "Second Half", "parent": "Year", "type": "node", "ud1": "H" },
+			{ "id": "Q1", "label": "Quarter 1", "parent": "H1", "type": "node", "ud1": "Q" },
+			{ "id": "Q2", "label": "Quarter 2", "parent": "H1", "type": "node", "ud1": "Q" },
+			{ "id": "Q3", "label": "Quarter 3", "parent": "H2", "type": "node", "ud1": "Q" },
+			{ "id": "Q4", "label": "Quarter 4", "parent": "H2", "type": "node", "ud1": "Q" },
+			{ "id": "P01", "label": "January", "parent": "Q1", "type": "base", "ud1": "P" },
+			{ "id": "P02", "label": "February", "parent": "Q1", "type": "base", "ud1": "P" },
+			{ "id": "P03", "label": "March", "parent": "Q1", "type": "base", "ud1": "P" },
+			{ "id": "P04", "label": "April", "parent": "Q2", "type": "base", "ud1": "P" },
+			{ "id": "P05", "label": "May", "parent": "Q2", "type": "base", "ud1": "P" },
+			{ "id": "P06", "label": "June", "parent": "Q2", "type": "base", "ud1": "P" },
+			{ "id": "P07", "label": "July", "parent": "Q3", "type": "base", "ud1": "P" },
+			{ "id": "P08", "label": "August", "parent": "Q3", "type": "base", "ud1": "P" },
+			{ "id": "P09", "label": "September", "parent": "Q3", "type": "base", "ud1": "P" },
+			{ "id": "P10", "label": "October", "parent": "Q4", "type": "base", "ud1": "P" },
+			{ "id": "P11", "label": "November", "parent": "Q4", "type": "base", "ud1": "P" },
+			{ "id": "P12", "label": "December", "parent": "Q4", "type": "base", "ud1": "P" }
 		]
 	},
     "entity": {
@@ -63,7 +67,8 @@
 			{ "id": "[None]", "label": "Accounts", "parent": null, "ud1": null },
 			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node", "ud1": null },
 			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base", "ud1": null },
-			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base", "ud1": null }
+			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base", "ud1": null },
+            { "id": "PL", "label": "Profit and Loss Accounts", "parent": null, "type": "node", "ud1": null }
 		]
     },
     "custom1": {
@@ -149,7 +154,8 @@
     "custom4": {
 		"members": [
 			{ "id": "[None]", "label": "None", "parent": null, "type": "base", "ud1": null },
-            { "id": "52WEEKS", "label": "Year 52 weeks", "parent": null, "type": "node", "ud1": null },
+            { "id": "TOTC4", "label": "All Custom4 Members", "parent": null, "type": "node", "ud1": null },
+            { "id": "52WEEKS", "label": "Year 52 weeks", "parent": "TOTC4", "type": "node", "ud1": null },
 			{ "id": "WEEK1", "label": "Week 1", "parent": "52WEEKS", "type": "base", "ud1": null }
 		]
 	},
@@ -160,20 +166,20 @@
     },
     "value": {
 		"members": [
-			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null },
-			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]" },
-			{ "id": "[Contribution]", "label": "FX Adjustment", "parent": "[Contribution Total]" },
-			{ "id": "[Elimination]", "label": "Elimination", "parent": "[Contribution]" },
-			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]" },
-			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]" },
-			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]" },
-			{ "id": "[Parent]", "label": "Parent", "parent": "[Parent Total]" },
-			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]" },
-			{ "id": "<Parent Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>" },
-			{ "id": "<Parent Curr>", "label": "Parent Currency", "parent": "<Parent Curr Total>" },
-			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>" },
-			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>" },
-			{ "id": "<Entity Curr>", "label": "Entity Currency", "parent": "<Entity Curr Total>" }
+			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null, "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "[Contribution]", "label": "FX Adjustment", "parent": "[Contribution Total]", "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "[Elimination]", "label": "Elimination", "parent": "[Contribution]", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]", "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "[Parent]", "label": "Parent", "parent": "[Parent Total]", "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]", "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "<Parent Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "<Parent Curr>", "label": "Parent Currency", "parent": "<Parent Curr Total>", "calculated": true, "ud1": "Y", "ud2": null },
+			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>", "calculated": true, "ud1": "N", "ud2": null },
+			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>", "calculated": false, "ud1": "Y", "ud2": null },
+			{ "id": "<Entity Curr>", "label": "Entity Currency", "parent": "<Entity Curr Total>", "calculated": false, "ud1": "N", "ud2": null }
 		]
     },
     "view": {
