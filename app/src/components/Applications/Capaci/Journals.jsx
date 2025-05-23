@@ -25,21 +25,6 @@ export function Journals() {
         fetchDimensions();
     }, [token]);
 
-    /*
-
-    useEffect(() => {
-        const fetchJournals = async () => {
-            const res = await fetch("http://localhost:8080/api/journals", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const json = await res.json();
-            setJournals(json);
-        };
-        fetchJournals();
-    }, [token]);
-
-    */
-
     // Fonction de récupération des journaux
     const fetchData = useCallback(async () => {
         setIsLoadingData(true);
