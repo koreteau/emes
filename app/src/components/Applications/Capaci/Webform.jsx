@@ -144,12 +144,6 @@ export function Webform({ docId }) {
 
     return (
         <div>
-            <ToolBar
-                onRefresh={fetchDataMap}
-                onCalculate={() => console.log("📊 Calculate clicked")}
-                onSave={() => console.log("💾 Save clicked")}
-            />
-
             {webformData?.parameters && (
                 <PointOfView
                     parameters={webformData.parameters}
@@ -158,7 +152,11 @@ export function Webform({ docId }) {
                     onChangePov={(pov) => setCurrentPov(pov)}
                 />
             )}
-
+            <ToolBar
+                onRefresh={fetchDataMap}
+                onCalculate={() => console.log("📊 Calculate clicked")}
+                onSave={() => console.log("💾 Save clicked")}
+            />
             {isLoadingData ? (
                 <SmallSpinner />
             ) : (
