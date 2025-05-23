@@ -125,7 +125,7 @@ export function Capaci() {
                                     Journals
                                 </p>
                                 {openDropdowns.has("Journals") && (
-                                    <ul className="pl-4 space-y-1">
+                                    <ul className="pl-4 space-y-1 pt-1">
                                         <li
                                             className="cursor-pointer hover:underline flex items-center gap-1"
                                             onClick={() => openTab("Manage Journals", renderContentForTab("Manage Journals"),
@@ -169,7 +169,7 @@ export function Capaci() {
                                     Data
                                 </p>
                                 {openDropdowns.has("Data") && (
-                                    <ul className="pl-4 space-y-1">
+                                    <ul className="pl-4 space-y-1 pt-1">
                                         <li
                                             className="cursor-pointer hover:underline flex items-center gap-1"
                                             onClick={() => openTab("Manage Data", renderContentForTab("Manage Data"),
@@ -255,7 +255,7 @@ export function Capaci() {
                                     Load
                                 </p>
                                 {openDropdowns.has("Load") && (
-                                    <ul className="pl-4 space-y-1">
+                                    <ul className="pl-4 space-y-1 pt-1">
                                         <li
                                             className="cursor-pointer hover:underline flex items-center gap-1"
                                             onClick={() => openTab("Load Data", renderContentForTab("Load Data"),
@@ -298,7 +298,7 @@ export function Capaci() {
                                     Extract
                                 </p>
                                 {openDropdowns.has("Extract") && (
-                                    <ul className="pl-4 space-y-1">
+                                    <ul className="pl-4 space-y-1 pt-1">
                                         <li
                                             className="cursor-pointer hover:underline flex items-center gap-1"
                                             onClick={() => openTab("Extract Data", renderContentForTab("Extract Data"),
