@@ -42,7 +42,7 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
     };
 
     return (
-        <div className="flex p-2 flex-wrap gap-3 text-xs border-b shadow-sm">
+        <div className="flex p-2 flex-wrap gap-3 text-xs border-b">
             {DIMENSION_ORDER.filter(dim => {
                 const isActivated = parameters?.[dim]?.isActivated ?? false;
                 return isActivated && !dimsUsedInWebform.has(dim);
