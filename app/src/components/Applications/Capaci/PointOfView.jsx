@@ -24,7 +24,7 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
         if (onChangePov) {
             onChangePov(selection);
         }
-    }, [selection]);
+    }, [selection, onChangePov]);
 
     const dimsUsedInWebform = new Set([
         ...(structure?.rows || []),
