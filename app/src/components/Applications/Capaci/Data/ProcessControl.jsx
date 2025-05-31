@@ -122,7 +122,7 @@ export function ProcessControl() {
 
                             return (
                                 <tr key={node.id}>
-                                    <td className="border px-4 py-1 bg-grey-300" style={{ paddingLeft: `${node.level * 20}px` }}>
+                                    <td className="border px-4 py-1 bg-gray-300" style={{ paddingLeft: `${node.level * 20}px` }}>
                                         {node.label}
                                     </td>
                                     <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
