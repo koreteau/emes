@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { PointOfView } from "./../PointOfView";
+import { ToolBar } from "./../ToolBar";
+import { SmallSpinner } from "../../../Spinner";
 
 export function ProcessControl() {
     const [pov, setPov] = useState({});
     const [dimensionData, setDimensionData] = useState(null);
     const [statusTree, setStatusTree] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const token = localStorage.getItem("authToken");
 
@@ -27,6 +30,7 @@ export function ProcessControl() {
     const fetchStatusTree = useCallback(async () => {
         if (!isPovReady) return;
         setError(null);
+        setLoading(true);
 
         const params = new URLSearchParams(pov);
 
@@ -39,12 +43,18 @@ export function ProcessControl() {
             setStatusTree(sortTree(json));
         } catch (err) {
             setError(err.message);
+        } finally {
+            setLoading(false);
         }
     }, [pov, token, isPovReady]);
 
     useEffect(() => {
         fetchStatusTree();
     }, [fetchStatusTree]);
+
+    const handleRefresh = () => {
+        fetchStatusTree();
+    };
 
     const povParams = useMemo(() => ({
         scenario: { isActivated: true, default: "ACT" },
@@ -87,7 +97,14 @@ export function ProcessControl() {
                 dimensionData={dimensionData}
                 onChangePov={setPov}
             />
-
+            <ToolBar
+                onRefresh={handleRefresh}
+            />
+            {loading && (
+                <div className="flex justify-center items-center py-2">
+                    <SmallSpinner /> <span className="ml-2">Chargement...</span>
+                </div>
+            )}
             {error && <div className="text-red-600">❌ {error}</div>}
 
             <div className="overflow-x-auto">
