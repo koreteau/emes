@@ -60,10 +60,13 @@
 		"members": [
 			{ "id": "[None]", "label": "Entities", "parent": null, "ud1": null },
 			{ "id": "CC", "label": "CC", "parent": null, "ud1": null },
-			{ "id": "CC1", "label": "CC 1", "parent": ["CC", "OTHCC"], "ud1": null },
-			{ "id": "CC2", "label": "CC 2", "parent": ["CC", "OTHCC"], "ud1": null },
-			{ "id": "CC3", "label": "CC 3", "parent": "CC", "ud1": null },
-			{ "id": "OTHCC", "label": "Other CC", "parent": null, "ud1": null }
+			{ "id": "CC1", "label": "CC 1", "parent": ["CC", "OTHCCA"], "ud1": null },
+			{ "id": "CC2", "label": "CC 2", "parent": ["CC", "OTHCCA"], "ud1": null },
+			{ "id": "CC3", "label": "CC 3", "parent": ["CC", "OTHCCB"], "ud1": null },
+			{ "id": "CC4", "label": "CC 4", "parent": ["CC", "OTHCCB"], "ud1": null },
+			{ "id": "OTHCC", "label": "Other CC ", "parent": null, "ud1": null },
+			{ "id": "OTHCCA", "label": "Other CC A", "parent": "OTHCC", "ud1": null },
+			{ "id": "OTHCCB", "label": "Other CC B", "parent": "OTHCC", "ud1": null }
 		]
     },
     "account": {
