@@ -20,8 +20,8 @@ export function Login({ onLogin }) {
     return (
         <div className="grid grid-cols-2 h-screen">
             <div className="bg-primary flex flex-col items-center justify-center">
-                <Typography className="text-5xl" color="white">SYNAPS.</Typography>
-                <Typography className="text-xs" color="white">Enterprise Management Ecosystem</Typography>
+                <Typography className="text-5xl" color="white">EMES.</Typography>
+                <Typography className="text-xs" color="white">Enterprise Management Ecosystem Solution</Typography>
             </div>
             <div className="flex flex-col items-center justify-center">
                 <div className="rounded-lg shadow-2xl p-5 w-96 flex flex-col items-center justify-center gap-4">
