@@ -545,3 +545,82 @@ DROP COLUMN value;
 
 ALTER TABLE journals ADD COLUMN value TEXT NOT NULL;
 ALTER TABLE journal_lines DROP COLUMN value;
+
+
+CREATE TABLE staged_data (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    scenario TEXT NOT NULL,
+    year TEXT NOT NULL,
+    period TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    account TEXT NOT NULL,
+    custom1 TEXT NOT NULL,
+    custom2 TEXT NOT NULL,
+    custom3 TEXT NOT NULL,
+    custom4 TEXT NOT NULL,
+    icp TEXT NOT NULL,
+    view TEXT NOT NULL,
+    value TEXT NOT NULL,
+    data_value TEXT NOT NULL,
+    source TEXT NOT NULL,         -- journal_id, nom de fichier, id ERP...
+    status TEXT,                  -- 'posted', 'validated', 'rejected', etc.
+    author TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE INDEX idx_staged_data_pov
+ON staged_data (scenario, year, period, entity);
+
+CREATE INDEX idx_data_pov
+ON data (scenario, year, period, entity);
+
+const pool = require('../config/db');
+
+const DIMENSIONS_PATH = "../../database/config/dimensions.json"
+const RULES_PATH = "../../database/config/rules.js"
+
+tout est bon et sur le bon type ! Merci pour ton aide.
+Maintenant j'aimerai qu'on parle des calculs et consolisations pour faire le chemin staged_data -> data
+
+
+-- Cas 1 : CC1 uniquement dans staged_data => calcNeeded
+INSERT INTO staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES (
+  'ACT', '2025', 'P01', 'CC1', 'PL', 'CHO', '[None]', 'CH01010101', 'WEEK1', '[None]', 'YTD', '<Entity Curr>', 100, 'manual', 'posted', 'admin'
+);
+
+-- Cas 2 : CC2 dans les deux avec même valeur => upToDate
+INSERT INTO staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES (
+  'ACT', '2025', 'P01', 'CC2', 'PL', 'CHO', '[None]', 'CH01010102', 'WEEK1', '[None]', 'YTD', '<Entity Curr>', 200, 'manual', 'posted', 'admin'
+);
+
+INSERT INTO data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, author
+)
+VALUES (
+  'ACT', '2025', 'P01', 'CC2', 'PL', 'CHO', '[None]', 'CH01010102', 'WEEK1', '[None]', 'YTD', 200, '200', 'admin'
+);
+
+-- Cas 3 : CC3 dans les deux avec valeur différente => calcNeeded
+INSERT INTO staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES (
+  'ACT', '2025', 'P01', 'CC3', 'PL', 'CHO', '[None]', 'CH01010103', 'WEEK1', '[None]', 'YTD', '<Entity Curr>', 300, 'manual', 'posted', 'admin'
+);
+
+INSERT INTO data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, author
+)
+VALUES (
+  'ACT', '2025', 'P01', 'CC3', 'PL', 'CHO', '[None]', 'CH01010103', 'WEEK1', '[None]', 'YTD', 310, '310', 'admin'
+);
+
+-- Cas 4 : CC4 sans données mais enfant CC2 ou CC3 a une valeur => consoNeeded
+-- (Ce cas nécessite que CC4 soit parent de CC2 ou CC3 dans la hiérarchie !)
+-- Assure-toi que dans ton fichier JSON de dimension, CC4 est parent de CC2 et/ou CC3.
