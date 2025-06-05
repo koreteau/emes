@@ -100,95 +100,94 @@ export function ProcessControl() {
             <ToolBar
                 onRefresh={handleRefresh}
             />
-            {loading && (
+            {loading ? (
                 <div className="flex justify-center items-center py-2">
                     <SmallSpinner /> <span className="ml-2">Chargement...</span>
                 </div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="table-auto border-collapse border border-gray-500 text-xs">
+                        <thead className="bg-gray-300">
+                            <tr>
+                                <th className="border px-4 py-1 text-center"></th>
+                                <th className="border px-4 py-1 text-center">Calc Status</th>
+                                <th className="border px-4 py-1 text-center">Journal Status</th>
+                                <th className="border px-4 py-1 text-center">Review Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {statusTree.map((node) => {
+                                let rowBg = "";
+                                switch (node.calcStatus) {
+                                    case "noData":
+                                        rowBg = "bg-gray-100";
+                                        break;
+                                    case "calcNeeded":
+                                        rowBg = "bg-yellow-100";
+                                        break;
+                                    case "consoNeeded":
+                                        rowBg = "bg-orange-100";
+                                        break;
+                                    case "upToDate":
+                                        rowBg = "bg-green-100";
+                                        break;
+                                    default:
+                                        rowBg = "";
+                                }
+
+                                return (
+                                    <tr key={node.id}>
+                                        <td className="border px-4 py-1 bg-gray-300" style={{ paddingLeft: `${node.level * 20}px` }}>
+                                            {node.label}
+                                        </td>
+                                        <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
+                                            {node.calcStatus === "noData" && (
+                                                <div className="flex items-center justify-center">NO DATA</div>
+                                            )}
+                                            {node.calcStatus === "calcNeeded" && (
+                                                <div className="flex items-center justify-center">CN</div>
+                                            )}
+                                            {node.calcStatus === "consoNeeded" && (
+                                                <div className="flex items-center justify-center">CN</div>
+                                            )}
+                                            {node.calcStatus === "upToDate" && (
+                                                <div className="flex items-center justify-center">OK</div>
+                                            )}
+                                        </td>
+                                        <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
+                                            {node.journalStatus === "unPosted" && (
+                                                <div className="text-red-600 flex items-center justify-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                                    </svg>
+                                                    {node.unpostedCount}
+                                                </div>
+                                            )}
+                                            {node.journalStatus === "posted" && (
+                                                <div className="flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" className="size-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            {node.journalStatus === "none" && (
+                                                <div className="flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" className="size-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
+                                            {node.reviewLevel || ""}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
-            {error && <div className="text-red-600">❌ {error}</div>}
-
-            <div className="overflow-x-auto">
-                <table className="table-auto border-collapse border border-gray-500 text-xs">
-                    <thead className="bg-gray-300">
-                        <tr>
-                            <th className="border px-4 py-1 text-center"></th>
-                            <th className="border px-4 py-1 text-center">Calc Status</th>
-                            <th className="border px-4 py-1 text-center">Journal Status</th>
-                            <th className="border px-4 py-1 text-center">Review Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {statusTree.map((node) => {
-                            let rowBg = "";
-                            switch (node.calcStatus) {
-                                case "noData":
-                                    rowBg = "bg-gray-100";
-                                    break;
-                                case "calcNeeded":
-                                    rowBg = "bg-yellow-100";
-                                    break;
-                                case "consoNeeded":
-                                    rowBg = "bg-orange-100";
-                                    break;
-                                case "upToDate":
-                                    rowBg = "bg-green-100";
-                                    break;
-                                default:
-                                    rowBg = "";
-                            }
-
-                            return (
-                                <tr key={node.id}>
-                                    <td className="border px-4 py-1 bg-gray-300" style={{ paddingLeft: `${node.level * 20}px` }}>
-                                        {node.label}
-                                    </td>
-                                    <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
-                                        {node.calcStatus === "noData" && (
-                                            <div className="flex items-center justify-center">NO DATA</div>
-                                        )}
-                                        {node.calcStatus === "calcNeeded" && (
-                                            <div className="flex items-center justify-center">CN</div>
-                                        )}
-                                        {node.calcStatus === "consoNeeded" && (
-                                            <div className="flex items-center justify-center">CN</div>
-                                        )}
-                                        {node.calcStatus === "upToDate" && (
-                                            <div className="flex items-center justify-center">OK</div>
-                                        )}
-                                    </td>
-                                    <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
-                                        {node.journalStatus === "unPosted" && (
-                                            <div className="text-red-600 flex items-center justify-center gap-1">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                                                </svg>
-                                                {node.unpostedCount}
-                                            </div>
-                                        )}
-                                        {node.journalStatus === "posted" && (
-                                            <div className="flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" className="size-5">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                        {node.journalStatus === "none" && (
-                                            <div className="flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" className="size-5">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
-                                        {node.reviewLevel || ""}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
         </div>
     );
 }
