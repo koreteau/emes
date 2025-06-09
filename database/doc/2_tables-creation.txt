@@ -624,3 +624,13 @@ VALUES (
 -- Cas 4 : CC4 sans données mais enfant CC2 ou CC3 a une valeur => consoNeeded
 -- (Ce cas nécessite que CC4 soit parent de CC2 ou CC3 dans la hiérarchie !)
 -- Assure-toi que dans ton fichier JSON de dimension, CC4 est parent de CC2 et/ou CC3.
+
+
+
+INSERT INTO staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES
+  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 100, 'manual', 'posted', 'admin' ),
+  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 200, 'manual', 'posted', 'admin'),
+  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -50, 'manual', 'posted', 'admin');
