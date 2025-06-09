@@ -65,8 +65,34 @@ const getLatestDimensionContent = async (req, res) => {
 	}
 };
 
+const getLatestDimensionData = async (type = null) => {
+	try {
+		const result = await db.query(`
+      SELECT path FROM dimensiondata
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+
+		const filePath = result.rows[0]?.path;
+		if (!filePath) {
+			throw new Error('Aucun fichier de dimension disponible dans dimensiondata.');
+		}
+
+		// 📂 2. Lecture du fichier depuis DIMENSION_ROOT
+		const fullPath = path.join(DIMENSION_ROOT, `${filePath}.json`);
+		const raw = fs.readFileSync(fullPath, 'utf-8');
+		const content = JSON.parse(raw);
+
+		return type ? content[type] : content;
+	} catch (err) {
+		console.error('Erreur getLatestDimensionData:', err);
+		throw err;
+	}
+};
+
 
 module.exports = {
 	getDimensionContentById,
-	getLatestDimensionContent
+	getLatestDimensionContent,
+	getLatestDimensionData
 };
