@@ -58,25 +58,20 @@
 	},
     "entity": {
 		"members": [
-			{ "id": "[None]", "label": "Entities", "parent": null, "ud1": null },
-			{ "id": "CC", "label": "CC", "parent": null, "ud1": null },
-			{ "id": "CC1", "label": "CC 1", "parent": ["CC", "OTHCCA"], "ud1": null },
-			{ "id": "CC2", "label": "CC 2", "parent": ["CC", "OTHCCB"], "ud1": null },
-			{ "id": "CC3", "label": "CC 3", "parent": ["CC", "OTHCCC"], "ud1": null },
-			{ "id": "CC4", "label": "CC 4", "parent": ["CC", "OTHCCC"], "ud1": null },
-			{ "id": "OTHCC", "label": "Other CC ", "parent": null, "ud1": null },
-			{ "id": "OTHCCA", "label": "Other CC A", "parent": "OTHCC", "ud1": null },
-			{ "id": "OTHCCB", "label": "Other CC B", "parent": "OTHCC", "ud1": null },
-			{ "id": "OTHCCC", "label": "Other CC C", "parent": "OTHCC", "ud1": null }
+			{ "id": "[None]", "label": "Entities", "parent": null, "defaultCurr": "EUR", "ud1": null },
+			{ "id": "CC", "label": "CC", "parent": null, "defaultCurr": "EUR", "ud1": null },
+			{ "id": "CCEUR", "label": "CC EUR", "parent": "CC", "defaultCurr": "EUR", "ud1": null },
+			{ "id": "CCGBP", "label": "CC GBP", "parent": "CC", "defaultCurr": "GBP", "ud1": null },
+			{ "id": "CCUSD", "label": "CC USD", "parent": "CC", "defaultCurr": "USD", "ud1": null }
 		]
     },
     "account": {
 		"members": [
-			{ "id": "[None]", "label": "Accounts", "parent": null, "ud1": null },
-			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node", "ud1": null },
-			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base", "ud1": null },
-			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base", "ud1": null },
-            { "id": "PL", "label": "Profit and Loss Accounts", "parent": null, "type": "node", "ud1": null }
+			{ "id": "[None]", "label": "Accounts", "parent": null, "isCalculated": false, "accountType": "" ,"ud1": null },
+			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node", "isCalculated": false, "accountType": "", "ud1": null },
+			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base", "isCalculated": false, "accountType": "", "ud1": null },
+			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base", "isCalculated": false, "accountType": "", "ud1": null },
+            { "id": "PL", "label": "Profit and Loss Accounts", "parent": null, "type": "node", "isCalculated": true, "accountType": "", "ud1": null }
 		]
     },
     "custom1": {
@@ -177,20 +172,20 @@
     },
     "value": {
 		"members": [
-			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null, "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "[Contribution]", "label": "FX Adjustment", "parent": "[Contribution Total]", "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "[Elimination]", "label": "Elimination", "parent": "[Contribution]", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]", "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "[Parent]", "label": "Parent", "parent": "[Parent Total]", "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]", "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "<Parent Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "<Parent Curr>", "label": "Parent Currency", "parent": "<Parent Curr Total>", "calculated": true, "ud1": "Y", "ud2": null },
-			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>", "calculated": true, "ud1": "N", "ud2": null },
-			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>", "calculated": false, "ud1": "Y", "ud2": null },
-			{ "id": "<Entity Curr>", "label": "Entity Currency", "parent": "<Entity Curr Total>", "calculated": false, "ud1": "N", "ud2": null }
+			{ "id": "[Contribution Total]", "label": "Total Contribution", "parent": null, "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "[Contribution Adjs]", "label": "Contribution Adjustments", "parent": "[Contribution Total]", "openToInput": true, "ud1": null, "ud2": null },
+			{ "id": "[Contribution]", "label": "Contribution", "parent": "[Contribution Total]", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "[Elimination]", "label": "Elimination", "parent": "[Contribution]", "openToInput": true, "ud1": null, "ud2": null },
+			{ "id": "[Proportion]", "label": "Propotion", "parent": "[Contribution]", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "[Parent Total]", "label": "Parent Total", "parent": "[Proportion]", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "[Parent Adjs]", "label": "Parent Adjustments", "parent": "[Parent Total]", "openToInput": true, "ud1": null, "ud2": null },
+			{ "id": "[Parent]", "label": "Parent", "parent": "[Parent Total]", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "<Parent Curr Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>", "openToInput": true, "ud1": "Y", "ud2": null },
+			{ "id": "<Parent Currency>", "label": "Parent Currency", "parent": "<Parent Curr Total>", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>", "openToInput": true, "ud1": null, "ud2": null },
+			{ "id": "<Entity Currency>", "label": "Entity Currency", "parent": "<Entity Curr Total>", "openToInput": false, "ud1": null, "ud2": null }
 		]
     },
     "view": {
