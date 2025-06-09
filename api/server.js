@@ -24,26 +24,39 @@ const verifyDatabaseConnection = async () => {
     }
 };
 
+
+
 // Routes
+// EMES.
 const authRoutes = require('./routes/auth');
 const securityRoutes = require('./routes/security');
 const userRoutes = require('./routes/users');
+
+// Capaci
 const dataRoutes = require('./routes/data');
 const webformRoutes = require('./routes/webforms');
 const documentsRoutes = require('./routes/documents');
 const dimensionRoutes = require('./routes/dimension');
 const journalRoutes = require('./routes/journal');
 const processControlRoutes = require("./routes/processControl");
+const functionsRoutes = require('./routes/functions');
 
+
+
+// EMES.
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
 app.use('/api/users', userRoutes);
+
+// Capaci
 app.use('/api/data', dataRoutes);
 app.use('/api/webforms', webformRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dimensions', dimensionRoutes);
 app.use('/api/journals', journalRoutes);
 app.use("/api/process-control", processControlRoutes);
+app.use('/api/functions', functionsRoutes);
+
 
 
 // Lancer le serveur uniquement si la base est connectée
