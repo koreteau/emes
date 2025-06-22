@@ -79,12 +79,12 @@ const getStatusTree = async (req, res) => {
             dataMap[d.entity] = parseFloat(d.value);
         });
 
-        // Données staging <Entity Curr>
+        // Données staging <Entity Currency>
         const stagedRes = await db.query(`
       SELECT entity, SUM(data_value::numeric) as value
       FROM staged_data
       WHERE scenario = $1 AND year = $2 AND period = $3
-        AND value = '<Entity Curr>'
+        AND value = '<Entity Currency>'
       GROUP BY entity
     `, [pov.scenario, pov.year, pov.period]);
 
