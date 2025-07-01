@@ -34,7 +34,6 @@ const userRoutes = require('./routes/users');
 
 // Capaci
 const dataRoutes = require('./routes/data');
-const webformRoutes = require('./routes/webforms');
 const documentsRoutes = require('./routes/documents');
 const dimensionRoutes = require('./routes/dimension');
 const journalRoutes = require('./routes/journal');
@@ -50,7 +49,6 @@ app.use('/api/users', userRoutes);
 
 // Capaci
 app.use('/api/data', dataRoutes);
-app.use('/api/webforms', webformRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dimensions', dimensionRoutes);
 app.use('/api/journals', journalRoutes);
