@@ -12,7 +12,7 @@ const getStatusTree = async (req, res) => {
             return res.status(400).json({ error: "POV incomplet (scenario, year, period requis)" });
         }
 
-        const result = await db.query(`SELECT path FROM dimensionData ORDER BY created_at DESC LIMIT 1`);
+        const result = await db.query(`SELECT path FROM capaci_dimension_data ORDER BY created_at DESC LIMIT 1`);
         if (result.rows.length === 0) return res.status(404).json({ error: "Aucune dimension trouvée" });
 
         const jsonPath = path.join(DIMENSION_ROOT, `${result.rows[0].path}.json`);
@@ -70,7 +70,7 @@ const getStatusTree = async (req, res) => {
 
         // Données officielles
         const dataRes = await db.query(`
-      SELECT * FROM data
+      SELECT * FROM capaci_data
       WHERE scenario = $1 AND year = $2 AND period = $3
     `, [pov.scenario, pov.year, pov.period]);
 
@@ -82,7 +82,7 @@ const getStatusTree = async (req, res) => {
         // Données staging <Entity Currency>
         const stagedRes = await db.query(`
       SELECT entity, SUM(data_value::numeric) as value
-      FROM staged_data
+      FROM capaci_staged_data
       WHERE scenario = $1 AND year = $2 AND period = $3
         AND value = '<Entity Currency>'
       GROUP BY entity
@@ -95,7 +95,7 @@ const getStatusTree = async (req, res) => {
 
         // Brouillons
         const draftRes = await db.query(`
-      SELECT * FROM journals
+      SELECT * FROM capaci_journals
       WHERE status = 'draft'
         AND scenario = $1 AND year = $2 AND period = $3
     `, [pov.scenario, pov.year, pov.period]);

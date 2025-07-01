@@ -10,7 +10,7 @@ const createData = async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO data (
+            INSERT INTO capaci_data (
                 scenario, year, period, entity, account,
                 custom1, custom2, custom3, custom4, ICP,
                 value, view, data_value, author, journal_id
@@ -58,7 +58,7 @@ const getAllData = async (req, res) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     try {
-        const result = await db.query(`SELECT * FROM data ${whereClause} ORDER BY timestamp DESC`, values);
+        const result = await db.query(`SELECT * FROM capaci_data ${whereClause} ORDER BY timestamp DESC`, values);
         res.status(200).json(result.rows);
     } catch (err) {
         console.error('Error fetching data:', err.message);
@@ -86,7 +86,7 @@ const getFilteredData = async (req, res) => {
   
       const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
   
-      const result = await db.query(`SELECT * FROM data ${whereClause}`, values);
+      const result = await db.query(`SELECT * FROM capaci_data ${whereClause}`, values);
   
       res.status(200).json(result.rows);
     } catch (err) {
@@ -110,7 +110,7 @@ const updateData = async (req, res) => {
 
     try {
         const result = await db.query(
-            `UPDATE data SET ${setClause} WHERE id = $${fields.length + 1} RETURNING *`,
+            `UPDATE capaci_data SET ${setClause} WHERE id = $${fields.length + 1} RETURNING *`,
             [...values, dataId]
         );
 
@@ -130,7 +130,7 @@ const deleteData = async (req, res) => {
     const { dataId } = req.params;
 
     try {
-        const result = await db.query('DELETE FROM data WHERE id = $1 RETURNING *', [dataId]);
+        const result = await db.query('DELETE FROM capaci_data WHERE id = $1 RETURNING *', [dataId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Entrée non trouvée' });

@@ -634,3 +634,10 @@ VALUES
   ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 100, 'manual', 'posted', 'admin' ),
   ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 200, 'manual', 'posted', 'admin'),
   ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -50, 'manual', 'posted', 'admin');
+
+
+INSERT INTO capaci_staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES
+  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -400, 'manual', 'posted', 'admin' );

@@ -15,7 +15,7 @@ const createDocument = async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO documents (name, type, path, parent_id, security_classes)
+            INSERT INTO capaci_documents (name, type, path, parent_id, security_classes)
             VALUES ($1, $2, $3, CAST(NULLIF($4, '') AS UUID), $5)
             RETURNING *;
         `;
@@ -38,11 +38,11 @@ const getAllDocuments = async (req, res) => {
         let values = [];
 
         if (req.user.is_admin) {
-            query = `SELECT * FROM documents ORDER BY name`;
+            query = `SELECT * FROM capaci_documents ORDER BY name`;
         } else {
             const authorizedClasses = await checkPermissions(userId, 'documents', 'read');
             query = `
-                SELECT * FROM documents
+                SELECT * FROM capaci_documents
                 WHERE security_classes = ANY($1)
                 ORDER BY name;
             `;
@@ -63,7 +63,7 @@ const getDocumentById = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        let query = `SELECT * FROM documents WHERE id = $1`;
+        let query = `SELECT * FROM capaci_documents WHERE id = $1`;
         let values = [documentId];
 
         if (!req.user.is_admin) {
@@ -91,7 +91,7 @@ const getDocumentContentById = async (req, res) => {
     const userId = req.user.id;
 
     try {
-      let query = `SELECT * FROM documents WHERE id = $1`;
+      let query = `SELECT * FROM capaci_documents WHERE id = $1`;
       let values = [documentId];
   
       if (!req.user.is_admin) {
@@ -135,7 +135,7 @@ const updateDocument = async (req, res) => {
 
     try {
         const query = `
-            UPDATE documents
+            UPDATE capaci_documents
             SET name = COALESCE($1, name),
                 path = COALESCE($2, path),
                 security_classes = COALESCE($3, security_classes),
@@ -163,7 +163,7 @@ const deleteDocument = async (req, res) => {
     const { documentId } = req.params;
 
     try {
-        const result = await db.query("DELETE FROM documents WHERE id = $1 RETURNING *", [documentId]);
+        const result = await db.query("DELETE FROM capaci_documents WHERE id = $1 RETURNING *", [documentId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Document non trouvé" });

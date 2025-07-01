@@ -24,7 +24,7 @@ const calculate = async (req, res) => {
         const povsResult = await db.query(`
       SELECT DISTINCT entity, year, period, scenario, account,
                       custom1, custom2, custom3, custom4, icp, view
-      FROM staged_data
+      FROM capaci_staged_data
       WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
         AND value IN (
           '<Entity Currency>', '<Entity Curr Adjs>', '<Parent Curr Adjs>',
@@ -40,7 +40,7 @@ const calculate = async (req, res) => {
 
             const sourceResult = await db.query(`
         SELECT data_value
-        FROM staged_data
+        FROM capaci_staged_data
         WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
           AND account = $5 AND custom1 = $6 AND custom2 = $7 AND custom3 = $8 AND custom4 = $9
           AND icp = $10 AND view = $11
@@ -62,7 +62,7 @@ const calculate = async (req, res) => {
 
             // 💾 Écriture dans data (avec data_value, view, value, etc.)
             await db.query(`
-        INSERT INTO data (
+        INSERT INTO capaci_data (
           scenario, year, period, entity, account,
           custom1, custom2, custom3, custom4, icp,
           view, value, data_value

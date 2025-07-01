@@ -10,7 +10,7 @@ const getDimensionContentById = async (req, res) => {
 
 	try {
 		const result = await db.query(
-			"SELECT path FROM dimensionData WHERE id = $1",
+			"SELECT path FROM capaci_dimension_data WHERE id = $1",
 			[id]
 		);
 
@@ -39,7 +39,7 @@ const getDimensionContentById = async (req, res) => {
 const getLatestDimensionContent = async (req, res) => {
 	try {
 		const result = await db.query(`
-      SELECT path FROM dimensionData
+      SELECT path FROM capaci_dimension_data
       ORDER BY created_at DESC
       LIMIT 1
     `);
@@ -68,7 +68,7 @@ const getLatestDimensionContent = async (req, res) => {
 const getLatestDimensionData = async (type = null) => {
 	try {
 		const result = await db.query(`
-      SELECT path FROM dimensiondata
+      SELECT path FROM capaci_dimension_data
       ORDER BY created_at DESC
       LIMIT 1
     `);

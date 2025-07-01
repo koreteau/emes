@@ -16,8 +16,8 @@ export function Navbar({ onLogout, openTab }) {
 
     const dropdownItems = {
         navigate: {
-            Applications: ["Alexandria Inventory", "Bespin Cloud", "Capaci Finance"],
-            "Shared Services": ["Administration", "Data"],
+            Applications: ["Alexandria Inventory", "Bespin Cloud", "Capaci Finance", "GhostTrader"],
+            "Administration": ["Configuration", "Data"],
         },
         preferences: ["Settings", "Theme", "Language"],
         help: ["Infos", "Support"],
