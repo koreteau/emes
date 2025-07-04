@@ -677,3 +677,36 @@ SELECT * FROM capaci_data WHERE account='CLOSING' AND custom2='USD';
 SELECT * FROM capaci_data WHERE account='AVERAGE' AND custom2='USD';
 
 UPDATE capaci_documents SET name = 'Suivi Value Fonction' WHERE id = '7dac7b6c-6c29-4a9e-afaa-69e6f41df3c1';
+
+INSERT INTO capaci_documents (
+  name, type, path, parent_id, security_classes
+)
+VALUES
+  ('PL', 'folder', null, null, 'admin'),
+  ('BS', 'folder', null, null, 'admin');
+
+UPDATE capaci_documents SET name = '2. BS' WHERE id = '32d9b766-4ecf-4e2c-8290-7baa93680387';
+UPDATE capaci_documents SET name = '3. PL' WHERE id = '779a1c2f-8706-4e71-9085-52f9acb1e19f';
+
+
+INSERT INTO capaci_documents (
+  name, type, path, parent_id, security_classes
+)
+VALUES
+  ('1. Equity and Liabilities', 'webform', 'webform_004', '32d9b766-4ecf-4e2c-8290-7baa93680387', 'admin'),
+  ('2. Fixed assets', 'webform', 'webform_005', '32d9b766-4ecf-4e2c-8290-7baa93680387', 'admin'),
+  ('3. Inventory and Work in progress', 'webform', 'webform_006', '32d9b766-4ecf-4e2c-8290-7baa93680387', 'admin'),
+  ('5. Financial Accounts', 'webform', 'webform_007', '32d9b766-4ecf-4e2c-8290-7baa93680387', 'admin'),
+  ('6. Losts', 'webform', 'webform_008', '779a1c2f-8706-4e71-9085-52f9acb1e19f', 'admin'),
+  ('7. Profits', 'webform', 'webform_009', '779a1c2f-8706-4e71-9085-52f9acb1e19f', 'admin');
+
+
+// tests calculates signs accounts PL
+
+INSERT INTO capaci_staged_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+)
+VALUES
+('ACT', '2025', 'P01', 'CCEUR', 'LS60500S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 150, 'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 300, 'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'LS60225S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 75, 'manual', 'posted', 'admin');
