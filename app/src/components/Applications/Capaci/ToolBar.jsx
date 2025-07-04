@@ -1,6 +1,6 @@
 import React from "react";
 
-export function ToolBar({ onRefresh, onCalculate, onConsolidate, onSave }) {
+export function ToolBar({ onRefresh, onCalculate, onRaiseData, onSave }) {
 	return (
 		<div className="flex items-center p-2 border-b gap-2 text-xs">
 			{onRefresh && (
@@ -17,7 +17,7 @@ export function ToolBar({ onRefresh, onCalculate, onConsolidate, onSave }) {
 				</div>
 			)}
 
-			{(onCalculate || onConsolidate) && (
+			{(onCalculate || onRaiseData) && (
 				<div className="border-l-2 pl-2 flex gap-2">
 					{onCalculate && (
 						<button onClick={onCalculate} title="Calculate">
@@ -26,10 +26,10 @@ export function ToolBar({ onRefresh, onCalculate, onConsolidate, onSave }) {
 							</svg>
 						</button>
 					)}
-					{onConsolidate && (
-						<button onClick={onConsolidate} title="Consolidate">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
-								<path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h2.25A2.25 2.25 0 0 1 7.5 6.75v11.25A2.25 2.25 0 0 1 5.25 20.25H3m0-15.75v15.75M21 4.5h-2.25A2.25 2.25 0 0 0 16.5 6.75v11.25a2.25 2.25 0 0 0 2.25 2.25H21m0-15.75v15.75M12 4.5v15" />
+					{onRaiseData && (
+						<button onClick={onRaiseData} title="Raise Data">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+								<path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
 							</svg>
 						</button>
 					)}
