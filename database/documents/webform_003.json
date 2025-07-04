@@ -1,6 +1,6 @@
 {
-	"_id": "webform_002",
-	"name": "Exchange rates",
+	"_id": "webform_003",
+	"name": "Ownership",
 	"type": "table",
 	"parameters": {
 		"scenario": {
@@ -12,12 +12,12 @@
 			"default": "2025"
 		},
 		"period": {
-			"isActivated": false,
-			"default": null
+			"isActivated": true,
+			"default": "P01"
 		},
 		"entity": {
-			"isActivated": true,
-			"default": "[None]"
+			"isActivated": false,
+			"default": null
 		},
 		"account": {
 			"isActivated": false,
@@ -54,19 +54,19 @@
 	},
 	"structure": {
 		"rows": [
-			"account=CURRENCY$[Base]",
-			"custom2=CUR$[Base]"
+			"entity=CC$[Base]"
 		],
 		"columns": [
-			"period=Year$[Base]"
+			"account=OWNERSHIP$[Base]"
 		],
 		"fixed": [
 			"scenario",
 			"year",
-			"entity",
+			"period",
 			"value",
 			"view",
 			"custom1",
+			"custom2",
 			"custom3",
 			"custom4",
 			"ICP"
