@@ -627,13 +627,12 @@ VALUES (
 
 
 
-INSERT INTO staged_data (
+INSERT INTO capaci_staged_data (
   scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
 )
 VALUES
-  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 100, 'manual', 'posted', 'admin' ),
-  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 200, 'manual', 'posted', 'admin'),
-  ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -50, 'manual', 'posted', 'admin');
+  ('ACT', 2025, 'P01', 'CCUSD', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 75, 'manual', 'posted', 'admin'),
+  ('ACT', 2025, 'P01', 'CCUSD', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 50, 'manual', 'posted', 'admin');
 
 
 INSERT INTO capaci_staged_data (
@@ -641,3 +640,40 @@ INSERT INTO capaci_staged_data (
 )
 VALUES
   ('ACT', 2025, 'P01', 'CCEUR', 'PL', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -400, 'manual', 'posted', 'admin' );
+
+
+
+INSERT INTO capaci_documents (
+  name, type, path, parent_id, security_classes
+)
+VALUES
+  ('SuiSuivi Value Fonction Raise Data', 'webform', 'webform_001', null, 'admin');
+
+
+INSERT INTO capaci_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, author
+)
+VALUES
+  ('ACT', 2025, 'P01', 'CCEUR', 'PERCENTAGE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 100, 'admin'),
+  ('ACT', 2025, 'P01', 'CCGBP', 'PERCENTAGE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 100, 'admin'),
+  ('ACT', 2025, 'P01', 'CCUSD', 'PERCENTAGE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 100, 'admin');
+
+INSERT INTO capaci_data (
+  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, author
+)
+VALUES
+  ('ACT', 2025, 'P01', 'CCEUR', 'ACTIVE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 1, 'admin'),
+  ('ACT', 2025, 'P01', 'CCGBP', 'ACTIVE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 1, 'admin'),
+  ('ACT', 2025, 'P01', 'CCUSD', 'ACTIVE', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', '[None]', 1, 'admin');
+
+
+SELECT * FROM capaci_data WHERE scenario='ACT' AND year='2025' AND period='P01' AND entity='CCGBP' AND account='PERCENTAGE';
+SELECT * FROM capaci_data WHERE scenario='ACT' AND year='2025' AND period='P01' AND entity='CCGBP' AND account='ACTIVE';
+SELECT * FROM capaci_data WHERE account='CLOSING' AND custom2='EUR';
+SELECT * FROM capaci_data WHERE account='AVERAGE' AND custom2='EUR';
+SELECT * FROM capaci_data WHERE scenario='ACT' AND year='2025' AND period='P01' AND account='CLOSING' AND custom2='GBP';
+SELECT * FROM capaci_data WHERE account='AVERAGE' AND custom2='GBP';
+SELECT * FROM capaci_data WHERE account='CLOSING' AND custom2='USD';
+SELECT * FROM capaci_data WHERE account='AVERAGE' AND custom2='USD';
+
+UPDATE capaci_documents SET name = 'Suivi Value Fonction' WHERE id = '7dac7b6c-6c29-4a9e-afaa-69e6f41df3c1';
