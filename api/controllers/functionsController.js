@@ -20,13 +20,12 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
         console.log(`🔁 Calculating ${target} from: ${sources.join(' + ')}`);
 
         const result = await db.query(`
-            SELECT account, custom2, custom3, custom4, icp, view,
+            SELECT account, custom2, custom3, custom4, icp, view, value,
                    SUM(data_value) as total
             FROM capaci_data
             WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
               AND custom1 = ANY($5)
-              AND value = '<Entity Currency>'
-            GROUP BY account, custom2, custom3, custom4, icp, view
+            GROUP BY account, custom2, custom3, custom4, icp, view, value
         `, [scenario, year, period, entity, sources]);
 
         if (result.rowCount === 0) {
@@ -43,7 +42,7 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
                 ) VALUES (
                     $1, $2, $3, $4, $5,
                     $6, $7, $8, $9, $10,
-                    $11, '<Entity Currency>', $12
+                    $11, $12, $13
                 )
                 ON CONFLICT (
                     scenario, year, period, entity, account,
@@ -53,12 +52,13 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
             `, [
                 scenario, year, period, entity, row.account,
                 target, row.custom2, row.custom3, row.custom4,
-                row.icp, row.view, parseFloat(row.total)
+                row.icp, row.view, row.value, parseFloat(row.total)
             ]);
-            console.log(`✅ Calculated ${target} for ${row.account}: ${parseFloat(row.total)}`);
+            console.log(`✅ Calculated ${target} for ${row.account}, value ${row.value}: ${parseFloat(row.total)}`);
         }
     }
 };
+
 
 
 const calculate = async (req, res) => {
@@ -77,7 +77,6 @@ const calculate = async (req, res) => {
         const accountMembers = accountDim?.members || [];
         const custom1Members = custom1Dim?.members || [];
 
-        // 🔗 Préparer les maps pour les hiérarchies
         const accountMap = {};
         const accountChildren = {};
         const custom1Map = {};
@@ -121,36 +120,29 @@ const calculate = async (req, res) => {
                 pov.icp, pov.view
             ]);
 
-            const dataMap = {};
-            lines.rows.forEach(row => {
-                dataMap[row.value] = parseFloat(row.data_value);
-            });
-
-            // ➕ Calcul valeur totale
-            const baseValue = (dataMap['<Entity Currency>'] || 0) + (dataMap['<Entity Curr Adjs>'] || 0);
-
-            await db.query(`
-                INSERT INTO capaci_data (
-                    scenario, year, period, entity, account,
-                    custom1, custom2, custom3, custom4, icp,
-                    view, value, data_value
-                ) VALUES (
-                    $1, $2, $3, $4, $5,
-                    $6, $7, $8, $9, $10,
-                    $11, '<Entity Currency>', $12
-                )
-                ON CONFLICT (
-                    scenario, year, period, entity, account,
-                    custom1, custom2, custom3, custom4, icp, view, value
-                )
-                DO UPDATE SET data_value = EXCLUDED.data_value
-            `, [
-                scenario, year, period, entity, pov.account,
-                pov.custom1, pov.custom2, pov.custom3, pov.custom4,
-                pov.icp, pov.view, baseValue
-            ]);
-
-            console.log(`🧮 Calculated total for ${pov.account} / ${pov.custom1} = ${baseValue}`);
+            for (const row of lines.rows) {
+                await db.query(`
+                    INSERT INTO capaci_data (
+                        scenario, year, period, entity, account,
+                        custom1, custom2, custom3, custom4, icp,
+                        view, value, data_value
+                    ) VALUES (
+                        $1, $2, $3, $4, $5,
+                        $6, $7, $8, $9, $10,
+                        $11, $12, $13
+                    )
+                    ON CONFLICT (
+                        scenario, year, period, entity, account,
+                        custom1, custom2, custom3, custom4, icp, view, value
+                    )
+                    DO UPDATE SET data_value = EXCLUDED.data_value
+                `, [
+                    scenario, year, period, entity, pov.account,
+                    pov.custom1, pov.custom2, pov.custom3, pov.custom4,
+                    pov.icp, pov.view, row.value, parseFloat(row.data_value)
+                ]);
+                console.log(`🧮 Inserted/Updated ${pov.account} / ${pov.custom1} with value ${row.value} = ${row.data_value}`);
+            }
         }
 
         // ⛰️ Remontée hiérarchique des comptes
@@ -163,13 +155,12 @@ const calculate = async (req, res) => {
             }
 
             const rows = await db.query(`
-                SELECT custom1, custom2, custom3, custom4, icp, view,
+                SELECT custom1, custom2, custom3, custom4, icp, view, value,
                        SUM(data_value) as total
                 FROM capaci_data
                 WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
                   AND account = ANY($5)
-                  AND value = '<Entity Currency>'
-                GROUP BY custom1, custom2, custom3, custom4, icp, view
+                GROUP BY custom1, custom2, custom3, custom4, icp, view, value
             `, [scenario, year, period, entity, children || []]);
 
             for (const row of rows.rows) {
@@ -181,7 +172,7 @@ const calculate = async (req, res) => {
                     ) VALUES (
                         $1, $2, $3, $4, $5,
                         $6, $7, $8, $9, $10,
-                        $11, '<Entity Currency>', $12
+                        $11, $12, $13
                     )
                     ON CONFLICT (
                         scenario, year, period, entity, account,
@@ -191,9 +182,9 @@ const calculate = async (req, res) => {
                 `, [
                     scenario, year, period, entity, accountId,
                     row.custom1, row.custom2, row.custom3, row.custom4,
-                    row.icp, row.view, parseFloat(row.total)
+                    row.icp, row.view, row.value, parseFloat(row.total)
                 ]);
-                console.log(`🔼 Aggregated account ${accountId} for custom1 ${row.custom1}: ${row.total}`);
+                console.log(`🔼 Aggregated account ${accountId} for custom1 ${row.custom1} and value ${row.value}: ${row.total}`);
             }
 
             processedAccounts.add(accountId);
@@ -222,14 +213,13 @@ const calculate = async (req, res) => {
             }
 
             const { rows } = await db.query(`
-        SELECT account, custom2, custom3, custom4, icp, view,
-               SUM(data_value) as total
-        FROM capaci_data
-        WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
-          AND custom1 = ANY($5)
-          AND value = '<Entity Currency>'
-        GROUP BY account, custom2, custom3, custom4, icp, view
-    `, [scenario, year, period, entity, children || []]);
+                SELECT account, custom2, custom3, custom4, icp, view, value,
+                       SUM(data_value) as total
+                FROM capaci_data
+                WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
+                  AND custom1 = ANY($5)
+                GROUP BY account, custom2, custom3, custom4, icp, view, value
+            `, [scenario, year, period, entity, children || []]);
 
             if (rows.length === 0) {
                 console.log(`⚠️ Aucun résultat trouvé pour l'agrégation de ${custom1Id}`);
@@ -237,26 +227,26 @@ const calculate = async (req, res) => {
 
             for (const row of rows) {
                 await db.query(`
-            INSERT INTO capaci_data (
-                scenario, year, period, entity, account,
-                custom1, custom2, custom3, custom4, icp,
-                view, value, data_value
-            ) VALUES (
-                $1, $2, $3, $4, $5,
-                $6, $7, $8, $9, $10,
-                $11, '<Entity Currency>', $12
-            )
-            ON CONFLICT (
-                scenario, year, period, entity, account,
-                custom1, custom2, custom3, custom4, icp, view, value
-            )
-            DO UPDATE SET data_value = EXCLUDED.data_value
-        `, [
+                    INSERT INTO capaci_data (
+                        scenario, year, period, entity, account,
+                        custom1, custom2, custom3, custom4, icp,
+                        view, value, data_value
+                    ) VALUES (
+                        $1, $2, $3, $4, $5,
+                        $6, $7, $8, $9, $10,
+                        $11, $12, $13
+                    )
+                    ON CONFLICT (
+                        scenario, year, period, entity, account,
+                        custom1, custom2, custom3, custom4, icp, view, value
+                    )
+                    DO UPDATE SET data_value = EXCLUDED.data_value
+                `, [
                     scenario, year, period, entity, row.account,
                     custom1Id, row.custom2, row.custom3, row.custom4,
-                    row.icp, row.view, parseFloat(row.total)
+                    row.icp, row.view, row.value, parseFloat(row.total)
                 ]);
-                console.log(`🔁 Aggregated custom1 ${custom1Id} for account ${row.account}: ${parseFloat(row.total)}`);
+                console.log(`🔁 Aggregated custom1 ${custom1Id} for account ${row.account} and value ${row.value}: ${parseFloat(row.total)}`);
             }
 
             processedCustom1.add(custom1Id);
@@ -271,7 +261,6 @@ const calculate = async (req, res) => {
 
         // 🧠 Application des règles de flux manuels (INI, CHK, CLO)
         await calculateManualFlow(scenario, year, period, entity);
-
 
         console.log('✅ Calculate executed including account and custom1 cascade');
         return res.status(200).json({ message: 'Calculate executed with account + flux logic' });
