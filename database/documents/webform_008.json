@@ -1,6 +1,6 @@
 {
-	"_id": "webform_001",
-	"name": "Suivi Value Fonction Raise Data",
+	"_id": "webform_004",
+	"name": "Losts",
 	"type": "table",
 	"parameters": {
 		"scenario": {
@@ -16,12 +16,12 @@
 			"default": "P01"
 		},
 		"entity": {
-			"isActivated": false,
-			"default": null
+			"isActivated": true,
+			"default": "CC"
 		},
 		"account": {
-			"isActivated": true,
-			"default": "[None]"
+			"isActivated": false,
+			"default": null
 		},
 		"custom1": {
 			"isActivated": false,
@@ -54,20 +54,20 @@
 	},
 	"structure": {
 		"rows": [
-			"value=[Contribution Total]$[Descendants]"
+			"account=LS00000T$[Descendants]"
 		],
 		"columns": [
-			"entity=CC$[Descendants]"
+			"custom1=FLOWS$[Base]"
 		],
 		"fixed": [
 			"scenario",
 			"year",
 			"period",
+			"entity",
 			"value",
 			"view",
 			"custom1",
 			"custom2",
-			"custom3",
 			"custom4",
 			"ICP"
 		]
