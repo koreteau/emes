@@ -68,10 +68,13 @@
     "account": {
 		"members": [
 			{ "id": "[None]", "label": "Accounts", "parent": null, "isCalculated": false, "accountType": "" ,"ud1": null },
+			{ "id": "PL", "label": "Profit and Loss Accounts", "parent": null, "type": "node", "isCalculated": true, "accountType": "", "ud1": null },
 			{ "id": "CURRENCY", "label": "Currencies", "parent": null, "type": "node", "isCalculated": false, "accountType": "", "ud1": null },
 			{ "id": "CLOSING", "label": "Closing Currency Rates Account", "parent": "CURRENCY", "type": "base", "isCalculated": false, "accountType": "", "ud1": null },
 			{ "id": "AVERAGE", "label": "Average Currency Rates Account", "parent": "CURRENCY", "type": "base", "isCalculated": false, "accountType": "", "ud1": null },
-            { "id": "PL", "label": "Profit and Loss Accounts", "parent": null, "type": "node", "isCalculated": true, "accountType": "", "ud1": null }
+            { "id": "OWNERSHIP", "label": "Ownership", "parent": null, "type": "node", "isCalculated": false, "accountType": "", "ud1": null },
+			{ "id": "PERCENTAGE", "label": "Ownership Percentage", "parent": "OWNERSHIP", "type": "base", "isCalculated": false, "accountType": "", "ud1": null },
+			{ "id": "ACTIVE", "label": "Active Entity in Scope", "parent": "OWNERSHIP", "type": "base", "isCalculated": false, "accountType": "", "ud1": null }
 		]
     },
     "custom1": {
@@ -183,7 +186,7 @@
 			{ "id": "<Parent Curr Total>", "label": "Parent Currency Total", "parent": "[Parent]", "openToInput": false, "ud1": null, "ud2": null },
 			{ "id": "<Parent Curr Adjs>", "label": "Parent Currency Adjustments", "parent": "<Parent Curr Total>", "openToInput": true, "ud1": "Y", "ud2": null },
 			{ "id": "<Parent Currency>", "label": "Parent Currency", "parent": "<Parent Curr Total>", "openToInput": false, "ud1": null, "ud2": null },
-			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Curr>", "openToInput": false, "ud1": null, "ud2": null },
+			{ "id": "<Entity Curr Total>", "label": "Entity Currency Total", "parent": "<Parent Currency>", "openToInput": false, "ud1": null, "ud2": null },
 			{ "id": "<Entity Curr Adjs>", "label": "Entity Currency Adjustments", "parent": "<Entity Curr Total>", "openToInput": true, "ud1": null, "ud2": null },
 			{ "id": "<Entity Currency>", "label": "Entity Currency", "parent": "<Entity Curr Total>", "openToInput": false, "ud1": null, "ud2": null }
 		]
