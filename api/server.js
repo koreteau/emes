@@ -39,6 +39,7 @@ const dimensionRoutes = require('./routes/dimension');
 const journalRoutes = require('./routes/journal');
 const processControlRoutes = require("./routes/processControl");
 const functionsRoutes = require('./routes/functions');
+const stagedDataRoutes = require('./routes/stagedData');
 
 
 
@@ -54,6 +55,7 @@ app.use('/api/dimensions', dimensionRoutes);
 app.use('/api/journals', journalRoutes);
 app.use("/api/process-control", processControlRoutes);
 app.use('/api/functions', functionsRoutes);
+app.use('/api/staged-data', stagedDataRoutes);
 
 
 
