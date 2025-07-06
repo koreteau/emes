@@ -13,11 +13,11 @@
 		},
 		"period": {
 			"isActivated": true,
-			"default": "P01"
+			"default": "P01$[Only]"
 		},
 		"entity": {
 			"isActivated": true,
-			"default": "CC"
+			"default": "CCEUR$[Only]"
 		},
 		"account": {
 			"isActivated": false,
