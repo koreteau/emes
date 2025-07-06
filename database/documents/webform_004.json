@@ -44,8 +44,8 @@
 			"default": null
 		},
 		"value": {
-			"isActivated": false,
-			"default": "Local"
+			"isActivated": true,
+			"default": "<Entity Currency>"
 		},
 		"view": {
 			"isActivated": false,
