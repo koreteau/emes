@@ -24,8 +24,8 @@
 			"default": "[None]"
 		},
 		"custom1": {
-			"isActivated": false,
-			"default": null
+			"isActivated": true,
+			"default": "CLO"
 		},
 		"custom2": {
 			"isActivated": false,
