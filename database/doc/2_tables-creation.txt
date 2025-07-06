@@ -704,9 +704,22 @@ VALUES
 // tests calculates signs accounts PL
 
 INSERT INTO capaci_staged_data (
-  scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+    scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
 )
 VALUES
 ('ACT', '2025', 'P01', 'CCEUR', 'LS60500S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 150, 'manual', 'posted', 'admin'),
 ('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 300, 'manual', 'posted', 'admin'),
 ('ACT', '2025', 'P01', 'CCEUR', 'LS60225S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 75, 'manual', 'posted', 'admin');
+
+
+INSERT INTO capaci_staged_data (
+    scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+) VALUES
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'INC', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 1000, 'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 200,  'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ12000S', 'DCP', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -50,  'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'DCO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 25,   'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ12000S', 'DCM', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 15,   'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'CTI', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 10,   'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCEUR', 'EQ10680S', 'MKV', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 150,  'manual', 'posted', 'admin');
+
