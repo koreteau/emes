@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// Créer une entrée
+
 const createData = async (req, res) => {
     const {
         scenario, year, period, entity, account,
@@ -37,35 +37,6 @@ const createData = async (req, res) => {
     }
 };
 
-// Lire les entrées avec filtres dynamiques
-const getAllData = async (req, res) => {
-    const filters = [
-        'scenario', 'year', 'period', 'entity', 'account',
-        'custom1', 'custom2', 'custom3', 'custom4', 'ICP',
-        'view', 'value'
-    ];
-
-    const conditions = [];
-    const values = [];
-
-    filters.forEach((field) => {
-        if (req.query[field]) {
-            conditions.push(`${field} = $${values.length + 1}`);
-            values.push(req.query[field]);
-        }
-    });
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-    try {
-        const result = await db.query(`SELECT * FROM capaci_data ${whereClause} ORDER BY timestamp DESC`, values);
-        res.status(200).json(result.rows);
-    } catch (err) {
-        console.error('Error fetching data:', err.message);
-        res.status(500).json({ error: 'Error fetching data' });
-    }
-};
-
 const getFilteredData = async (req, res) => {
     try {
       const allowedDims = [
@@ -96,7 +67,6 @@ const getFilteredData = async (req, res) => {
 };
   
 
-// Modifier une donnée
 const updateData = async (req, res) => {
     const { dataId } = req.params;
     const fields = Object.keys(req.body);
@@ -125,7 +95,6 @@ const updateData = async (req, res) => {
     }
 };
 
-// Supprimer une donnée
 const deleteData = async (req, res) => {
     const { dataId } = req.params;
 
@@ -142,6 +111,7 @@ const deleteData = async (req, res) => {
         res.status(500).json({ error: 'Error deleting data' });
     }
 };
+
 
 module.exports = {
     createData,
