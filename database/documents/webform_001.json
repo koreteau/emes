@@ -13,7 +13,7 @@
 		},
 		"period": {
 			"isActivated": true,
-			"default": "P01"
+			"default": "P01$[Only]"
 		},
 		"entity": {
 			"isActivated": false,
@@ -25,7 +25,7 @@
 		},
 		"custom1": {
 			"isActivated": true,
-			"default": "CLO"
+			"default": "CLO$[Only]"
 		},
 		"custom2": {
 			"isActivated": false,
