@@ -13,7 +13,7 @@
 		},
 		"period": {
 			"isActivated": true,
-			"default": "P01"
+			"default": "P01$[Only]"
 		},
 		"entity": {
 			"isActivated": false,
