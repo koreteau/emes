@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { resolveDimensionMembers } from "./utils/dimensionUtils";
+import { useState, useEffect } from "react";
 
 const DIMENSION_ORDER = [
     "scenario", "year", "period", "entity", "account",
@@ -11,7 +10,6 @@ const EXCLUDED_DIMENSIONS_SELECTION_MODE = new Set(["scenario", "year", "ICP", "
 export function PointOfView({ parameters, structure, dimensionData, onChangePov }) {
     const [selection, setSelection] = useState({});
     const [modalDim, setModalDim] = useState(null);
-    const [modalInput, setModalInput] = useState("");
     const [modalSearch, setModalSearch] = useState("");
     const [modalSelectedItem, setModalSelectedItem] = useState(null);
     const [modalSelectedMode, setModalSelectedMode] = useState("Only");
@@ -59,7 +57,6 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
         }));
         setModalDim(null);
         setModalValues([]);
-        setModalInput("");
     };
 
     return (
