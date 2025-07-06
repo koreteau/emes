@@ -155,8 +155,11 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
                                         )}
                                         <button
                                             onClick={() => {
-                                                if (modalSelectedItem && modalSelectedMode) {
-                                                    const value = `${modalSelectedItem.id}$[${modalSelectedMode}]`;
+                                                if (modalSelectedItem) {
+                                                    const value = EXCLUDED_DIMENSIONS_SELECTION_MODE.has(modalDim)
+                                                        ? modalSelectedItem.id
+                                                        : `${modalSelectedItem.id}$[${modalSelectedMode}]`;
+
                                                     if (!modalValues.includes(value)) {
                                                         setModalValues([...modalValues, value]);
                                                     }
@@ -164,7 +167,7 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
                                             }}
                                             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                         >
-                                            ➕ Add to selection
+                                            Add to selection
                                         </button>
                                     </>
                                 ) : (
@@ -221,7 +224,7 @@ export function PointOfView({ parameters, structure, dimensionData, onChangePov 
                                     }}
                                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                                 >
-                                    ✅ Confirm
+                                    Confirm
                                 </button>
                             </div>
                         </div>
