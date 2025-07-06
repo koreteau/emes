@@ -17,7 +17,7 @@
 		},
 		"entity": {
 			"isActivated": true,
-			"default": "[None]"
+			"default": "[None]$[Only]"
 		},
 		"account": {
 			"isActivated": false,
