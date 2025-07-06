@@ -1,8 +1,61 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SmallSpinner } from "../../Spinner";
 import { ToolBar } from "./ToolBar";
 import { PointOfView } from "./PointOfView";
 import { resolveDimensionMembers } from "./utils/dimensionUtils";
+
+const EXCLUDED_DIMENSIONS_SELECTION_MODE = new Set(["scenario", "year", "ICP", "value", "view"]);
+
+const expandValuesFromSelection = (selection, dim, members) => {
+    const resolved = new Set();
+    for (const raw of selection || []) {
+        if (!raw.includes("$[")) {
+            resolved.add(raw);
+            continue;
+        }
+
+        const [id, mode] = raw.split("$[");
+        const cleanMode = mode.replace("]", "");
+
+        if (cleanMode === "Only") {
+            resolved.add(id);
+        } else if (cleanMode === "Descendants") {
+            const stack = [id];
+            while (stack.length > 0) {
+                const current = stack.pop();
+                resolved.add(current);
+                const children = members.filter(m => m.parent === current).map(m => m.id);
+                stack.push(...children);
+            }
+        } else if (cleanMode === "Base") {
+            const stack = [id];
+            while (stack.length > 0) {
+                const current = stack.pop();
+                const childMembers = members.filter(m => m.parent === current);
+                if (childMembers.length === 0) {
+                    resolved.add(current);
+                } else {
+                    stack.push(...childMembers.map(m => m.id));
+                }
+            }
+        }
+    }
+    return Array.from(resolved);
+};
+
+const resolvePovSelection = (pov, dimensionData) => {
+    const resolved = {};
+    for (const [dim, rawVals] of Object.entries(pov)) {
+        const members = dimensionData[dim]?.members || [];
+        if (EXCLUDED_DIMENSIONS_SELECTION_MODE.has(dim)) {
+            resolved[dim] = (rawVals || []).map(v => v.split("$[")[0]);
+        } else {
+            resolved[dim] = expandValuesFromSelection(rawVals, dim, members);
+        }
+    }
+    return resolved;
+};
+
 
 export function Webform({ docId }) {
     const [currentPov, setCurrentPov] = useState(null);
@@ -88,7 +141,11 @@ export function Webform({ docId }) {
 
         for (const row of rowCombos) {
             for (const col of colCombos) {
-                const filter = { ...currentPov };
+                console.log("📤 Fetching data for POV:", currentPov);
+                const resolvedPov = resolvePovSelection(currentPov, dimensionData);
+                console.log("Pov defined by resolvePovSelection function", resolvedPov);
+                const filter = { ...resolvedPov };
+
 
                 rowItems.forEach((item, idx) => {
                     filter[item.dim] = row[idx];
@@ -126,6 +183,11 @@ export function Webform({ docId }) {
         if (rowItems.length && columnItems.length && currentPov) {
             fetchDataMap();
         }
+        if (!currentPov || Object.keys(currentPov).length === 0) {
+            console.log("⚠️ Aucun POV défini.");
+            return;
+        }
+
     }, [rowItems, columnItems, currentPov, fetchDataMap]);
 
     const getCellValue = (rowVals, colVals) => {
