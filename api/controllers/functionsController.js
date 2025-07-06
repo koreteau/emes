@@ -60,6 +60,16 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
 };
 
 
+const getPreviousPeriod = (period) => {
+    const match = period.match(/^P(\d{2})$/);
+    if (!match) return null;
+    const num = parseInt(match[1], 10);
+    if (num <= 1) return null;
+    const prev = num - 1;
+    return `P${prev.toString().padStart(2, '0')}`;
+};
+
+
 
 const calculate = async (req, res) => {
     try {
@@ -195,6 +205,48 @@ const calculate = async (req, res) => {
                 await cascadeAccounts(member.id);
             }
         }
+
+        // 🔁 Injection de CLO (N-1) → OPE (N)
+        const previousPeriod = getPreviousPeriod(period);
+        if (previousPeriod) {
+            console.log(`🔁 Copying CLO from ${previousPeriod} to OPE in ${period}`);
+
+            const { rows } = await db.query(`
+        SELECT account, custom2, custom3, custom4, icp, view, data_value
+        FROM capaci_data
+        WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
+          AND custom1 = 'CLO'
+          AND value = '<Entity Curr Total>'
+    `, [scenario, year, previousPeriod, entity]);
+
+            for (const row of rows) {
+                await db.query(`
+            INSERT INTO capaci_data (
+                scenario, year, period, entity, account,
+                custom1, custom2, custom3, custom4, icp,
+                view, value, data_value
+            ) VALUES (
+                $1, $2, $3, $4, $5,
+                'OPE', $6, $7, $8, $9,
+                $10, '<Entity Currency>', $11
+            )
+            ON CONFLICT (
+                scenario, year, period, entity, account,
+                custom1, custom2, custom3, custom4, icp, view, value
+            )
+            DO UPDATE SET data_value = EXCLUDED.data_value
+        `, [
+                    scenario, year, period, entity, row.account,
+                    row.custom2, row.custom3, row.custom4, row.icp,
+                    row.view, parseFloat(row.data_value)
+                ]);
+
+                console.log(`🔄 Copied CLO ${row.account} (<Entity Curr Total>) → OPE (<Entity Currency>): ${row.data_value}`);
+            }
+        } else {
+            console.log(`⚠️ Aucun mois précédent trouvé pour ${period}. Pas de propagation CLO → OPE.`);
+        }
+
 
         // 🔁 Remontée hiérarchique des flux (custom1)
         const processedCustom1 = new Set();
