@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ProcessControl } from "./Data/ProcessControl";
-import { DataLoad } from "./Load/LoadData";
 import Explorer from "./Explorer";
+import { ProcessControl } from "./Data/ProcessControl";
 import { Webform } from "./Webform";
 import { Journals } from "./Journals";
-
+import { DataLoad } from "./Load/LoadData";
+import { ExtractData } from "./Extract/ExtractData";
 
 
 export function Capaci() {
@@ -52,10 +52,12 @@ export function Capaci() {
                 return <Explorer onOpenDocument={handleOpenDocument} />;
             case "Process Control":
                 return <ProcessControl />;
-            case "Load Data":
-                return <DataLoad />;
             case "Manage Journals":
                 return <Journals />;
+            case "Load Data":
+                return <DataLoad />;
+            case "Extract Data":
+                return <ExtractData />;
             default:
                 return <div>{name} Content</div>;
         }
