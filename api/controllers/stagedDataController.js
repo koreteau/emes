@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// ✅ Créer une entrée
+
 const createStagedData = async (req, res) => {
     const {
         scenario, year, period, entity, account,
@@ -34,7 +34,7 @@ const createStagedData = async (req, res) => {
     }
 };
 
-// ✅ Lire avec filtres
+
 const getFilteredStagedData = async (req, res) => {
     const allowedFields = [
         'scenario', 'year', 'period', 'entity', 'account',
@@ -62,6 +62,7 @@ const getFilteredStagedData = async (req, res) => {
         res.status(500).json({ error: 'Error fetching staged data' });
     }
 };
+
 
 module.exports = {
     createStagedData,
