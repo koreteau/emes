@@ -1,5 +1,5 @@
 {
-	"_id": "webform_004",
+	"_id": "webform_005",
 	"name": "Fixed Assets",
 	"type": "table",
 	"parameters": {
@@ -13,11 +13,11 @@
 		},
 		"period": {
 			"isActivated": true,
-			"default": "P01"
+			"default": "P01$[Only]"
 		},
 		"entity": {
 			"isActivated": true,
-			"default": "CC"
+			"default": "CCEUR$[Only]"
 		},
 		"account": {
 			"isActivated": false,
@@ -44,8 +44,8 @@
 			"default": null
 		},
 		"value": {
-			"isActivated": false,
-			"default": "Local"
+			"isActivated": true,
+			"default": "<Entity Currency>"
 		},
 		"view": {
 			"isActivated": false,
