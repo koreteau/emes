@@ -481,66 +481,63 @@ const rollupToParent = async (req, res) => {
         const author = req.user?.id || 'system';
 
         if (!scenario || !year || !period || !entity) {
-            return res.status(400).json({ error: 'Missing required query parameters: scenario, year, period, entity' });
+            return res.status(400).json({ error: 'Missing required parameters' });
         }
 
-        console.log('🔁 Starting rollupToParent for:', { scenario, year, period, entity });
-
-        // Charger les dimensions
+        // Charger la hiérarchie d’entités
         const entityDim = await getLatestDimensionData('entity');
-        const entityMap = {};
-        (entityDim?.members || []).forEach(e => {
-            entityMap[e.id] = e;
-        });
+        const children = entityDim.members.filter(m => m.parent === entity).map(m => m.id);
 
-        const children = Object.values(entityMap).filter(e => e.parent === entity);
         if (children.length === 0) {
-            return res.status(400).json({ error: 'Selected entity has no children' });
+            return res.status(400).json({ error: 'No children found for entity' });
         }
 
-        console.log(`👶 Found ${children.length} children of ${entity}:`, children.map(c => c.id));
+        // Extraire toutes les lignes de capaci_data des enfants avec [Contribution Total]
+        const { rows } = await db.query(`
+            SELECT *
+            FROM capaci_data
+            WHERE scenario = $1 AND year = $2 AND period = $3
+              AND value = '[Contribution Total]'
+              AND entity = ANY($4)
+        `, [scenario, year, period, children]);
 
-        for (const child of children) {
-            const result = await db.query(`
-                SELECT *
-                FROM capaci_data
-                WHERE scenario = $1 AND year = $2 AND period = $3 AND entity = $4
-                  AND value = '[Contribution Total]'
-            `, [scenario, year, period, child.id]);
+        // Dédupliquer logiquement (même account/customs/etc.)
+        const seen = new Set();
 
-            if (result.rows.length === 0) {
-                console.log(`⚠️ No [Contribution Total] data for child ${child.id}`);
-                continue;
-            }
+        for (const row of rows) {
+            const key = [
+                row.account, row.custom1, row.custom2, row.custom3, row.custom4,
+                row.icp, row.view
+            ].join("|");
 
-            for (const row of result.rows) {
-                await db.query(`
-                    INSERT INTO capaci_staged_data (
-                        scenario, year, period, entity, account,
-                        custom1, custom2, custom3, custom4, icp,
-                        view, value, data_value, source, status, author
-                    ) VALUES (
-                        $1, $2, $3, $4, $5,
-                        $6, $7, $8, $9, $10,
-                        $11, '<Entity Currency>', $12, 'rollup', 'posted', $13
-                    )
-                `, [
-                    scenario, year, period, entity, row.account,
-                    row.custom1, row.custom2, row.custom3, row.custom4, row.icp,
-                    row.view, parseFloat(row.data_value), author
-                ]);
+            if (seen.has(key)) continue;
+            seen.add(key);
 
-                console.log(`✅ Rolled up ${child.id} to ${entity} — ${row.account} / ${row.custom1}`);
-            }
+            await db.query(`
+                INSERT INTO capaci_staged_data (
+                    scenario, year, period, entity,
+                    account, custom1, custom2, custom3, custom4,
+                    icp, view, value, data_value,
+                    source, status, author
+                ) VALUES (
+                    $1, $2, $3, $4,
+                    $5, $6, $7, $8, $9,
+                    $10, $11, '<Entity Currency>', $12,
+                    'rollup', 'posted', $13
+                )
+            `, [
+                scenario, year, period, entity,
+                row.account, row.custom1, row.custom2, row.custom3, row.custom4,
+                row.icp, row.view, parseFloat(row.data_value), author
+            ]);
         }
 
-        res.status(200).json({ message: 'rollupToParent executed successfully' });
+        res.status(200).json({ message: `Rolled up ${seen.size} unique lines to ${entity}` });
     } catch (err) {
-        console.error('❌ rollupToParent error:', err);
+        console.error("❌ Error in rollupToParent:", err);
         res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 };
-
 
 
 module.exports = {
