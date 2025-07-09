@@ -1,0 +1,75 @@
+{
+	"_id": "webform_010",
+	"name": "Special",
+	"type": "table",
+	"parameters": {
+		"scenario": {
+			"isActivated": true,
+			"default": "ACT"
+		},
+		"year": {
+			"isActivated": true,
+			"default": "2025"
+		},
+		"period": {
+			"isActivated": true,
+			"default": "P01$[Only]"
+		},
+		"entity": {
+			"isActivated": true,
+			"default": "CCEUR$[Only]"
+		},
+		"account": {
+			"isActivated": false,
+			"default": null
+		},
+		"custom1": {
+			"isActivated": false,
+			"default": null
+		},
+		"custom2": {
+			"isActivated": false,
+			"default": null
+		},
+		"custom3": {
+			"isActivated": false,
+			"default": null
+		},
+		"custom4": {
+			"isActivated": false,
+			"default": null
+		},
+		"ICP": {
+			"isActivated": false,
+			"default": null
+		},
+		"value": {
+			"isActivated": true,
+			"default": "<Entity Currency>"
+		},
+		"view": {
+			"isActivated": false,
+			"default": "YTD"
+		}
+	},
+	"structure": {
+		"rows": [
+			"account=SP00000T$[Descendants]"
+		],
+		"columns": [
+			"custom1=FLOWS$[Base]"
+		],
+		"fixed": [
+			"scenario",
+			"year",
+			"period",
+			"entity",
+			"value",
+			"view",
+			"custom1",
+			"custom2",
+			"custom4",
+			"ICP"
+		]
+	}
+}
