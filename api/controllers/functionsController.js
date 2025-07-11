@@ -1,9 +1,11 @@
 const db = require('../config/db');
 const { getLatestDimensionData } = require('./dimensionController');
+const createLogger = require('../utils/writeLogs');
 
 
-const calculateManualFlow = async (scenario, year, period, entity) => {
-    console.log('🧠 Calculating manual flows based on business rules...');
+const calculateManualFlow = async (scenario, year, period, entity, writeLog) => {
+    // console.log('Calculating manual flows based on business rules...');
+    await writeLog('Calculating manual flows based on business rules...');
 
     const manualFormulas = [
         { target: 'INI', sources: ['OPE', 'CHO'] },
@@ -17,7 +19,8 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
     ];
 
     for (const { target, sources } of manualFormulas) {
-        console.log(`🔁 Calculating ${target} from: ${sources.join(' + ')}`);
+        // console.log(`Calculating ${target} from: ${sources.join(' + ')}`);
+        await writeLog(`Calculating ${target} from: ${sources.join(' + ')}`);
 
         const result = await db.query(`
             SELECT account, custom2, custom3, custom4, icp, view, value,
@@ -29,7 +32,8 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
         `, [scenario, year, period, entity, sources]);
 
         if (result.rowCount === 0) {
-            console.log(`⚠️ No data found to calculate ${target}`);
+            // console.log(`No data found to calculate ${target}`);
+            await writeLog(`No data found to calculate ${target}`);
             continue;
         }
 
@@ -54,7 +58,8 @@ const calculateManualFlow = async (scenario, year, period, entity) => {
                 target, row.custom2, row.custom3, row.custom4,
                 row.icp, row.view, row.value, parseFloat(row.total)
             ]);
-            console.log(`✅ Calculated ${target} for ${row.account}, value ${row.value}: ${parseFloat(row.total)}`);
+            // console.log(`Calculated ${target} for ${row.account}, value ${row.value}: ${parseFloat(row.total)}`);
+            await writeLog(`Calculated ${target} for ${row.account}, value ${row.value}: ${parseFloat(row.total)}`);
         }
     }
 };
@@ -72,6 +77,13 @@ const getPreviousPeriod = (period) => {
 
 
 const calculate = async (req, res) => {
+    const writeLog = createLogger({
+        app: 'capaci',
+        name: 'calculate',
+        user: req.user?.id || 'system',
+        type: 'info'
+    });
+
     try {
         const { scenario, year, period, entity } = req.query;
 
@@ -79,7 +91,8 @@ const calculate = async (req, res) => {
             return res.status(400).json({ error: 'Missing required query parameters' });
         }
 
-        console.log('▶️ Launching calculate with:', { scenario, year, period, entity });
+        // console.log('Launching calculate with:', { scenario, year, period, entity });
+        await writeLog(`Launching calculate with: ${JSON.stringify({ scenario, year, period, entity })}`);
 
         const accountDim = await getLatestDimensionData('account');
         const custom1Dim = await getLatestDimensionData('custom1');
@@ -108,7 +121,9 @@ const calculate = async (req, res) => {
             }
         }
 
-        console.log(`📦 Loaded ${accountMembers.length} accounts and ${custom1Members.length} custom1 values`);
+        // console.log(`Loaded ${accountMembers.length} accounts and ${custom1Members.length} custom1 values`);
+        await writeLog(`Loaded ${accountMembers.length} accounts and ${custom1Members.length} custom1 values`);
+
 
         const povsResult = await db.query(`
             SELECT DISTINCT account, custom1, custom2, custom3, custom4, icp, view
@@ -151,11 +166,12 @@ const calculate = async (req, res) => {
                     pov.custom1, pov.custom2, pov.custom3, pov.custom4,
                     pov.icp, pov.view, row.value, parseFloat(row.data_value)
                 ]);
-                console.log(`🧮 Inserted/Updated ${pov.account} / ${pov.custom1} with value ${row.value} = ${row.data_value}`);
+                // console.log(`Inserted/Updated ${pov.account} / ${pov.custom1} with value ${row.value} = ${row.data_value}`);
+                await writeLog(`Inserted/Updated ${pov.account} / ${pov.custom1} with value ${row.value} = ${row.data_value}`);
             }
         }
 
-        // ⛰️ Remontée hiérarchique des comptes
+        // Remontée hiérarchique des comptes
         const processedAccounts = new Set();
         const cascadeAccounts = async (accountId) => {
             if (processedAccounts.has(accountId)) return;
@@ -194,7 +210,8 @@ const calculate = async (req, res) => {
                     row.custom1, row.custom2, row.custom3, row.custom4,
                     row.icp, row.view, row.value, parseFloat(row.total)
                 ]);
-                console.log(`🔼 Aggregated account ${accountId} for custom1 ${row.custom1} and value ${row.value}: ${row.total}`);
+                // console.log(`Aggregated account ${accountId} for custom1 ${row.custom1} and value ${row.value}: ${row.total}`);
+                await writeLog(`Aggregated account ${accountId} for custom1 ${row.custom1} and value ${row.value}: ${row.total}`);
             }
 
             processedAccounts.add(accountId);
@@ -206,10 +223,11 @@ const calculate = async (req, res) => {
             }
         }
 
-        // 🔁 Injection de CLO (N-1) → OPE (N)
+        // Injection de CLO (N-1) → OPE (N)
         const previousPeriod = getPreviousPeriod(period);
         if (previousPeriod) {
-            console.log(`🔁 Copying CLO from ${previousPeriod} to OPE in ${period}`);
+            // console.log(`Copying CLO from ${previousPeriod} to OPE in ${period}`);
+            await writeLog(`Copying CLO from ${previousPeriod} to OPE in ${period}`);
 
             const { rows } = await db.query(`
         SELECT account, custom2, custom3, custom4, icp, view, data_value
@@ -241,27 +259,32 @@ const calculate = async (req, res) => {
                     row.view, parseFloat(row.data_value)
                 ]);
 
-                console.log(`🔄 Copied CLO ${row.account} (<Entity Curr Total>) → OPE (<Entity Currency>): ${row.data_value}`);
+                // console.log(`Copied CLO ${row.account} (<Entity Curr Total>) → OPE (<Entity Currency>): ${row.data_value}`);
+                await writeLog(`Copied CLO ${row.account} (<Entity Curr Total>) → OPE (<Entity Currency>): ${row.data_value}`);
             }
         } else {
-            console.log(`⚠️ Aucun mois précédent trouvé pour ${period}. Pas de propagation CLO → OPE.`);
+            // console.log(`No previous month found for ${period}. No propagation CLO → OPE.`);
+            await writeLog(`No previous month found for ${period}. No propagation CLO → OPE.`);
         }
 
 
-        // 🔁 Remontée hiérarchique des flux (custom1)
+        // Remontée hiérarchique des flux (custom1)
         const processedCustom1 = new Set();
         const cascadeCustom1 = async (custom1Id) => {
             if (processedCustom1.has(custom1Id)) {
-                console.log(`⏩ Déjà traité: custom1 ${custom1Id}`);
+                // console.log(`Already treated: custom1 ${custom1Id}`);
+                await writeLog(`Already treated: custom1 ${custom1Id}`);
                 return;
             }
 
             const children = custom1Children[custom1Id];
             if (children && children.length > 0) {
-                console.log(`🔍 Calcul flux ${custom1Id} à partir de ses enfants: ${children.join(", ")}`);
+                // console.log(`Calculate ${custom1Id} flow from its children:: ${children.join(", ")}`);
+                await writeLog(`Calculate ${custom1Id} flow from its children:: ${children.join(", ")}`);
                 for (const child of children) await cascadeCustom1(child);
             } else {
-                console.log(`ℹ️ Flux ${custom1Id} n’a pas d’enfants. Pas d’agrégation.`);
+                // console.log(`${custom1Id} has no children. No aggregation.`);
+                await writeLog(`${custom1Id} has no children. No aggregation.`);
             }
 
             const { rows } = await db.query(`
@@ -274,7 +297,8 @@ const calculate = async (req, res) => {
             `, [scenario, year, period, entity, children || []]);
 
             if (rows.length === 0) {
-                console.log(`⚠️ Aucun résultat trouvé pour l'agrégation de ${custom1Id}`);
+                // console.log(`No results found for the aggregation of ${custom1Id}`);
+                await writeLog(`No results found for the aggregation of ${custom1Id}`);
             }
 
             for (const row of rows) {
@@ -298,7 +322,8 @@ const calculate = async (req, res) => {
                     custom1Id, row.custom2, row.custom3, row.custom4,
                     row.icp, row.view, row.value, parseFloat(row.total)
                 ]);
-                console.log(`🔁 Aggregated custom1 ${custom1Id} for account ${row.account} and value ${row.value}: ${parseFloat(row.total)}`);
+                // console.log(`Aggregated custom1 ${custom1Id} for account ${row.account} and value ${row.value}: ${parseFloat(row.total)}`);
+                await writeLog(`Aggregated custom1 ${custom1Id} for account ${row.account} and value ${row.value}: ${parseFloat(row.total)}`);
             }
 
             processedCustom1.add(custom1Id);
@@ -306,19 +331,22 @@ const calculate = async (req, res) => {
 
         for (const member of custom1Members) {
             if (member.ud1 === 'Y') {
-                console.log(`🚀 Début du traitement de custom1 fermé: ${member.id}`);
+                // console.log(`Start processing custom1 closed: ${member.id}`);
+                await writeLog(`Start processing custom1 closed: ${member.id}`);
                 await cascadeCustom1(member.id);
             }
         }
 
-        // 🧠 Application des règles de flux manuels (INI, CHK, CLO)
-        await calculateManualFlow(scenario, year, period, entity);
+        // Application des règles de flux manuels (INI, CHK, CLO)
+        await calculateManualFlow(scenario, year, period, entity, writeLog);
 
-        console.log('✅ Calculate executed including account and custom1 cascade');
+        // console.log('Calculate executed including account and custom1 cascade');
+        await writeLog(`Calculate executed including account and custom1 cascade`, true);
         return res.status(200).json({ message: 'Calculate executed with account + flux logic' });
 
     } catch (err) {
-        console.error('❌ Calculate error:', err);
+        // console.error('Calculate error:', err);
+        await writeLog(`Calculate error: ${err}`, true);
         return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 };
@@ -332,7 +360,15 @@ const raiseData = async (req, res) => {
             return res.status(400).json({ error: 'Missing required query parameters: scenario, year, period, entity' });
         }
 
-        console.log('▶️ Launching raiseData with:', { scenario, year, period, entity });
+        const writeLog = createLogger({
+            app: 'capaci',
+            name: 'raiseData',
+            user: req.user?.id || 'system',
+            type: 'info'
+        });
+
+        // console.log('Launching raiseData with:', { scenario, year, period, entity });
+        await writeLog(`Launching raiseData with: ${JSON.stringify({ scenario, year, period, entity })}`);
 
         // Charger les dimensions entity
         const entityDim = await getLatestDimensionData('entity');
@@ -346,10 +382,14 @@ const raiseData = async (req, res) => {
         const sourceCurrency = entityMeta?.defaultCurr || 'EUR';
         const targetCurrency = parentMeta?.defaultCurr || 'EUR';
 
-        console.log('🔎 Entity meta:', entityMeta);
-        console.log('🔝 Parent meta:', parentMeta);
-        console.log('💶 Source currency:', sourceCurrency);
-        console.log('💶 Target currency:', targetCurrency);
+        // console.log('Entity meta:', entityMeta);
+        // console.log('Parent meta:', parentMeta);
+        // console.log('Source currency:', sourceCurrency);
+        // console.log('Target currency:', targetCurrency);
+        await writeLog(`Entity meta: ${JSON.stringify(entityMeta)}`);
+        await writeLog(`Parent meta: ${JSON.stringify(parentMeta)}`);
+        await writeLog(`Source currency: ${sourceCurrency}`);
+        await writeLog(`Target currency: ${targetCurrency}`);
 
         // Charger les lignes concernées de capaci_data
         const result = await db.query(`
@@ -363,7 +403,9 @@ const raiseData = async (req, res) => {
         `, [scenario, year, period, entity]);
 
         const lines = result.rows;
-        console.log(`📥 Loaded ${lines.length} lines from capaci_data`);
+        // console.log(`Loaded ${lines.length} lines from capaci_data`);
+        await writeLog(`Loaded ${lines.length} lines from capaci_data`);
+
 
         const povMap = {};
         for (const row of lines) {
@@ -378,7 +420,8 @@ const raiseData = async (req, res) => {
 
             const insert = async (value, data_value) => {
                 const rounded = Number(data_value.toFixed(3));
-                console.log(`📝 Inserting ${value} = ${rounded}`);
+                // console.log(`Inserting ${value} = ${rounded}`);
+                await writeLog(`Inserting ${value} = ${rounded}`);
                 await db.query(`
                     INSERT INTO capaci_data (
                     scenario, year, period, entity, account,
@@ -404,12 +447,14 @@ const raiseData = async (req, res) => {
 
             // 1. <Entity Curr Total>
             const ect = (values['<Entity Currency>'] || 0) + (values['<Entity Curr Adjs>'] || 0);
-            console.log(`🧮 <Entity Curr Total>: ${ect}`);
+            // console.log(`<Entity Curr Total>: ${ect}`);
+            await writeLog(`<Entity Curr Total>: ${ect}`);
             await insert('<Entity Curr Total>', ect);
 
             // 2. Stop si pas de parent
             if (!parentMeta) {
-                console.log('⚠️ No parent entity found — stopping here');
+                // console.log('No parent entity found — stopping here');
+                await writeLog(`No parent entity found — stopping here`);
                 continue;
             }
 
@@ -422,11 +467,13 @@ const raiseData = async (req, res) => {
             `, [scenario, year, period, sourceCurrency]);
 
             const fxRate = parseFloat(fxQuery.rows[0]?.data_value || 1);
-            console.log(`📊 FX rate (1 EUR = ${fxRate} ${sourceCurrency})`);
+            // console.log(`FX rate (1 EUR = ${fxRate} ${sourceCurrency})`);
+            await writeLog(`FX rate (1 EUR = ${fxRate} ${sourceCurrency})`);
 
             // 4. Conversion en devise de la holding (EUR)
             const pc = fxRate !== 0 ? ect / fxRate : ect;
-            console.log(`💱 <Parent Currency> (converted): ${pc}`);
+            // console.log(`<Parent Currency> (converted): ${pc}`);
+            await writeLog(`<Parent Currency> (converted): ${pc}`);
             await insert('<Parent Currency>', pc);
 
             // 5. <Parent Curr Total>
@@ -442,7 +489,8 @@ const raiseData = async (req, res) => {
             let contribution = 0;
 
             if (icp !== '[None]') {
-                console.log(`🚫 Interco detected — inserting elimination = ${pt}`);
+                // console.log(`Interco detected — inserting elimination = ${pt}`);
+                await writeLog(`Interco detected — inserting elimination = ${pt}`);
                 await insert('[Elimination]', pt);
             } else {
                 const ownerQuery = await db.query(`
@@ -456,7 +504,8 @@ const raiseData = async (req, res) => {
                 const proportion = pt * (ownership / 100);
                 contribution = proportion;
 
-                console.log(`📐 Ownership = ${ownership}%, → Proportion = ${proportion}`);
+                // console.log(`Ownership = ${ownership}%, → Proportion = ${proportion}`);
+                await writeLog(`Ownership = ${ownership}%, → Proportion = ${proportion}`);
                 await insert('[Proportion]', proportion);
                 await insert('[Contribution]', proportion);
             }
@@ -467,9 +516,11 @@ const raiseData = async (req, res) => {
 
         }
 
+        await writeLog('Raise Data completed successfully', true);
         res.status(200).json({ message: 'Raise Data executed with debug logs' });
     } catch (err) {
-        console.error('❌ Raise Data error:', err);
+        // console.error('Raise Data error:', err);
+        await writeLog(`Raise Data error: ${err.message}`, true)
         res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 };
@@ -480,19 +531,33 @@ const rollupToParent = async (req, res) => {
         const { scenario, year, period, entity } = req.query;
         const author = req.user?.id || 'system';
 
+        const writeLog = createLogger({
+            app: 'capaci',
+            name: 'rollupToParent',
+            user: author,
+            type: 'info'
+        });
+
         if (!scenario || !year || !period || !entity) {
+            // console.log("Missing parameters :", { scenario, year, period, entity });
+            await writeLog(`Missing parameters : ${JSON.stringify({ scenario, year, period, entity })}`);
             return res.status(400).json({ error: 'Missing required parameters' });
         }
 
-        // Charger la hiérarchie d’entités
+        // Charger la hiérarchie
         const entityDim = await getLatestDimensionData('entity');
         const children = entityDim.members.filter(m => m.parent === entity).map(m => m.id);
 
         if (children.length === 0) {
+            // console.log(`No descendants found for ${entity}`);
+            await writeLog(`No descendants found for ${entity}`);
             return res.status(400).json({ error: 'No children found for entity' });
         }
 
-        // Extraire toutes les lignes de capaci_data des enfants avec [Contribution Total]
+        // console.log(`Rollup from ${children.length} descendants towards ${entity}...`);
+        await writeLog(`Rollup from ${children.length} descendants towards ${entity}...`);
+
+        // Rechercher les données à remonter
         const { rows } = await db.query(`
             SELECT *
             FROM capaci_data
@@ -501,8 +566,11 @@ const rollupToParent = async (req, res) => {
               AND entity = ANY($4)
         `, [scenario, year, period, children]);
 
-        // Dédupliquer logiquement (même account/customs/etc.)
+        // console.log(`${rows.length} rows found to rollup`);
+        await writeLog(`${rows.length} rows found to rollup`);
+
         const seen = new Set();
+        let insertedCount = 0;
 
         for (const row of rows) {
             const key = [
@@ -510,9 +578,29 @@ const rollupToParent = async (req, res) => {
                 row.icp, row.view
             ].join("|");
 
-            if (seen.has(key)) continue;
+            if (seen.has(key)) {
+                console.log(`🟡 Doublon ignoré pour : ${key}`);
+                continue;
+            }
             seen.add(key);
 
+            // Supprimer ancienne version (même POV + source)
+            const deleteRes = await db.query(`
+                DELETE FROM capaci_staged_data
+                WHERE scenario = $1 AND year = $2 AND period = $3
+                  AND entity = $4 AND value = '<Entity Currency>'
+                  AND account = $5 AND custom1 = $6 AND custom2 = $7 AND custom3 = $8 AND custom4 = $9
+                  AND icp = $10 AND view = $11 AND source = $12
+            `, [
+                scenario, year, period, entity,
+                row.account, row.custom1, row.custom2, row.custom3, row.custom4,
+                row.icp, row.view, row.entity
+            ]);
+
+            // console.log(`Deletion: ${deleteRes.rowCount} row(s) deleted for source ${row.entity}`);
+            await writeLog(`Deletion: ${deleteRes.rowCount} row(s) deleted for source ${row.entity}`);
+
+            // Insertion
             await db.query(`
                 INSERT INTO capaci_staged_data (
                     scenario, year, period, entity,
@@ -523,21 +611,32 @@ const rollupToParent = async (req, res) => {
                     $1, $2, $3, $4,
                     $5, $6, $7, $8, $9,
                     $10, $11, '<Entity Currency>', $12,
-                    'rollup', 'posted', $13
+                    $13, 'posted', $14
                 )
             `, [
                 scenario, year, period, entity,
                 row.account, row.custom1, row.custom2, row.custom3, row.custom4,
-                row.icp, row.view, parseFloat(row.data_value), author
+                row.icp, row.view, parseFloat(row.data_value),
+                row.entity,
+                author
             ]);
+
+            // console.log(`Insert : ${key} from ${row.entity} (value = ${row.data_value})`);
+            await writeLog(`Insert : ${key} from ${row.entity} (value = ${row.data_value})`);
+            insertedCount++;
         }
 
-        res.status(200).json({ message: `Rolled up ${seen.size} unique lines to ${entity}` });
+        // console.log(`Rollup completed : ${insertedCount} rows inserted in ${entity}`);
+        await writeLog(`Rollup completed : ${insertedCount} rows inserted in ${entity}`, true);
+
+        res.status(200).json({ message: `Rolled up ${insertedCount} unique lines from ${children.length} children into ${entity}` });
     } catch (err) {
-        console.error("❌ Error in rollupToParent:", err);
+        // console.error("Error in rollupToParent:", err);
+        await writeLog(`Error in rollupToParent: ${err.message}`, true);
         res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 };
+
 
 
 module.exports = {
