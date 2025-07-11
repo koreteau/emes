@@ -2,7 +2,7 @@ import { useState } from "react";
 import Explorer from "./Explorer";
 import { ProcessControl } from "./Data/ProcessControl";
 import { Webform } from "./Webform";
-import { Journals } from "./Journals";
+import { Journals } from "./Journals/Journals";
 import { DataLoad } from "./Load/LoadData";
 import { ExtractData } from "./Extract/ExtractData";
 
