@@ -31,6 +31,7 @@ const verifyDatabaseConnection = async () => {
 const authRoutes = require('./routes/auth');
 const securityRoutes = require('./routes/security');
 const userRoutes = require('./routes/users');
+const logsRoutes = require('./routes/logs');
 
 // Capaci
 const dataRoutes = require('./routes/data');
@@ -48,6 +49,7 @@ const extractStagedData = require('./routes/extractStagedData')
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/logs', logsRoutes);
 
 // Capaci
 app.use('/api/data', dataRoutes);
