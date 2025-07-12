@@ -1,5 +1,6 @@
 import { useImperativeHandle, forwardRef, useState } from "react";
 
+import { Configuration } from "./Administration/Configuration/Configuration"
 import { Capaci } from "./Applications/Capaci/Capaci";
 import { Alexandria } from "./Applications/Alexandria/Alexandria";
 import { Bespin } from "./Applications/Bespin/Bespin";
@@ -11,6 +12,8 @@ export const Tabs = forwardRef((_, ref) => {
 
     const getContentForTab = (name) => {
         switch (name) {
+            case "Configuration":
+                return <Configuration />;
             case "Capaci Finance":
                 return <Capaci />;
             case "Alexandria Inventory":
