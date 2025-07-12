@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../config/db');
+require('dotenv').config();
 
 
-const LOGS_FOLDER = "../../database/logs"
+const LOGS_FOLDER = process.env.LOGS_FOLDER;
+const LOGS_PATHS = process.env.LOGS_PATHS;
 
 
 const createLogger = ({ app, name, user, type = 'info' }) => {
@@ -19,10 +21,10 @@ const createLogger = ({ app, name, user, type = 'info' }) => {
 
     const fileTag = `${yyyy}${MM}${dd}-${HH}${mm}${ss}-${app}-${type}-${user}`;
     const filename = `${fileTag}.log`;
-    const fullPath = path.join(__dirname, '..', 'logs', filename);
-    const relativePath = `${LOGS_FOLDER}/${filename}`;
+    const fullPath = path.join(__dirname, '..', LOGS_FOLDER, filename);
+    const relativePath = `${LOGS_PATHS}/${filename}`;
 
-    const logsDir = path.join(__dirname, '..', 'logs');
+    const logsDir = path.join(__dirname, '..', LOGS_FOLDER);
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
     }
