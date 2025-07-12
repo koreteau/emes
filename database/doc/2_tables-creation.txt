@@ -758,3 +758,19 @@ VALUES
   ('6. Losts', 'webform', 'webform_008', '6ba6fd4a-43dc-4f91-9123-56e5de60aed8', 'admin'),
   ('7. Profits', 'webform', 'webform_009', '6ba6fd4a-43dc-4f91-9123-56e5de60aed8', 'admin'),
   ('8. Special', 'webform', 'webform_010', '6ba6fd4a-43dc-4f91-9123-56e5de60aed8', 'admin');
+
+
+INSERT INTO capaci_journals (
+  label, status, author, created_at, posted_at, scenario, year, period, entity, view, value
+)
+VALUES
+  ('Débit différé', 'draft', 'admin', '')
+
+
+
+
+INSERT INTO capaci_staged_data (
+    scenario, year, period, entity, account, custom1, custom2, custom3, custom4, icp, view, value, data_value, source, status, author
+) VALUES
+('ACT', '2025', 'P01', 'CCUSD', 'FA50310S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', -100, 'manual', 'posted', 'admin'),
+('ACT', '2025', 'P01', 'CCUSD', 'FA50310S', 'CHO', '[None]', '[None]', '[None]', '[None]', 'YTD', '<Entity Curr Adjs>', 100, 'manual', 'posted', 'admin');
