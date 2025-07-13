@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { PointOfView } from "./../PointOfView";
 import { ToolBar } from "./../ToolBar";
 import { SmallSpinner } from "../../../Spinner";
@@ -7,7 +7,6 @@ export function ProcessControl() {
     const [pov, setPov] = useState({});
     const [dimensionData, setDimensionData] = useState(null);
     const [statusTree, setStatusTree] = useState([]);
-    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const token = localStorage.getItem("authToken");
@@ -29,7 +28,6 @@ export function ProcessControl() {
 
     const fetchStatusTree = useCallback(async () => {
         if (!isPovReady) return;
-        setError(null);
         setLoading(true);
 
         const params = new URLSearchParams(pov);
@@ -41,8 +39,6 @@ export function ProcessControl() {
             if (!res.ok) throw new Error("Erreur API statut arbre");
             const json = await res.json();
             setStatusTree(sortTree(json));
-        } catch (err) {
-            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -59,35 +55,49 @@ export function ProcessControl() {
     const povParams = useMemo(() => ({
         scenario: { isActivated: true, default: "ACT" },
         year: { isActivated: true, default: "2025" },
-        period: { isActivated: true, default: "P01" },
-        entity: { isActivated: true, default: "CC" }
+        period: { isActivated: true, default: "P01$[Only]" },
+        entity: { isActivated: true, default: "CC$[Descendants]" }
     }), []);
 
     const povStructure = useMemo(() => ({ rows: [], columns: [] }), []);
 
     const sortTree = (nodes) => {
+        const cleanEntityId = (raw) => {
+            if (!raw || typeof raw !== "string") return "";
+            const match = raw.match(/^(.*?)\$?\[.*\]$/);
+            return match ? match[1] : raw;
+        };
+
+        const rawEntity = Array.isArray(pov.entity) ? pov.entity[0] : pov.entity;
+        const rootId = cleanEntityId(rawEntity);
+
         const byId = Object.fromEntries(nodes.map(n => [n.id, { ...n, children: [] }]));
+
         nodes.forEach(n => {
             if (n.parent && byId[n.parent]) {
                 byId[n.parent].children.push(byId[n.id]);
             }
         });
 
-        const sortFn = (a, b) => a.label.localeCompare(b.label, undefined, { numeric: true });
-
         const sortRecursively = (node) => {
-            node.children.sort(sortFn);
+            node.children.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
             node.children.forEach(sortRecursively);
         };
 
-        const root = pov.entity && byId[pov.entity] ? byId[pov.entity] : null;
-        if (!root) return [];
+        const root = byId[rootId];
+
+        if (!root) {
+            return [];
+        }
 
         sortRecursively(root);
 
         const flatten = (node) => [node, ...node.children.flatMap(flatten)];
-        return flatten(root);
+
+        const flatResult = flatten(root);
+        return flatResult;
     };
+
 
     return (
         <div>
