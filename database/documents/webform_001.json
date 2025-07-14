@@ -21,7 +21,7 @@
 		},
 		"account": {
 			"isActivated": true,
-			"default": "[None]"
+			"default": "FA51210S$[Only]"
 		},
 		"custom1": {
 			"isActivated": true,
