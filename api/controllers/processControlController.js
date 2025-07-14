@@ -4,7 +4,7 @@ const fs = require("fs");
 
 const DIMENSION_ROOT = "../database/config";
 
-// 🛠️ Nettoie les paramètres de type $[Only], $[Descendants], $[Base]
+
 const cleanValueAndMode = (raw) => {
     if (!raw) return { value: null, mode: "Only" };
     const match = raw.match(/^(.*?)\$?\[(Only|Descendants|Base)\]$/);
@@ -17,7 +17,6 @@ const cleanValueAndMode = (raw) => {
 const getStatusTree = async (req, res) => {
     try {
         const rawPov = req.query;
-        console.log("📥 Requête reçue avec POV:", rawPov);
 
         const povKeys = ["scenario", "year", "period"];
         if (!povKeys.every(k => rawPov[k])) {
@@ -29,9 +28,7 @@ const getStatusTree = async (req, res) => {
         const { value: scenario } = cleanValueAndMode(rawPov.scenario);
         const { value: year } = cleanValueAndMode(rawPov.year);
 
-        console.log("🔧 POV nettoyé:", { scenario, year, period, entityId, entityMode });
-
-        // 🔄 Charger les dimensions
+        // Chargement des dimensions
         const dimRes = await db.query(`SELECT path FROM capaci_dimension_data ORDER BY created_at DESC LIMIT 1`);
         const jsonPath = path.join(DIMENSION_ROOT, `${dimRes.rows[0].path}.json`);
         const parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
@@ -67,12 +64,7 @@ const getStatusTree = async (req, res) => {
         const excludedAccounts = [...currencyDescendants, ...ownershipDescendants];
         const isExcludedAccount = (account) => excludedAccounts.includes(account);
 
-        // Debug: Afficher les exclusions
-        console.log("🔍 curDescendants:", curDescendants);
-        console.log("🔍 excludedAccounts:", excludedAccounts);
-        console.log("🔍 '[None]' est exclu:", isExcludedCustom2('[None]'));
-
-        // 🧱 Construire la hiérarchie d'entité
+        // Construction de la hiérarchie d'entité
         const entities = entityMembers.map(e => ({ ...e, children: [], level: null }));
         const entityMap = Object.fromEntries(entities.map(e => [e.id, e]));
         entities.forEach(e => {
@@ -104,7 +96,7 @@ const getStatusTree = async (req, res) => {
         }
         const entityIds = selectedEntities.map(e => e.id);
 
-        // 📦 Charger les données
+        // Chargement des données
         const dataRows = await db.query(`
             SELECT entity, value, custom2, account, SUM(data_value::numeric) as data_value
             FROM capaci_data
@@ -126,50 +118,44 @@ const getStatusTree = async (req, res) => {
             WHERE scenario = $1 AND year = $2 AND period = $3 AND status = 'draft'
         `, [scenario, year, period]);
 
-        // 📇 Indexation
+        // Indexation
         const dataMap = {};
-        const contributionTotalMap = {}; // Séparer les Contribution Total
+        const contributionTotalMap = {};
         const stagedMap = {};
         const sourcesMap = {};
 
         dataRows.rows.forEach(row => {
-            console.log(`📊 Processing data row: ${row.entity}|${row.value}|${row.custom2}|${row.account} = ${row.data_value}`);
 
-            // Filtrer les comptes techniques
+            // Filtre des comptes techniques
             if (isExcludedAccount(row.account)) {
-                console.log(`🚫 Excluded account: ${row.account}`);
                 return;
             }
 
             // Pour [Contribution Total], on ne filtre pas par custom2
             if (row.value === '[Contribution Total]') {
                 contributionTotalMap[row.entity] = (contributionTotalMap[row.entity] || 0) + parseFloat(row.data_value);
-                console.log(`✅ Added [Contribution Total] for ${row.entity}: ${row.data_value}`);
             } else {
                 // Pour les autres données, on applique le filtre custom2
                 if (isExcludedCustom2(row.custom2)) {
-                    console.log(`🚫 Excluded custom2: ${row.custom2} for ${row.entity}|${row.value}`);
                     return;
                 }
 
                 // Filtrer les valeurs techniques [None]
                 if (row.value === '[None]') {
-                    console.log(`🚫 Excluded [None] value for ${row.entity}`);
                     return;
                 }
 
                 dataMap[`${row.entity}|${row.value}`] = parseFloat(row.data_value);
-                console.log(`✅ Added data: ${row.entity}|${row.value} = ${row.data_value}`);
             }
         });
 
         stagedRows.rows.forEach(row => {
-            // Filtrer les comptes techniques
+            // Filtre des comptes techniques
             if (isExcludedAccount(row.account)) {
                 return;
             }
 
-            // Filtrer les custom2 exclus
+            // Filtre des custom2 exclus
             if (isExcludedCustom2(row.custom2)) {
                 return;
             }
@@ -200,7 +186,6 @@ const getStatusTree = async (req, res) => {
             const hasChildren = children.length > 0;
 
             // Debug base
-            console.log(`\n📦 Entity: ${id} (${label})`);
 
             // Toutes les clés présentes dans capaci_data
             const dataKeys = Object.keys(dataMap).filter(k => k.startsWith(`${id}|`));
@@ -209,47 +194,61 @@ const getStatusTree = async (req, res) => {
             const hasData = dataKeys.length > 0;
             const hasStaged = stagedKeys.length > 0;
 
-            console.log(`📊 hasData: ${hasData}, hasStaged: ${hasStaged}`);
-
             // Vérifier si cette entité a un [Contribution Total]
             const hasContributionTotal = contributionTotalMap[id] !== undefined;
             const hasOtherData = dataKeys.length > 0; // Les autres données (non [Contribution Total])
             const hasStagedEntityCurrency = stagedMap[`${id}|<Entity Currency>`] !== undefined;
 
-            console.log(`🔍 hasContributionTotal: ${hasContributionTotal} (value: ${contributionTotalMap[id]})`);
-            console.log(`🔍 hasOtherData: ${hasOtherData}`);
-            console.log(`🔍 hasStagedEntityCurrency: ${hasStagedEntityCurrency}`);
-            console.log(`🧒 hasChildren: ${hasChildren}`);
-
             // Vérifier si les enfants ont des [Contribution Total]
             const childHasContribution = children.some(childId => {
                 const childContrib = contributionTotalMap[childId] !== undefined;
-                console.log(`    ↳ 👶 Child ${childId} has [CT]: ${childContrib}`);
                 return childContrib;
             });
 
-            console.log(`👨‍👦‍👦 childHasContribution: ${childHasContribution}`);
-
+            // Logique de calcul de status corrigée
             let calcStatus = 'noData';
 
             if (hasContributionTotal) {
+                // Si on a un [Contribution Total], c'est toujours upToDate
                 calcStatus = 'upToDate';
-                console.log(`✅ Status = upToDate`);
             } else if (hasOtherData) {
-                calcStatus = 'raiseNeeded';
-                console.log(`🔼 Status = raiseNeeded`);
+                // On a des données validées (non [Contribution Total])
+
+                if (!parent) {
+                    // Pour les entités sans parent, on vérifie si on a <Entity Curr Total> OU <Entity Currency>
+                    const hasEntityCurrTotal = dataMap[`${id}|<Entity Curr Total>`] !== undefined ||
+                        stagedMap[`${id}|<Entity Curr Total>`] !== undefined;
+
+                    const hasEntityCurrency = dataMap[`${id}|<Entity Currency>`] !== undefined ||
+                        stagedMap[`${id}|<Entity Currency>`] !== undefined;
+
+                    if (hasEntityCurrTotal) {
+                        calcStatus = 'upToDate';
+                    } else if (hasEntityCurrency) {
+                        // On a <Entity Currency> mais pas <Entity Curr Total> → il faut raise
+                        calcStatus = 'raiseNeeded';
+                    } else {
+                        // Pas de parent mais pas de données pertinentes → calc needed
+                        calcStatus = 'calcNeeded';
+                    }
+                } else {
+                    // Pour les entités avec parent, on doit raise vers le parent
+                    calcStatus = 'raiseNeeded';
+                }
             } else if (hasStaged) {
+                // Données en attente mais rien de validé
                 calcStatus = 'calcNeeded';
-                console.log(`🛠️ Status = calcNeeded`);
-            } else if (hasChildren && childHasContribution && !hasStagedEntityCurrency) {
-                calcStatus = 'rollupNeeded';
-                console.log(`📥 Status = rollupNeeded`);
-            } else if (!parent && stagedMap[`${id}|<Entity Currency>`] !== undefined) {
-                calcStatus = 'upToDate';
-                console.log(`✅ Status = upToDate (no parent + <Entity Currency>)`);
+            } else if (hasChildren && childHasContribution) {
+                // Les enfants ont des contributions mais pas nous
+                const hasStagedEntityCurrency = stagedMap[`${id}|<Entity Currency>`] !== undefined;
+
+                if (!hasStagedEntityCurrency) {
+                    calcStatus = 'rollupNeeded';
+                } else {
+                    calcStatus = 'upToDate';
+                }
             } else {
                 calcStatus = 'noData';
-                console.log(`🚫 Status = noData`);
             }
 
             return {
