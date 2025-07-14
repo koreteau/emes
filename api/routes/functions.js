@@ -4,6 +4,6 @@ const { calculate, raiseData, rollupToParent} = require('../controllers/function
 
 router.post('/calculate', calculate);
 router.post('/raise-data', raiseData);
-router.get('/rollup', rollupToParent);
+router.post('/rollup', rollupToParent);
 
 module.exports = router;
