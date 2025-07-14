@@ -135,8 +135,11 @@ export function ProcessControl() {
                                     case "calcNeeded":
                                         rowBg = "bg-yellow-100";
                                         break;
-                                    case "consoNeeded":
-                                        rowBg = "bg-orange-100";
+                                    case "raiseNeeded":
+                                        rowBg = "bg-yellow-100";
+                                        break;
+                                    case "rollupNeeded":
+                                        rowBg = "bg-yellow-100";
                                         break;
                                     case "upToDate":
                                         rowBg = "bg-green-100";
@@ -155,10 +158,13 @@ export function ProcessControl() {
                                                 <div className="flex items-center justify-center">NO DATA</div>
                                             )}
                                             {node.calcStatus === "calcNeeded" && (
-                                                <div className="flex items-center justify-center">CN</div>
+                                                <div className="flex items-center justify-center">CLN</div>
                                             )}
-                                            {node.calcStatus === "consoNeeded" && (
-                                                <div className="flex items-center justify-center">CN</div>
+                                            {node.calcStatus === "raiseNeeded" && (
+                                                <div className="flex items-center justify-center">RDN</div>
+                                            )}
+                                            {node.calcStatus === "rollupNeeded" && (
+                                                <div className="flex items-center justify-center">RLN</div>
                                             )}
                                             {node.calcStatus === "upToDate" && (
                                                 <div className="flex items-center justify-center">OK</div>
