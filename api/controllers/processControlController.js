@@ -235,9 +235,6 @@ const getStatusTree = async (req, res) => {
             if (hasContributionTotal) {
                 calcStatus = 'upToDate';
                 console.log(`✅ Status = upToDate`);
-            } else if (!parent && stagedMap[`${id}|<Entity Currency>`] !== undefined) {
-                calcStatus = 'upToDate';
-                console.log(`✅ Status = upToDate (no parent + <Entity Currency>)`);
             } else if (hasOtherData) {
                 calcStatus = 'raiseNeeded';
                 console.log(`🔼 Status = raiseNeeded`);
@@ -247,6 +244,9 @@ const getStatusTree = async (req, res) => {
             } else if (hasChildren && childHasContribution && !hasStagedEntityCurrency) {
                 calcStatus = 'rollupNeeded';
                 console.log(`📥 Status = rollupNeeded`);
+            } else if (!parent && stagedMap[`${id}|<Entity Currency>`] !== undefined) {
+                calcStatus = 'upToDate';
+                console.log(`✅ Status = upToDate (no parent + <Entity Currency>)`);
             } else {
                 calcStatus = 'noData';
                 console.log(`🚫 Status = noData`);
