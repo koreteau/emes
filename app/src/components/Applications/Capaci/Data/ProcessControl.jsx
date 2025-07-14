@@ -8,6 +8,7 @@ export function ProcessControl() {
     const [dimensionData, setDimensionData] = useState(null);
     const [statusTree, setStatusTree] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [selectedEntity, setSelectedEntity] = useState(null);
 
     const token = localStorage.getItem("authToken");
 
@@ -51,6 +52,48 @@ export function ProcessControl() {
     const handleRefresh = () => {
         fetchStatusTree();
     };
+
+    const cleanPovValue = (val) => {
+        if (Array.isArray(val)) {
+            val = val[0]; // ne prendre que la première valeur
+        }
+        if (!val || typeof val !== "string") return val;
+        const match = val.match(/^(.*?)\$?\[.*\]$/);
+        return match ? match[1] : val;
+    };
+
+
+    const handleApiCall = async (type) => {
+        if (!selectedEntity) {
+            alert("Please select a valid entity.");
+            return;
+        }
+
+        const { scenario, year, period } = pov;
+        const baseUrl = "http://localhost:8080/api/functions";
+
+        const endpointMap = {
+            calculate: "calculate",
+            raise: "raise-data",
+            rollup: "rollup"
+        };
+
+        const url = `${baseUrl}/${endpointMap[type]}?scenario=${scenario}&year=${year}&period=${cleanPovValue(period)}&entity=${selectedEntity}`;
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const result = await res.json();
+            alert(`Réponse API (${type}) : ${JSON.stringify(result)}`);
+        } catch (err) {
+            alert(`Erreur API (${type}) : ${err.message}`);
+        }
+    };
+
+    const handleCalculate = () => handleApiCall("calculate");
+    const handleRaiseData = () => handleApiCall("raise");
+    const handleRollup = () => handleApiCall("rollup");
 
     const povParams = useMemo(() => ({
         scenario: { isActivated: true, default: "ACT" },
@@ -109,6 +152,9 @@ export function ProcessControl() {
             />
             <ToolBar
                 onRefresh={handleRefresh}
+                onCalculate={handleCalculate}
+                onRaiseData={handleRaiseData}
+                onRollup={handleRollup}
             />
             {loading ? (
                 <div className="flex justify-center items-center py-2">
@@ -149,8 +195,12 @@ export function ProcessControl() {
                                 }
 
                                 return (
-                                    <tr key={node.id}>
-                                        <td className="border px-4 py-1 bg-gray-300" style={{ paddingLeft: `${node.level * 20}px` }}>
+                                    <tr
+                                        key={node.id}
+                                        onClick={() => setSelectedEntity(node.id)}
+                                        className={`cursor-pointer hover:brightness-95 ${selectedEntity === node.id ? "brightness-90" : ""}`}
+                                    >
+                                        <td className={`border px-4 py-1 bg-gray-300 ${rowBg}`} style={{ paddingLeft: `${node.level * 20}px` }}>
                                             {node.label}
                                         </td>
                                         <td className={`border px-4 py-1 min-w-[120px] ${rowBg}`}>
