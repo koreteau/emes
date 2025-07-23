@@ -26,7 +26,7 @@ const verifyDatabaseConnection = async () => {
 
 
 
-// Routes
+// ===== ROUTES =====
 // EMES.
 const authRoutes = require('./routes/auth');
 const securityRoutes = require('./routes/security');
@@ -43,8 +43,12 @@ const functionsRoutes = require('./routes/functions');
 const stagedDataRoutes = require('./routes/stagedData');
 const extractStagedData = require('./routes/extractStagedData')
 
+// Tests
+const dslRoutes = require('./routes/dsl');
 
 
+
+// ===== USE ROUTES =====
 // EMES.
 app.use('/api/auth', authRoutes);
 app.use('/api/security-classes', securityRoutes);
@@ -60,6 +64,9 @@ app.use("/api/process-control", processControlRoutes);
 app.use('/api/functions', functionsRoutes);
 app.use('/api/staged-data', stagedDataRoutes);
 app.use('/api/staged-data/', extractStagedData)
+
+// Tests
+app.use('/api/dsl', dslRoutes);
 
 
 
