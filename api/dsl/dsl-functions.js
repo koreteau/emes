@@ -1,10 +1,10 @@
 /**
- * Fonctions DSL pour le système HFM
- * Fonctions financières, mathématiques et utilitaires
+ * DSL Functions for the HFM System
+ * Mathematical, Utility and Financial Functions
  */
 
 /**
- * Fonctions mathématiques de base
+ * Basic mathematical functions
  */
 function ABS(value) {
     if (value === null || value === undefined) return 0;
@@ -72,7 +72,7 @@ function EXP(value) {
 }
 
 /**
- * Fonctions conditionnelles
+ * Conditional functions
  */
 function IF(condition, trueValue, falseValue) {
     return condition ? trueValue : falseValue;
@@ -88,7 +88,7 @@ function CASE(testValue, ...pairs) {
             return pairs[i + 1];
         }
     }
-    // Valeur par défaut (dernière valeur si impaire)
+    // Default value (last value if odd)
     return pairs.length % 2 === 1 ? pairs[pairs.length - 1] : null;
 }
 
@@ -97,7 +97,7 @@ function SWITCH(testValue, ...cases) {
 }
 
 /**
- * Fonctions logiques
+ * Logical functions
  */
 function AND(...values) {
     return values.every(v => Boolean(v));
@@ -116,7 +116,7 @@ function XOR(a, b) {
 }
 
 /**
- * Fonctions de comparaison
+ * Comparison functions
  */
 function EQUAL(a, b) {
     return a === b;
@@ -139,7 +139,7 @@ function LESS_EQUAL(a, b) {
 }
 
 /**
- * Fonctions de chaînes
+ * String functions
  */
 function CONCAT(...strings) {
     return strings.map(s => s === null || s === undefined ? '' : String(s)).join('');
@@ -192,7 +192,7 @@ function FIND(string, substring) {
 }
 
 /**
- * Fonctions de validation
+ * Validation functions
  */
 function ISNULL(value) {
     return value === null || value === undefined;
@@ -223,7 +223,7 @@ function ISBOOLEAN(value) {
 }
 
 /**
- * Fonctions financières
+ * Financial functions
  */
 function PV(rate, nper, pmt, fv = 0, type = 0) {
     // Valeur actuelle
@@ -238,7 +238,7 @@ function PV(rate, nper, pmt, fv = 0, type = 0) {
 }
 
 function FV(rate, nper, pmt, pv = 0, type = 0) {
-    // Valeur future
+    // Future value
     if (rate === 0) {
         return -(pv + pmt * nper);
     }
@@ -250,7 +250,7 @@ function FV(rate, nper, pmt, pv = 0, type = 0) {
 }
 
 function PMT(rate, nper, pv, fv = 0, type = 0) {
-    // Paiement périodique
+    // Periodic payment
     if (rate === 0) {
         return -(pv + fv) / nper;
     }
@@ -262,7 +262,7 @@ function PMT(rate, nper, pv, fv = 0, type = 0) {
 }
 
 function NPV(rate, ...cashFlows) {
-    // Valeur actuelle nette
+    // Net present value
     let npv = 0;
     for (let i = 0; i < cashFlows.length; i++) {
         npv += cashFlows[i] / Math.pow(1 + rate, i + 1);
@@ -271,7 +271,7 @@ function NPV(rate, ...cashFlows) {
 }
 
 function IRR(cashFlows, guess = 0.1) {
-    // Taux de rentabilité interne (approximation)
+    // Internal rate of return (approximation)
     const maxIterations = 100;
     const tolerance = 1e-10;
 
@@ -298,7 +298,7 @@ function IRR(cashFlows, guess = 0.1) {
 }
 
 /**
- * Fonctions de date
+ * Date functions
  */
 function TODAY() {
     return new Date();
@@ -343,49 +343,6 @@ function DATEDIFF(date1, date2, unit = 'days') {
     }
 }
 
-/**
- * Fonctions HFM spécifiques
- */
-function PRIOR(entity, account, period) {
-    // Récupère la valeur de la période précédente
-    // Cette fonction devrait être implémentée avec l'accès aux données
-    return 0; // Placeholder
-}
-
-function PRIORYTD(entity, account, period) {
-    // Récupère la valeur YTD de la période précédente
-    return 0; // Placeholder
-}
-
-function CURRENTVIEW() {
-    // Retourne la vue actuelle
-    return 'Current';
-}
-
-function CURRENTPERIOD() {
-    // Retourne la période actuelle
-    return 'Current';
-}
-
-function CURRENTSCENARIO() {
-    // Retourne le scénario actuel
-    return 'Actual';
-}
-
-function CURRENTVERSION() {
-    // Retourne la version actuelle
-    return 'Working';
-}
-
-function CURRENTYEAR() {
-    // Retourne l'année actuelle
-    return new Date().getFullYear();
-}
-
-function CURRENTMONTH() {
-    // Retourne le mois actuel
-    return new Date().getMonth() + 1;
-}
 
 /**
  * Fonctions utilitaires
@@ -544,32 +501,39 @@ function GET_DB_CONNECTION() {
     return _dbConnection;
 }
 
-async function SQL_QUERY(query, params = []) {
+async function SQL_QUERY(query, params = [], allowWrite = false) {
     if (!_dbConnection) {
         throw new Error('Database connection not configured. Call SET_DB_CONNECTION first.');
     }
 
-    // Validation basique de sécurité
     if (!query || typeof query !== 'string') {
         throw new Error('Invalid SQL query: must be a non-empty string');
     }
 
-    // Liste noire de mots-clés dangereux (basique)
-    const dangerousKeywords = ['DROP', 'DELETE', 'TRUNCATE', 'ALTER', 'CREATE', 'INSERT', 'UPDATE'];
+    // Vérification sécurité pour les écritures
     const upperQuery = query.toUpperCase();
+    const writeKeywords = ['INSERT', 'UPDATE', 'DELETE'];
+    const hasWriteKeyword = writeKeywords.some(keyword => upperQuery.includes(keyword));
 
-    for (const keyword of dangerousKeywords) {
-        if (upperQuery.includes(keyword)) {
-            throw new Error(`SQL query contains forbidden keyword: ${keyword}`);
-        }
+    if (hasWriteKeyword && !allowWrite) {
+        throw new Error('Write operation detected. Use allowWrite=true as 3rd parameter.');
     }
 
     try {
         console.log('[SQL_QUERY] Executing:', query.substring(0, 100) + '...');
         const result = await _dbConnection.query(query, params);
 
-        // Retourner les données directement (PostgreSQL retourne result.rows)
-        return result.rows || [];
+        // Retourner selon le type d'opération
+        if (upperQuery.startsWith('SELECT')) {
+            return result.rows || [];
+        } else if (hasWriteKeyword) {
+            return {
+                rowCount: result.rowCount,
+                success: true
+            };
+        } else {
+            return result.rows || [];
+        }
 
     } catch (error) {
         console.error('[SQL_QUERY] Error:', error.message);
@@ -676,6 +640,93 @@ async function SQL_TEST_CONNECTION() {
     }
 }
 
+/**
+ * STRUCTURES DE DONNÉES NATIVES
+ */
+function CREATE_SET() {
+    return new Set();
+}
+
+function SET_ADD(set, item) {
+    if (!(set instanceof Set)) {
+        throw new Error('First argument must be a Set');
+    }
+    set.add(item);
+    return set; // Pour chaînage
+}
+
+function SET_HAS(set, item) {
+    if (!(set instanceof Set)) {
+        return false;
+    }
+    return set.has(item);
+}
+
+function SET_SIZE(set) {
+    if (!(set instanceof Set)) {
+        return 0;
+    }
+    return set.size;
+}
+
+function CREATE_MAP() {
+    return new Map();
+}
+
+function MAP_SET(map, key, value) {
+    if (!(map instanceof Map)) {
+        throw new Error('First argument must be a Map');
+    }
+    map.set(key, value);
+    return map; // Pour chaînage
+}
+
+function MAP_GET(map, key) {
+    if (!(map instanceof Map)) {
+        return null;
+    }
+    return map.get(key) || null;
+}
+
+function MAP_HAS(map, key) {
+    if (!(map instanceof Map)) {
+        return false;
+    }
+    return map.has(key);
+}
+
+function MAP_KEYS(map) {
+    if (!(map instanceof Map)) {
+        return [];
+    }
+    return Array.from(map.keys());
+}
+
+/**
+ * UTILITAIRES POUR BOUCLES (en attendant FOREACH natif)
+ */
+function ARRAY_EACH(array, callback) {
+    // Note: Cette fonction nécessiterait un support spécial dans l'interpréteur
+    // pour passer des fonctions comme callbacks. Pour l'instant, on peut simuler.
+    if (!Array.isArray(array)) {
+        return [];
+    }
+    
+    const results = [];
+    for (let i = 0; i < array.length; i++) {
+        // Dans un vrai DSL, callback serait exécuté avec l'interpréteur
+        results.push({ index: i, item: array[i] });
+    }
+    return results;
+}
+
+/**
+ * UTILITAIRES RECURSION
+ */
+function IS_VALID_ID(id) {
+    return id !== null && id !== undefined && id !== '';
+}
+
 
 // Export de toutes les fonctions
 module.exports = {
@@ -705,10 +756,6 @@ module.exports = {
     // Dates
     TODAY, NOW, YEAR, MONTH, DAY, DATEVALUE, DATEDIFF,
 
-    // HFM spécifiques
-    PRIOR, PRIORYTD, CURRENTVIEW, CURRENTPERIOD, CURRENTSCENARIO,
-    CURRENTVERSION, CURRENTYEAR, CURRENTMONTH,
-
     // Utilitaires
     PRINT, DEBUG, ERROR, WARNING, TRACE,
 
@@ -723,7 +770,7 @@ module.exports = {
 
     // Objets génériques  
     GET_PROP, HAS_PROP, IS_OBJECT,
-
+    
     // Recherche générique
     FIND_IN_ARRAY, COUNT_IN_ARRAY, FILTER_ARRAY,
 
@@ -734,5 +781,11 @@ module.exports = {
     SQL_QUERY, SQL_SELECT, SQL_COUNT, SQL_EXISTS, SQL_DISTINCT,
 
     // Utilitaires SQL
-    BUILD_WHERE, SQL_TEST_CONNECTION
+    BUILD_WHERE, SQL_TEST_CONNECTION,
+
+    // Structures de données
+    CREATE_SET, SET_ADD, SET_HAS, SET_SIZE, CREATE_MAP, MAP_SET, MAP_GET, MAP_HAS, MAP_KEYS,
+    
+    // Utilitaires
+    ARRAY_EACH, IS_VALID_ID,
 };

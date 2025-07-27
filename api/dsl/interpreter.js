@@ -1,6 +1,6 @@
 /**
- * Enhanced interpreter with function definition and call support
- * Updated for new RULE...ENDRULE syntax
+ * Enhanced interpreter avec nouveau style DSL
+ * SET var = expr; CALL func(args); LOG message; EXPORT var;
  */
 
 const { EventEmitter } = require('events');
@@ -28,7 +28,7 @@ class ExecutionContext {
         this.variables = new Map(Object.entries(variables));
         this.parent = parent;
         this.functions = new Map();
-        this.userDefinedFunctions = new Map(); // Store user-defined functions
+        this.userDefinedFunctions = new Map();
         this.constants = new Map();
         this.metadata = {
             startTime: Date.now(),
@@ -36,8 +36,10 @@ class ExecutionContext {
             executionDepth: 0
         };
         this.calculatedVariables = new Map();
-        this.returnValue = null; // For handling return statements
-        this.shouldReturn = false; // Flag to control return flow
+        this.returnValue = null;
+        this.shouldReturn = false;
+        this.exports = new Map(); // Variables exportées pour l'API
+        this.logs = []; // Messages de log
 
         this._loadDSLFunctions();
     }
@@ -93,10 +95,25 @@ class ExecutionContext {
         return this.userDefinedFunctions.has(name) || (this.parent && this.parent.hasUserDefinedFunction(name));
     }
 
+    // Nouveau : gestion des exports
+    exportVariable(name) {
+        if (!this.hasVariable(name)) {
+            throw new RuntimeError(`Variable à exporter non définie: ${name}`);
+        }
+        const value = this.getVariable(name);
+        this.exports.set(name, value);
+    }
+
+    // Nouveau : gestion des logs
+    addLog(message) {
+        this.logs.push({
+            timestamp: new Date().toISOString(),
+            message: message
+        });
+    }
+
     createChild(variables = {}) {
         const child = new ExecutionContext(variables, this);
-        // Child contexts don't inherit user-defined functions by default
-        // They need to access them through the parent chain
         return child;
     }
 
@@ -123,6 +140,8 @@ class ExecutionContext {
         newContext.userDefinedFunctions = new Map(this.userDefinedFunctions);
         newContext.constants = new Map(this.constants);
         newContext.calculatedVariables = new Map(this.calculatedVariables);
+        newContext.exports = new Map(this.exports);
+        newContext.logs = [...this.logs];
         return newContext;
     }
 
@@ -184,9 +203,7 @@ class DSLInterpreter extends EventEmitter {
         const startTime = Date.now();
         const executionContext = new ExecutionContext(context);
         
-        // Stocker le contexte pour SET_VAR
         this.currentContext = executionContext;
-
         this._injectServices(executionContext);
 
         try {
@@ -211,6 +228,8 @@ class DSLInterpreter extends EventEmitter {
                 result,
                 executionTime,
                 context: executionContext,
+                exports: Object.fromEntries(executionContext.exports), // Variables exportées
+                logs: executionContext.logs, // Messages de log
                 metadata: {
                     statementCount: parseResult.ast.statements.length,
                     callStack: executionContext.metadata.callStack,
@@ -229,6 +248,8 @@ class DSLInterpreter extends EventEmitter {
                     result: [],
                     executionTime: Date.now() - startTime,
                     context: executionContext,
+                    exports: Object.fromEntries(executionContext.exports),
+                    logs: executionContext.logs,
                     warnings: [error.message]
                 };
             }
@@ -238,6 +259,8 @@ class DSLInterpreter extends EventEmitter {
                 error: error.message,
                 executionTime: Date.now() - startTime,
                 context: executionContext,
+                exports: Object.fromEntries(executionContext.exports),
+                logs: executionContext.logs,
                 stack: error.stack
             };
         }
@@ -279,7 +302,6 @@ class DSLInterpreter extends EventEmitter {
                         console.warn(`⚠️  Erreur dans statement: ${error.message}`);
                         continue;
                     } else {
-                        // Si continueOnError est false, propager l'erreur
                         throw error;
                     }
                 }
@@ -303,8 +325,17 @@ class DSLInterpreter extends EventEmitter {
                 // Already handled in first pass
                 return null;
 
-            case 'CallRuleStatement':
-                return await this._executeCallRule(statement, context);
+            case 'SetStatement':
+                return await this._executeSetStatement(statement, context);
+
+            case 'CallStatement':
+                return await this._executeCallStatement(statement, context);
+
+            case 'LogStatement':
+                return await this._executeLogStatement(statement, context);
+
+            case 'ExportStatement':
+                return await this._executeExportStatement(statement, context);
 
             case 'ExpressionStatement':
                 return await this._evaluateExpression(statement.expression, context);
@@ -322,24 +353,18 @@ class DSLInterpreter extends EventEmitter {
         }
     }
 
-    async _executeBlock(block, context) {
-        let lastResult = null;
-
-        for (const statement of block.statements) {
-            if (context.shouldReturn) {
-                break;
-            }
-
-            const result = await this._executeStatement(statement, context);
-            if (result !== null && result !== undefined) {
-                lastResult = result;
-            }
+    async _executeSetStatement(statement, context) {
+        const value = await this._evaluateExpression(statement.expression, context);
+        context.setVariable(statement.name, value);
+        
+        if (this.options.enableTracing) {
+            console.log(`📦 SET ${statement.name} = ${typeof value === 'object' ? JSON.stringify(value).substring(0, 100) + '...' : value}`);
         }
-
-        return context.shouldReturn ? context.returnValue : lastResult;
+        
+        return value;
     }
 
-    async _executeCallRule(statement, context) {
+    async _executeCallStatement(statement, context) {
         const functionName = statement.name;
         const args = [];
 
@@ -349,12 +374,7 @@ class DSLInterpreter extends EventEmitter {
         }
 
         if (this.options.enableTracing) {
-            console.log(`📞 Appel CALLRULE: ${functionName}(${args.join(', ')}) [depth: ${context.metadata.executionDepth}]`);
-        }
-
-        // Vérifier la profondeur avant tout appel
-        if (context.metadata.executionDepth >= this.options.maxCallStackDepth) {
-            throw new RuntimeError(`Profondeur d'appel maximale atteinte (${this.options.maxCallStackDepth})`);
+            console.log(`📞 CALL ${functionName}(${args.map(a => typeof a === 'object' ? '[Object]' : a).join(', ')})`);
         }
 
         // Check if it's a user-defined function
@@ -380,6 +400,46 @@ class DSLInterpreter extends EventEmitter {
         throw new RuntimeError(`Fonction non trouvée: ${functionName}`);
     }
 
+    async _executeLogStatement(statement, context) {
+        const message = await this._evaluateExpression(statement.expression, context);
+        const logMessage = String(message);
+        
+        context.addLog(logMessage);
+        
+        if (this.options.enableTracing) {
+            console.log(`📝 LOG: ${logMessage}`);
+        }
+        
+        return logMessage;
+    }
+
+    async _executeExportStatement(statement, context) {
+        context.exportVariable(statement.name);
+        
+        if (this.options.enableTracing) {
+            console.log(`📤 EXPORT ${statement.name}`);
+        }
+        
+        return context.getVariable(statement.name);
+    }
+
+    async _executeBlock(statement, context) {
+        let lastResult = null;
+
+        for (const stmt of statement.statements) {
+            if (context.shouldReturn) {
+                break;
+            }
+
+            const result = await this._executeStatement(stmt, context);
+            if (result !== null && result !== undefined) {
+                lastResult = result;
+            }
+        }
+
+        return context.shouldReturn ? context.returnValue : lastResult;
+    }
+
     async _callUserDefinedFunction(functionName, args, context) {
         const func = context.getUserDefinedFunction(functionName);
 
@@ -389,15 +449,13 @@ class DSLInterpreter extends EventEmitter {
             );
         }
 
-        // Vérifier la profondeur de récursion AVANT d'aller plus loin
         if (context.metadata.executionDepth >= this.options.maxCallStackDepth) {
             throw new RuntimeError(`Profondeur de récursion maximale atteinte (${this.options.maxCallStackDepth}) dans ${functionName}`);
         }
 
-        // Vérifier la récursion directe (même fonction qui s'appelle elle-même)
         const callStack = context.metadata.callStack;
         const sameFunction = callStack.filter(call => call.functionName === functionName);
-        if (sameFunction.length >= 10) { // Maximum 10 appels recursifs de la même fonction
+        if (sameFunction.length >= 10) {
             throw new RuntimeError(`Récursion excessive détectée dans ${functionName} (${sameFunction.length} appels)`);
         }
 
@@ -405,7 +463,6 @@ class DSLInterpreter extends EventEmitter {
             console.log(`🎯 Exécution fonction utilisateur: ${functionName}(${args.join(', ')}) [depth: ${context.metadata.executionDepth}]`);
         }
 
-        // Create a new context for the function execution
         const functionContext = context.createChild();
 
         // Bind parameters to arguments
@@ -427,7 +484,6 @@ class DSLInterpreter extends EventEmitter {
         } catch (error) {
             context.popCall();
             
-            // Si c'est une erreur de récursion, la propager sans l'emballer
             if (error.message.includes('récursion') || error.message.includes('call stack') || error.message.includes('Maximum call stack')) {
                 throw error;
             }
@@ -458,8 +514,6 @@ class DSLInterpreter extends EventEmitter {
                 return await this._evaluateUnaryExpression(expr, context);
             case 'FunctionCall':
                 return await this._evaluateFunctionCall(expr, context);
-            case 'CallRuleExpression':
-                return await this._evaluateCallRuleExpression(expr, context);
             case 'ConditionalExpression':
                 return await this._evaluateConditionalExpression(expr, context);
             case 'ArrayExpression':
@@ -469,42 +523,6 @@ class DSLInterpreter extends EventEmitter {
             default:
                 throw new RuntimeError(`Type d'expression non supporté: ${expr.type}`);
         }
-    }
-
-    async _evaluateCallRuleExpression(expr, context) {
-        const functionName = expr.name;
-        const args = [];
-
-        // Evaluate arguments
-        for (const arg of expr.arguments) {
-            args.push(await this._evaluateExpression(arg, context));
-        }
-
-        if (this.options.enableTracing) {
-            console.log(`📞 Appel CALLRULE dans expression: ${functionName}(${args.join(', ')})`);
-        }
-
-        // Check if it's a user-defined function
-        if (context.hasUserDefinedFunction(functionName)) {
-            return await this._callUserDefinedFunction(functionName, args, context);
-        }
-
-        // Check if it's a built-in function
-        if (context.functions.has(functionName)) {
-            const func = context.getFunction(functionName);
-            context.pushCall(functionName, args);
-
-            try {
-                const result = await func.apply(context, args);
-                context.popCall();
-                return result;
-            } catch (error) {
-                context.popCall();
-                throw new RuntimeError(`Erreur dans la fonction ${functionName}: ${error.message}`);
-            }
-        }
-
-        throw new RuntimeError(`Fonction non trouvée: ${functionName}`);
     }
 
     async _evaluateBinaryExpression(expr, context) {
@@ -601,7 +619,7 @@ class DSLInterpreter extends EventEmitter {
         return object[property];
     }
 
-    // Service injection methods (same as before)
+    // Service injection methods
     _injectServices(context) {
         context.setVariable('$dataStore', this.dataStore);
         context.setVariable('$hierarchyManager', this.hierarchyManager);
@@ -613,17 +631,6 @@ class DSLInterpreter extends EventEmitter {
         context.setFunction('SET_DATA', this._createSetDataFunction());
         context.setFunction('GET_HIERARCHY', this._createGetHierarchyFunction());
         context.setFunction('FORMAT_VALUE', this._createFormatValueFunction());
-        
-        // Nouvelle fonction pour stocker des variables
-        context.setFunction('SET_VAR', this._createSetVariableFunction());
-    }
-
-    _createSetVariableFunction() {
-        return (varName, value) => {
-            // Stocker la variable dans le contexte
-            this.currentContext.setVariable(varName, value);
-            return value; // Retourner la valeur pour pouvoir chaîner
-        };
     }
 
     _createGetDataFunction() {
@@ -662,7 +669,7 @@ class DSLInterpreter extends EventEmitter {
         };
     }
 
-    // Stats methods (same as before)
+    // Stats methods
     getStats() {
         return {
             totalExecutions: this.stats.totalExecutions,

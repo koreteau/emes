@@ -1,6 +1,6 @@
 /*
- * Grammaire PEG.js pour le DSL HFM avec support des fonctions
- * Syntaxe: RULE nom(params) ... ENDRULE et CALLRULE nom(args)
+ * Grammaire PEG.js pour le DSL HFM avec style amélioré
+ * Style: SET var = expr; CALL func(args); LOG message; EXPORT var;
  */
 
 Start
@@ -16,7 +16,10 @@ Program
 
 Statement
   = FunctionDefinition
-  / CallRuleStatement
+  / SetStatement
+  / CallStatement
+  / LogStatement
+  / ExportStatement
   / ExpressionStatement
 
 FunctionDefinition
@@ -26,6 +29,40 @@ FunctionDefinition
         name: name,
         parameters: params || [],
         body: body
+      };
+    }
+
+SetStatement
+  = _ "SET" !([a-zA-Z0-9_]) _ name:Identifier _ "=" _ expr:Expression _ ";"? {
+      return {
+        type: 'SetStatement',
+        name: name,
+        expression: expr
+      };
+    }
+
+CallStatement
+  = _ "CALL" !([a-zA-Z0-9_]) _ name:Identifier _ "(" _ args:ArgumentList? _ ")" _ ";"? {
+      return {
+        type: 'CallStatement',
+        name: name,
+        arguments: args || []
+      };
+    }
+
+LogStatement
+  = _ "LOG" !([a-zA-Z0-9_]) _ expr:Expression _ ";"? {
+      return {
+        type: 'LogStatement',
+        expression: expr
+      };
+    }
+
+ExportStatement
+  = _ "EXPORT" !([a-zA-Z0-9_]) _ name:Identifier _ ";"? {
+      return {
+        type: 'ExportStatement',
+        name: name
       };
     }
 
@@ -43,7 +80,7 @@ FunctionBody
     }
 
 FunctionStatement
-  = _ stmt:(ReturnStatement / ExpressionStatement) _ {
+  = _ stmt:(ReturnStatement / SetStatement / CallStatement / LogStatement / ExpressionStatement) _ {
       return stmt;
     }
 
@@ -52,15 +89,6 @@ ReturnStatement
       return {
         type: 'ReturnStatement',
         expression: expr
-      };
-    }
-
-CallRuleStatement
-  = _ "CALLRULE" !([a-zA-Z0-9_]) _ name:Identifier _ "(" _ args:ArgumentList? _ ")" _ ";"? {
-      return {
-        type: 'CallRuleStatement',
-        name: name,
-        arguments: args || []
       };
     }
 
@@ -107,10 +135,10 @@ LogicalAndExpression
     }
 
 EqualityExpression
-  = left:RelationalExpression rest:(_ ("==" / "!=" / "=" / "<>") _ RelationalExpression)* {
+  = left:RelationalExpression rest:(_ ("==" / "!=" / "<>") _ RelationalExpression)* {
       return rest.reduce((acc, curr) => ({
         type: 'BinaryExpression',
-        operator: curr[1] === '=' ? '==' : curr[1] === '<>' ? '!=' : curr[1],
+        operator: curr[1] === '<>' ? '!=' : curr[1],
         left: acc,
         right: curr[3]
       }), left);
@@ -199,7 +227,6 @@ PostfixOperator
 
 PrimaryExpression
   = "(" _ expr:Expression _ ")" { return expr; }
-  / CallRuleExpression
   / FunctionCall
   / Variable
   / ArrayLiteral
@@ -207,26 +234,11 @@ PrimaryExpression
   / StringLiteral
   / BooleanLiteral
   / NullLiteral
-  / name:Identifier {
-      return {
-        type: 'Variable',
-        name: name
-      };
-    }
 
 FunctionCall
   = name:Identifier _ "(" _ args:ArgumentList? _ ")" {
       return {
         type: 'FunctionCall',
-        name: name,
-        arguments: args || []
-      };
-    }
-
-CallRuleExpression
-  = "CALLRULE" !([a-zA-Z0-9_]) _ name:Identifier _ "(" _ args:ArgumentList? _ ")" {
-      return {
-        type: 'CallRuleExpression',
         name: name,
         arguments: args || []
       };
@@ -238,13 +250,7 @@ ArgumentList
     }
 
 Variable
-  = "@" name:Identifier {
-      return {
-        type: 'Variable',
-        name: name
-      };
-    }
-  / "$" name:Identifier {
+  = name:Identifier {
       return {
         type: 'Variable',
         name: name
@@ -335,7 +341,7 @@ Exponent
     }
 
 Identifier
-  = !("RULE" / "ENDRULE" / "RETURN" / "CALLRULE" / "TRUE" / "FALSE" / "NULL" / "OR" / "AND" / "NOT") 
+  = !("RULE" / "ENDRULE" / "RETURN" / "SET" / "CALL" / "LOG" / "EXPORT" / "TRUE" / "FALSE" / "NULL" / "OR" / "AND" / "NOT") 
     first:[a-zA-Z_] rest:[a-zA-Z0-9_]* {
       return first + rest.join('');
     }

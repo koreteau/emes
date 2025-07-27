@@ -433,7 +433,10 @@ class DSLParser {
 
             const validTypes = [
                 'FunctionDefinition',
-                'CallRuleStatement', 
+                'SetStatement',        // ← NOUVEAU
+                'CallStatement',       // ← NOUVEAU  
+                'LogStatement',        // ← NOUVEAU
+                'ExportStatement',     // ← NOUVEAU
                 'ExpressionStatement',
                 'ReturnStatement',
                 'BlockStatement'
@@ -476,13 +479,13 @@ class DSLParser {
     _formatFunctionDefinition(func, indent) {
         const params = func.parameters ? func.parameters.join(', ') : '';
         let result = `RULE ${func.name}(${params})\n`;
-        
+
         if (func.body && func.body.statements) {
             for (const stmt of func.body.statements) {
                 result += indent + this._formatStatement(stmt, indent) + '\n';
             }
         }
-        
+
         result += 'ENDRULE';
         return result;
     }

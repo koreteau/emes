@@ -1,47 +1,86 @@
-// rules.dsl
-// Fichier de test simple avec requêtes SQL basiques
+// rules_copy_full.dsl - Copie COMPLÈTE de la table
 
-// === TESTS SQL SIMPLES ===
+LOG "=== COPIE COMPLÈTE DE CAPACI_DATA ===";
 
-// Test 1 : Récupérer des données d'une entité spécifique
-SET_VAR("us_data", SQL_QUERY("SELECT * FROM capaci_data WHERE entity='CCUSD' LIMIT 10"));
+// === ÉTAT INITIAL ===
+SET source_count = SQL_QUERY("SELECT COUNT(*) as count FROM capaci_data");
+SET source_total = TONUMBER(GET_PROP(GET_AT(source_count, 0), "count"));
 
-// Test 2 : Compter les enregistrements
-SET_VAR("total_records", SQL_QUERY("SELECT COUNT(*) as count FROM capaci_data"));
+SET target_count_before = SQL_QUERY("SELECT COUNT(*) as count FROM capaci_data_clonetest");
+SET target_total_before = TONUMBER(GET_PROP(GET_AT(target_count_before, 0), "count"));
 
-// Test 3 : Données d'une autre entité
-SET_VAR("fr_data", SQL_QUERY("SELECT * FROM capaci_data WHERE entity='CCEUR' LIMIT 5"));
+LOG "📊 Avant: Source=" + source_total + ", Cible=" + target_total_before;
 
-// Test 4 : Récupérer les entités distinctes
-SET_VAR("distinct_entities", SQL_QUERY("SELECT DISTINCT entity FROM capaci_data ORDER BY entity"));
+// === NETTOYAGE ===
+LOG "🧹 Nettoyage de la table cible...";
+SET cleanup = SQL_QUERY("DELETE FROM capaci_data_clonetest", [], TRUE);
+SET deleted_rows = GET_PROP(cleanup, "rowCount");
 
-// === TRAITEMENT DES DONNÉES ===
+LOG "🗑️ " + deleted_rows + " anciennes lignes supprimées";
 
-// Compter les résultats
-SET_VAR("us_count", ARRAY_LENGTH(us_data));
-SET_VAR("fr_count", ARRAY_LENGTH(fr_data));
-SET_VAR("entities_count", ARRAY_LENGTH(distinct_entities));
+// === COPIE COMPLÈTE ===
+LOG "📝 Copie de TOUS les enregistrements...";
 
-// Premier enregistrement US
-SET_VAR("first_us_record", GET_AT(us_data, 0));
-SET_VAR("first_us_account", 
-    IF(ISNOTNULL(first_us_record), GET_PROP(first_us_record, "account"), "No data"));
+SET copy_result = SQL_QUERY(
+    "INSERT INTO capaci_data_clonetest SELECT * FROM capaci_data", 
+    [], 
+    TRUE
+);
 
-// Nombre total d'enregistrements depuis la requête COUNT
-SET_VAR("db_total_count", 
-    IF(ARRAY_LENGTH(total_records) > 0, 
-       GET_PROP(GET_AT(total_records, 0), "count"), 
-       0));
+SET rows_copied = GET_PROP(copy_result, "rowCount");
+LOG "✅ " + rows_copied + " enregistrements copiés";
 
-// === RÉSULTATS POUR L'API ===
+// === VÉRIFICATION ===
+SET target_count_after = SQL_QUERY("SELECT COUNT(*) as count FROM capaci_data_clonetest");
+SET target_total_after = TONUMBER(GET_PROP(GET_AT(target_count_after, 0), "count"));
 
-SET_VAR("test_summary", CONCAT(
-    "Test SQL completed on ", executionDate, 
-    " | US records: ", us_count,
-    " | FR records: ", fr_count,
-    " | Total entities: ", entities_count,
-    " | DB total: ", db_total_count
-));
+// Vérification que tout a été copié
+SET complete_copy = target_total_after == source_total;
+SET copy_integrity = rows_copied == source_total;
+SET success = complete_copy AND copy_integrity;
+SET status = IF(success, "SUCCESS", "FAILED");
 
-SET_VAR("test_status", "COMPLETED");
-SET_VAR("data_quality", IF(us_count > 0 AND fr_count > 0, "GOOD", "PARTIAL"));
+LOG "📊 Après: Source=" + source_total + ", Cible=" + target_total_after;
+LOG "🎯 Status: " + status;
+
+// === ÉCHANTILLON DE VÉRIFICATION ===
+SET copied_sample = SQL_QUERY("SELECT entity, account, period FROM capaci_data_clonetest LIMIT 5");
+SET sample_count = ARRAY_LENGTH(copied_sample);
+
+LOG "📋 Échantillon vérifié: " + sample_count + " enregistrements lisibles";
+
+// === STATISTIQUES PAR ENTITÉ ===
+SET source_entities = SQL_QUERY("SELECT entity, COUNT(*) as count FROM capaci_data GROUP BY entity ORDER BY count DESC");
+SET target_entities = SQL_QUERY("SELECT entity, COUNT(*) as count FROM capaci_data_clonetest GROUP BY entity ORDER BY count DESC");
+
+SET entities_match = ARRAY_LENGTH(source_entities) == ARRAY_LENGTH(target_entities);
+
+LOG "🏢 Entités source: " + ARRAY_LENGTH(source_entities) + ", cible: " + ARRAY_LENGTH(target_entities);
+
+// === RÉSUMÉ FINAL ===
+SET copy_percentage = ROUND((target_total_after / source_total) * 100, 2);
+
+SET summary = CONCAT(
+    "Copie ", status, " - ",
+    rows_copied, " enregistrements copiés (",
+    copy_percentage, "% de la source)"
+);
+
+LOG "📋 Résumé: " + summary;
+
+// === EXPORTS ===
+EXPORT source_total;
+EXPORT target_total_before;
+EXPORT target_total_after;
+EXPORT rows_copied;
+EXPORT deleted_rows;
+EXPORT complete_copy;
+EXPORT copy_integrity;
+EXPORT entities_match;
+EXPORT copy_percentage;
+EXPORT success;
+EXPORT status;
+EXPORT summary;
+EXPORT copied_sample;
+EXPORT source_entities;
+EXPORT target_entities;
