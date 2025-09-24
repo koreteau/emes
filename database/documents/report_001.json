@@ -1,0 +1,103 @@
+{
+    "_id": "report_001",
+    "name": "Exchange Rates – Report V1",
+    "type": "report",
+    "parameters": {
+        "scenario": {
+            "isActivated": true,
+            "default": "ACT"
+        },
+        "year": {
+            "isActivated": true,
+            "default": "2025"
+        },
+        "period": {
+            "isActivated": false,
+            "default": null
+        },
+        "entity": {
+            "isActivated": true,
+            "default": "[None]$[Only]"
+        },
+        "account": {
+            "isActivated": false,
+            "default": null
+        },
+        "custom1": {
+            "isActivated": false,
+            "default": null
+        },
+        "custom2": {
+            "isActivated": false,
+            "default": null
+        },
+        "custom3": {
+            "isActivated": false,
+            "default": null
+        },
+        "custom4": {
+            "isActivated": false,
+            "default": null
+        },
+        "ICP": {
+            "isActivated": false,
+            "default": null
+        },
+        "value": {
+            "isActivated": false,
+            "default": "Local"
+        },
+        "view": {
+            "isActivated": false,
+            "default": "YTD"
+        }
+    },
+    "layout": {
+        "pageSize": "A4",
+        "orientation": "portrait",
+        "margins": {
+            "top": 24,
+            "right": 18,
+            "bottom": 24,
+            "left": 18
+        },
+        "fit": "auto"
+    },
+    "sections": [
+        {
+            "type": "title",
+            "text": "Exchange Rates – {year}",
+            "level": 1
+        },
+        {
+            "type": "table",
+            "title": "FX matrix",
+            "source": {
+                "rows": [
+                    "account=CURRENCY$[Base]",
+                    "custom2=CUR$[Base]"
+                ],
+                "columns": [
+                    "period=Year$[Base]"
+                ],
+                "fixed": [
+                    "scenario",
+                    "year",
+                    "entity",
+                    "value",
+                    "view",
+                    "custom1",
+                    "custom3",
+                    "custom4",
+                    "ICP"
+                ]
+            },
+            "options": {
+                "repeatHeader": true,
+                "cellFormat": "#,##0.000",
+                "columnAutoWidth": true,
+                "rowBanding": true
+            }
+        }
+    ]
+}
