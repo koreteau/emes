@@ -6,7 +6,8 @@ const {
     getDocumentById,
     getDocumentContentById,
     updateDocument,
-    deleteDocument
+    deleteDocument,
+    renderReport
 } = require("../controllers/documentsController");
 
 const router = express.Router();
@@ -20,6 +21,9 @@ router.delete("/:documentId", authenticateToken, isAdmin, deleteDocument); // Su
 router.get("/", authenticateToken, getAllDocuments); // Récupérer tous les documents
 router.get("/:documentId", authenticateToken, getDocumentById); // Récupérer un document par ID
 router.get("/:documentId/content", authenticateToken, getDocumentContentById);
+
+// DEV -> Export PDF/PNG du rapport (utilisateur connecté + permissions déjà vérifiées dans le controller)
+router.post("/:documentId/render", authenticateToken, renderReport);
 
 
 module.exports = router;
