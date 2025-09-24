@@ -2,6 +2,7 @@ import { useState } from "react";
 import Explorer from "./Explorer";
 import { ProcessControl } from "./Data/ProcessControl";
 import { Webform } from "./Webform";
+import { Report } from "./Report";
 import { Journals } from "./Journals/Journals";
 import { DataLoad } from "./Load/LoadData";
 import { ExtractData } from "./Extract/ExtractData";
@@ -64,26 +65,46 @@ export function Capaci() {
     };
 
     const handleOpenDocument = (doc) => {
-        if (doc.type === "webform") {
-            const existingTab = tabs.find((tab) => tab.name === doc.name);
-            if (existingTab) {
-                setActiveTab(existingTab.id);
-            } else {
-                const newTab = {
-                    id: Date.now(),
-                    name: doc.name,
-                    content: <Webform docId={doc.id} />,
-                    icon: (
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25..." />
-                        </svg>
-                    ),
-                };
-                setTabs((prev) => [...prev, newTab]);
-                setActiveTab(newTab.id);
-            }
+        // Si un onglet du même nom existe déjà, on le sélectionne
+        const existingTab = tabs.find((tab) => tab.name === doc.name);
+        if (existingTab) {
+            setActiveTab(existingTab.id);
+            return;
         }
+
+        // Choix du contenu + icône selon le type
+        let content = null;
+        let icon = null;
+
+        if (doc.type === "webform") {
+            content = <Webform docId={doc.id} />;
+            icon = (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                </svg>
+            );
+        } else if (doc.type === "report") {
+            content = <Report docId={doc.id} />;
+            icon = (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25M9 16.5v.75m3-3v3M15 12v5.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+            );
+        } else {
+            // Fallback : type inconnu → onglet “lecture seule” basique
+            content = <div className="p-2 text-sm">Type de document non pris en charge : <b>{doc.type}</b></div>;
+            icon = (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+                </svg>
+            );
+        }
+
+        const newTab = { id: Date.now(), name: doc.name, content, icon };
+        setTabs((prev) => [...prev, newTab]);
+        setActiveTab(newTab.id);
     };
+
 
     return (
         <div className="flex flex-col h-full">
