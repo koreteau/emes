@@ -126,7 +126,12 @@ const Explorer = ({ onOpenDocument }) => {
 										</svg>
 									</span>
 									<span>
-										<button className="hover:underline">{doc.name}</button>
+										<button
+											className="hover:underline text-left"
+											onClick={() => onOpenDocument(doc)}
+										>
+											{doc.name}
+										</button>
 									</span>
 								</>
 							) : (
